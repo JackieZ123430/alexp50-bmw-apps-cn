@@ -1,0 +1,14 @@
+[Unit]
+Description=Vehicle Network passive inventory for the MGU app
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/var/opt/mgu-python/current/bin/python3 /var/opt/vehicle-network-observer/current/observer.py
+Restart=always
+RestartSec=2
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=multi-user.target

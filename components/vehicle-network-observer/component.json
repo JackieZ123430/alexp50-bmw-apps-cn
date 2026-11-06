@@ -1,0 +1,15 @@
+{
+  "id": "vehicle-network-observer",
+  "kind": "tool",
+  "version": "0.1.2",
+  "title": "Vehicle network observer",
+  "description": "Creates the passive network inventory consumed by the Vehicle Network app",
+  "mguHmi": ["ID7"],
+  "requires": {"mgu-deploy": "0.7.11", "mgu-python": "1.0.2"},
+  "uninstallable": true,
+  "keepRunning": true,
+  "files": [{"path": "observer.py", "from": "files/observer.py", "mode": "0755"}],
+  "units": [{"name": "vehicle-network-observer.service", "from": "units/vehicle-network-observer.service"}],
+  "enable": [{"unit": "vehicle-network-observer.service", "target": "multi-user.target"}],
+  "restart": ["vehicle-network-observer.service"]
+}

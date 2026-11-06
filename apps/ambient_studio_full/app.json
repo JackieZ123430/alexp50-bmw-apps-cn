@@ -1,0 +1,85 @@
+{
+  "id": "ambient_studio_full",
+  "title": "Ambient Studio",
+  "description": "Full-screen drive-mode colours and rate-limited ambient-light alerts",
+  "version": "0.1.5",
+  "vendor": "alexp50",
+  "loggingId": "OAA8",
+  "iconGlyph": "AMB",
+  "signals": {
+    "de.bmw.infotainment.drivingexcitement.FES": {
+      "_instances": "1",
+      "statusFESVehicleDynamicSwitchHMI": "rs"
+    },
+    "de.bmw.infotainment.misc.ComfortFunctionIuK": {
+      "_instances": "1",
+      "ambientLightInteriorColour": "w",
+      "statusAmbientLightInteriorColour": "rs"
+    },
+    "de.bmw.infotainment.vehicle.CDS": {
+      "_instances": "1",
+      "statusEngineStatus": "rs"
+    },
+    "de.bmw.body.Light": {
+      "_instances": "1",
+      "_optional": "hazard-light learning and alert",
+      "LampExterior2": "s"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "Ambient Studio",
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "Next page"
+        ],
+        [
+          "BTN_SELECT",
+          "Next action"
+        ],
+        [
+          "BTN_ACTION",
+          "Activate"
+        ],
+        [
+          "BTN_BACK",
+          "Overview"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "fullScreenRequired": true
+  }
+}

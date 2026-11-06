@@ -1,0 +1,18 @@
+{
+  "id": "waze-hud-control",
+  "kind": "tool",
+  "version": "0.3.0",
+  "title": "Waze HUD controller",
+  "description": "Applies and persists the Waze HUD geometry selected in the Waze HUD app",
+  "mguHmi": ["ID7"],
+  "requires": {"mgu-deploy": "0.7.11", "cluster-render": "0.3.10", "waze-on-cluster": "0.8.3"},
+  "uninstallable": true,
+  "keepRunning": true,
+  "files": [
+    {"path": "controller.js", "from": "files/controller.js", "mode": "0644"},
+    {"path": "geometry.js", "from": "files/geometry.js", "mode": "0644"}
+  ],
+  "units": [{"name": "waze-hud-control.service", "from": "units/waze-hud-control.service"}],
+  "enable": [{"unit": "waze-hud-control.service", "target": "multi-user.target"}],
+  "restart": ["waze-hud-control.service"]
+}

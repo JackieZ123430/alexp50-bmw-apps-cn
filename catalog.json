@@ -1,0 +1,452 @@
+{
+  "schema": 2,
+  "name": "AlexP50 BMW Apps",
+  "components": [
+    {
+      "id": "ambient_studio_full",
+      "kind": "app",
+      "version": "0.1.5",
+      "title": "Ambient Studio",
+      "description": "Full-screen drive-mode colours and rate-limited ambient-light alerts",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "ambient_studio_full@0.1.5.tgz",
+        "size": 1102577,
+        "sha256": "0c533d017fcae20d76572e1d609705c3e9de5c84f9114816ef55760c9bd55979",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/ambient_studio_full@0.1.5/ambient_studio_full@0.1.5.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "ambient_studio_full.png",
+      "iconSha256": "434496689786ba9298ac6f597e24d6e02eff91e4fe0274e2793924d62f1129fb"
+    },
+    {
+      "id": "dpf_monitor",
+      "kind": "app",
+      "version": "0.3.2",
+      "title": "DPF Monitor",
+      "description": "Read-only diesel particulate filter monitor: soot, regeneration progress, temperature, pressure and history",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "dpf_monitor@0.3.2.tgz",
+        "size": 1102193,
+        "sha256": "fb150fb02513b5aff07bd8ec14f26fa83d02455015f7336c26b24849b4341f98",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/dpf_monitor@0.3.2/dpf_monitor@0.3.2.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "dpf_monitor.png",
+      "iconSha256": "05d736b1573e0e5603de7ba5417abc8c1b609ee1287c650463e3bf04e3c285d9"
+    },
+    {
+      "id": "drive_hud_full",
+      "kind": "app",
+      "version": "0.1.6",
+      "title": "Drive HUD",
+      "description": "Full-screen HUD controls: turn arrows, Sport gear/RPM/shift lights and engine warm-up",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "drive_hud_full@0.1.6.tgz",
+        "size": 1098138,
+        "sha256": "d3c57b8d7f1de244e6dfd048a610175c2657e04d3164f27929b2ca6c9aa061ea",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/drive_hud_full@0.1.6/drive_hud_full@0.1.6.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "cluster-render": "0.3.10"
+      },
+      "author": "alexp50",
+      "icon": "drive_hud_full.png",
+      "iconSha256": "571b8d73e71aebfcea7b1fb1c24ceed58e768b123d0664a59dc655094533d0c7"
+    },
+    {
+      "id": "green_light_alert",
+      "kind": "app",
+      "version": "0.2.0",
+      "title": "Green Light Alert",
+      "description": "Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "green_light_alert@0.2.0.tgz",
+        "size": 1101771,
+        "sha256": "fa58a89e648803beea0616c617674eeaa167ab3f23d0f0d190dcd6844ebc3d3e",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/green_light_alert@0.2.0/green_light_alert@0.2.0.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "green_light_alert.png",
+      "iconSha256": "c4adae128b72c41d2adc00bc8f2c62ccb113af677194b408db3ef03bcc1c4339"
+    },
+    {
+      "id": "front_camera_cluster",
+      "kind": "app",
+      "version": "0.2.1",
+      "title": "Night Vision Cluster",
+      "description": "Full-screen control for BMW Night Vision and parking-camera projection in the instrument cluster",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "front_camera_cluster@0.2.1.tgz",
+        "size": 1094471,
+        "sha256": "110dadc9901303c4f4a7285c4bf9e8c5ad16606b1deb04fd9ba40bea68cced20",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/front_camera_cluster@0.2.1/front_camera_cluster@0.2.1.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "front-camera-cluster-helper": "0.2.1"
+      },
+      "author": "alexp50",
+      "icon": "front_camera_cluster.png",
+      "iconSha256": "cfd4f70c700e6659ad5249206c4fa0bba60e6d06ce153c656063048101d9c564"
+    },
+    {
+      "id": "parking_clearance",
+      "kind": "app",
+      "version": "0.1.8",
+      "title": "Parking & Clearance",
+      "description": "Read-only PDC distances, steering path and suspension stance for close parking",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "parking_clearance@0.1.8.tgz",
+        "size": 1324313,
+        "sha256": "58a135ec1941265184c3661a573a80f0886e9e6dc900eddce6831c4bbbfa8165",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/parking_clearance@0.1.8/parking_clearance@0.1.8.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "parking_clearance.png",
+      "iconSha256": "82ed2bf58e2cb6a0d55e0db3c43df9f48b16391870a282dbcad20ef52c6af64b"
+    },
+    {
+      "id": "ride_height",
+      "kind": "app",
+      "version": "0.5.4",
+      "title": "Ride Height Studio",
+      "description": "Full-screen VDP Standard/High control and measured ride-height planner",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "ride_height@0.5.4.tgz",
+        "size": 1097066,
+        "sha256": "fcebba4c2bcf027f9707b698180508cd8f42f73cfde8154b35c750f4e0fd502d",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/ride_height@0.5.4/ride_height@0.5.4.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "ride_height.png",
+      "iconSha256": "0673ed96ff32911a21d025f441f9b1d8d906757a90b66ac407944f790f932976"
+    },
+    {
+      "id": "road_trip_computer",
+      "kind": "app",
+      "version": "1.0.0",
+      "title": "Road Trip Computer",
+      "description": "Full-screen trip history with fuel use, fuel price, cost, range, outside temperature and GPS elevation",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "road_trip_computer@1.0.0.tgz",
+        "size": 1175267,
+        "sha256": "98175136b308be8d83748e3ece7c9a56d0cb19a2570da92729d3c51803f13dbf",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/road_trip_computer@1.0.0/road_trip_computer@1.0.0.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "road_trip_computer.png",
+      "iconSha256": "f6869ed092dbf6d90de790b98329d0675ef4433f1d8c68b2989c7ec8eaefd9f4"
+    },
+    {
+      "id": "start_stop_insight",
+      "kind": "app",
+      "version": "0.1.3",
+      "title": "Start/Stop Insight",
+      "description": "Current and last ten observed Start/Stop inhibition states plus live electrical consumers",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "start_stop_insight@0.1.3.tgz",
+        "size": 1098120,
+        "sha256": "bf50e361b375dfc0707c92908c56dfc1d691c2ff5a9fa2c6981df7f77b896e38",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/start_stop_insight@0.1.3/start_stop_insight@0.1.3.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "start_stop_insight.png",
+      "iconSha256": "86ad4df3cabb06fab636ed8ceb7dced3e83b05ec6090109508151ddd42202f6d"
+    },
+    {
+      "id": "telemetry_studio",
+      "kind": "app",
+      "version": "0.1.2",
+      "title": "Telemetry Studio",
+      "description": "Full-screen live powertrain, thermal, tyre and xDrive telemetry",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "telemetry_studio@0.1.2.tgz",
+        "size": 1126101,
+        "sha256": "fd665a94dd4871fa179114c5e956bdd701490c1fdb724a0f20f6135fe92efec0",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/telemetry_studio@0.1.2/telemetry_studio@0.1.2.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "telemetry_studio.png",
+      "iconSha256": "3f7d9d0cd043acac1abc69ea1b8c3a58c967d81b93515578ba1d9474704c089b"
+    },
+    {
+      "id": "vehicle_health",
+      "kind": "app",
+      "version": "0.1.4",
+      "title": "Vehicle Health Center",
+      "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "vehicle_health@0.1.4.tgz",
+        "size": 1099483,
+        "sha256": "f65c2a54ee1f47fb0b80d683d7d97d8f6ba91bc781b033edbb17942892735fb4",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.4/vehicle_health@0.1.4.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "vehicle_health.png",
+      "iconSha256": "54d5df8cc616a3c0bbd6a5dd85eab7a6439dbebd56a9addfcb165427be82d0a3"
+    },
+    {
+      "id": "vehicle_network",
+      "kind": "app",
+      "version": "0.1.2",
+      "title": "Vehicle Network",
+      "description": "Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "vehicle_network@0.1.2.tgz",
+        "size": 1102702,
+        "sha256": "92bf07d14ed68f174fc5e902c2d93d0420bba2d837cc1660da6c0f12a2369307",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_network@0.1.2/vehicle_network@0.1.2.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "vehicle-network-observer": "0.1.2"
+      },
+      "author": "alexp50",
+      "icon": "vehicle_network.png",
+      "iconSha256": "3630c97a7de8cc97f05ddd43fa6b61a83dca0555cd851229e8708c94779d3363"
+    },
+    {
+      "id": "waze_hud",
+      "kind": "app",
+      "version": "0.3.0",
+      "title": "Waze HUD",
+      "description": "Full-screen control for projecting the CarPlay navigation map into the head-up display",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "waze_hud@0.3.0.tgz",
+        "size": 1095845,
+        "sha256": "ecdd40e269b9eeb418381a91e9aa4bbfab020754bc1faec54af6bbc861441ab8",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/waze_hud@0.3.0/waze_hud@0.3.0.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "waze-hud-control": "0.3.0"
+      },
+      "author": "alexp50",
+      "icon": "waze_hud.png",
+      "iconSha256": "23272f7dcbde1d72e2444d8ced3130b3e42fbfc268b66444b998d9e40177df9b"
+    },
+    {
+      "id": "xdrive_studio",
+      "kind": "app",
+      "version": "0.1.3",
+      "title": "xDrive Studio",
+      "description": "Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "xdrive_studio@0.1.3.tgz",
+        "size": 1229573,
+        "sha256": "9e0edfc0c34465c7a84eb6a58290006e012585fbbaceda21e95f18bb1c9cac19",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/xdrive_studio@0.1.3/xdrive_studio@0.1.3.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "author": "alexp50",
+      "icon": "xdrive_studio.png",
+      "iconSha256": "8c00bc6829c56fc0e0938b93ff9a08c2b04581dde91ed72739d579b1643974cb"
+    },
+    {
+      "id": "mgu-inputgate",
+      "kind": "tool",
+      "version": "1.0.0",
+      "title": "Controller gate",
+      "description": "Provides iDrive controller input to the full-screen custom apps",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "mgu-inputgate@1.0.0.tgz",
+        "size": 5237,
+        "sha256": "9b7272671604b0ee1e216834ac38651889883b9759a28f93a72e4c7e2678fb40",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/mgu-inputgate@1.0.0/mgu-inputgate@1.0.0.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "mgu-deploy": "0.6.1",
+        "idrive7-renderd": "2.1.7"
+      }
+    },
+    {
+      "id": "idrive7-renderd",
+      "kind": "tool",
+      "version": "2.1.7",
+      "title": "GPU renderer",
+      "description": "Full-screen 60 fps renderer used by the AlexP50 iDrive apps",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "idrive7-renderd@2.1.7.tgz",
+        "size": 90460,
+        "sha256": "44d50279be92f0c242a2e77fd9cf437089cb4bcdc0e65b373101247331b54f6d",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/idrive7-renderd@2.1.7/idrive7-renderd@2.1.7.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "mgu-deploy": "0.6.1"
+      },
+      "mguProvides": "renderer"
+    },
+    {
+      "id": "front-camera-cluster-helper",
+      "kind": "tool",
+      "version": "0.2.1",
+      "title": "Night Vision cluster helper",
+      "description": "Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "front-camera-cluster-helper@0.2.1.tgz",
+        "size": 4006,
+        "sha256": "394076ef83aa204b6902ee20afe9a839f19f67296a6c8b530885df6ae1e07dd4",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/front-camera-cluster-helper@0.2.1/front-camera-cluster-helper@0.2.1.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "mgu-deploy": "0.7.11",
+        "cluster-render": "0.3.10"
+      }
+    },
+    {
+      "id": "vehicle-network-observer",
+      "kind": "tool",
+      "version": "0.1.2",
+      "title": "Vehicle network observer",
+      "description": "Creates the passive network inventory consumed by the Vehicle Network app",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "vehicle-network-observer@0.1.2.tgz",
+        "size": 5887,
+        "sha256": "216a50ffbe3e5b64524b7a2bb89a752a0f30aea197493455028236f9e690a715",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle-network-observer@0.1.2/vehicle-network-observer@0.1.2.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "mgu-deploy": "0.7.11",
+        "mgu-python": "1.0.2"
+      }
+    },
+    {
+      "id": "waze-hud-control",
+      "kind": "tool",
+      "version": "0.3.0",
+      "title": "Waze HUD controller",
+      "description": "Applies and persists the Waze HUD geometry selected in the Waze HUD app",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "waze-hud-control@0.3.0.tgz",
+        "size": 3201,
+        "sha256": "26f324ccfa58f42a17b78c11321bd9413c5fb83c71f5d46dff44195fbc764f57",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/waze-hud-control@0.3.0/waze-hud-control@0.3.0.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "mgu-deploy": "0.7.11",
+        "cluster-render": "0.3.10",
+        "waze-on-cluster": "0.8.3"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+'use strict';
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const ROOT = path.resolve(__dirname, '..', '..');
+const H = require(path.join(ROOT, 'apps', 'vehicle_health', 'logic'));
+assert.strictEqual(H.tempC(138), 90);
+assert.ok(Math.abs(H.tyreP(24) - 2.4) < 1e-9);
+assert.strictEqual(H.tyreP(65535), null);
+assert.strictEqual(H.tyreT(60), 20);
+assert.ok(Math.abs(H.decodeDid(0x44BE, [0x62,0x44,0xBE,0x03,0xE8]) - 15.25902) < 1e-5);
+assert.strictEqual(H.decodeDid(0x4C78, [0x62,0x4C,0x78,0x04,0xD2]), 12340);
+const src = fs.readFileSync(path.join(ROOT, 'apps', 'vehicle_health', 'main.js'), 'utf8');
+assert.ok(/\.functional\(0x19/.test(src) && /\.physical\([^\n]+0x22/.test(src), 'only fault and DID reads are present');
+assert.ok(!/\b0x(?:14|2E|2F|31)\b/i.test(src), 'no clear, write, control or routine service');
+console.log('Vehicle Health decoder and read-only checks passed.');

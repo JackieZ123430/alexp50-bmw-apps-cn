@@ -1,0 +1,52 @@
+# AlexP50 BMW iDrive 7 Apps
+
+Full-screen apps for BMW MGU / iDrive 7, packaged for [Robert Nisipeanu's MGU Store](https://github.com/robertnisipeanu/mgu-store).
+
+## Install from the Store
+
+1. Open **Store** in iDrive.
+2. Open **Settings** and choose **Add source**.
+3. Enter `alexp50/bmw-apps`.
+4. Choose **Releases** as the source type.
+5. Refresh sources, then install or update the apps you want.
+
+The release catalog includes the shared GPU renderer and controller gate. Waze HUD and Night Vision Cluster also require `cluster-render` and, for Waze, `waze-on-cluster` from `robertnisipeanu/idrive-apps`. Vehicle Network requires `mgu-python` from the MGU Store source.
+
+## Apps
+
+| App | Package | Purpose |
+| --- | --- | --- |
+| Ambient Studio | `ambient_studio_full` | Drive-mode ambient colours and rate-limited lighting alerts. Writes only the selected ambient-light colour. |
+| DPF Monitor | `dpf_monitor` | Read-only soot, regeneration estimate, temperatures, pressure and regeneration history. |
+| Drive HUD | `drive_hud_full` | HUD turn arrows, Sport gear/RPM/shift lights and engine warm-up information. |
+| Green Light Alert | `green_light_alert` | Watches the KAFAS traffic-light camera provider and BMW's validated display signal for red-to-green transitions. Experimental on region-restricted cars. |
+| Night Vision Cluster | `front_camera_cluster` | Projects BMW Night Vision or the parking camera surface into the cluster. Experimental and limited to low speed. |
+| Parking & Clearance | `parking_clearance` | Read-only PDC distances, steering tracks and suspension stance. |
+| Ride Height Studio | `ride_height` | Requests the factory VDP Standard or High state and keeps a measured-height plan. Parked use only. |
+| Road Trip Computer | `road_trip_computer` | Trip history, fuel use, price per litre, trip cost, range, temperature and elevation. Uses its own ID and does not replace Live Data or M Vitals. |
+| Start/Stop Insight | `start_stop_insight` | Read-only current/recent Start/Stop inhibition states and available electrical-load channels. |
+| Telemetry Studio | `telemetry_studio` | Read-only engine, thermal, tyre, chassis and xDrive telemetry. |
+| Vehicle Health Center | `vehicle_health` | Read-only tyres, fluids, service, Check Control, DPF and current faults. |
+| Vehicle Network | `vehicle_network` | Passive MGU network inventory and ENET laptop IPv4 guidance. |
+| Waze HUD | `waze_hud` | Controls CarPlay map placement and perspective in the HUD. |
+| xDrive Studio | `xdrive_studio` | Read-only xDrive torque distribution, wheel slip and chassis dynamics. |
+
+All app dashboards request the full iDrive canvas and use the 60 fps GPU renderer. Unsupported or stale readings are left blank rather than invented.
+
+## Build and validate
+
+```powershell
+python kit/tools/build.py ambient_studio_full dpf_monitor drive_hud_full front_camera_cluster green_light_alert parking_clearance ride_height road_trip_computer start_stop_insight telemetry_studio vehicle_health vehicle_network waze_hud xdrive_studio
+python tools/build_components.py
+python tools/prepare_release.py
+```
+
+The GitHub workflow publishes every artifact in `packages/`, plus `catalog.json`, `mgu-store.json`, and the app icons, as a Store-compatible release.
+
+## Safety and scope
+
+These are unofficial enthusiast apps and are not affiliated with BMW. Diagnostic dashboards are read-only unless their description explicitly says otherwise. Use visual apps while parked or let a passenger operate them. Ride Height Studio exposes only BMW's Standard/High request used on this car; it does not perform ISTA ride-height calibration or direct individual-strut actuation.
+
+## License
+
+The application kit is MIT licensed; retained third-party files and binaries keep the licences shipped beside them.

@@ -1,0 +1,33 @@
+{
+  "id": "idrive7-renderd",
+  "kind": "tool",
+  "version": "2.1.7",
+  "title": "GPU renderer",
+  "description": "Full-screen 60 fps renderer used by the AlexP50 iDrive apps",
+  "mguProvides": "renderer",
+  "mguHmi": ["ID7"],
+  "requires": {"mgu-deploy": "0.6.1"},
+  "uninstallable": true,
+  "keepRunning": true,
+  "files": [
+    {"path": "mgu-renderd", "from": "files/mgu-renderd", "mode": "0755"},
+    {"path": "foreground_gate.js", "from": "files/foreground_gate.js", "mode": "0644"},
+    {"path": "hmi_template.js", "from": "files/hmi_template.js", "mode": "0644"},
+    {"path": "mgu-render-hmi.sh", "from": "files/mgu-render-hmi.sh", "mode": "0755"},
+    {"path": "mgu-render-hmi-guard.sh", "from": "files/mgu-render-hmi-guard.sh", "mode": "0755"},
+    {"path": "idrive7-renderd-install.sh", "from": "files/idrive7-renderd-install.sh", "mode": "0755"},
+    {"path": "LICENSE", "from": "files/LICENSE", "mode": "0644"},
+    {"path": "LICENSE.mgu-renderd", "from": "files/LICENSE.mgu-renderd", "mode": "0644"}
+  ],
+  "units": [
+    {"name": "idrive7-renderd.service", "from": "units/idrive7-renderd.service"},
+    {"name": "idrive7-renderd-hmi.service", "from": "units/idrive7-renderd-hmi.service"}
+  ],
+  "enable": [
+    {"unit": "idrive7-renderd.service", "target": "oapcontroller.service"},
+    {"unit": "idrive7-renderd-hmi.service", "target": "hmi.service"}
+  ],
+  "recmgr": ["idrive7-renderd", "idrive7-renderd-hmi"],
+  "restart": ["idrive7-renderd.service"],
+  "postInstall": ["idrive7-renderd-install.sh"]
+}

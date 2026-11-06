@@ -1,0 +1,72 @@
+{
+  "id": "front_camera_cluster",
+  "title": "Night Vision Cluster",
+  "description": "Full-screen control for BMW Night Vision and parking-camera projection in the instrument cluster",
+  "version": "0.2.1",
+  "vendor": "alexp50",
+  "loggingId": "OAB2",
+  "iconGlyph": "NVC",
+  "signals": {
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "statusCarSpeed2": "rs"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "Night Vision Cluster",
+      "settingsTab": false,
+      "buttons": [
+        [
+          "BTN_NIGHT",
+          "Night Vision"
+        ],
+        [
+          "BTN_PARK",
+          "Parking camera"
+        ],
+        [
+          "BTN_STOP",
+          "Stop"
+        ],
+        [
+          "BTN_REFRESH",
+          "Refresh status"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "fullScreenRequired": true,
+    "maxProjectionSpeedKmh": 15
+  }
+}

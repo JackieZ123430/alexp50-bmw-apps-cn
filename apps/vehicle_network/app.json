@@ -1,0 +1,79 @@
+{
+  "id": "vehicle_network",
+  "title": "Vehicle Network",
+  "description": "Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup",
+  "version": "0.1.2",
+  "vendor": "alexp50",
+  "loggingId": "OAB6",
+  "iconGlyph": "IP",
+  "signals": {},
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "Vehicle Network",
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "Next section"
+        ],
+        [
+          "BTN_MORE",
+          "More rows"
+        ],
+        [
+          "BTN_REFRESH",
+          "Refresh now"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "demo",
+      "label": "Demo data",
+      "type": "choice",
+      "default": "off",
+      "options": [
+        [
+          "off",
+          "Never"
+        ],
+        [
+          "on",
+          "Always"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "stateFile": "/var/opt/vehicle-network-observer/state.json",
+    "fullScreenRequired": true
+  }
+}

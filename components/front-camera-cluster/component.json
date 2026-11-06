@@ -1,0 +1,19 @@
+{
+  "id": "front-camera-cluster-helper",
+  "kind": "tool",
+  "version": "0.2.1",
+  "title": "Night Vision cluster helper",
+  "description": "Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster",
+  "mguHmi": ["ID7"],
+  "requires": {"mgu-deploy": "0.7.11", "cluster-render": "0.3.10"},
+  "uninstallable": true,
+  "keepRunning": true,
+  "files": [
+    {"path": "controller.js", "from": "files/controller.js", "mode": "0644"},
+    {"path": "front-camera-cluster.conf", "from": "files/front-camera-cluster.conf", "mode": "0644"},
+    {"path": "sources.json", "from": "files/sources.json", "mode": "0644"}
+  ],
+  "units": [{"name": "front-camera-cluster.service", "from": "units/front-camera-cluster.service"}],
+  "enable": [{"unit": "front-camera-cluster.service", "target": "multi-user.target"}],
+  "restart": ["front-camera-cluster.service"]
+}

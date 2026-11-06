@@ -1,0 +1,89 @@
+{
+  "id": "waze_hud",
+  "title": "Waze HUD",
+  "description": "Full-screen control for projecting the CarPlay navigation map into the head-up display",
+  "version": "0.3.0",
+  "vendor": "alexp50",
+  "loggingId": "OAB1",
+  "iconGlyph": "NAV",
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "Waze HUD",
+      "settingsTab": false,
+      "buttons": [
+        [
+          "SHOW_HUD",
+          "Project on HUD"
+        ],
+        [
+          "SHOW_MAP",
+          "Return to cluster"
+        ],
+        [
+          "PRESET_NEXT",
+          "Next display preset"
+        ],
+        [
+          "FIELD_NEXT",
+          "Select adjustment"
+        ],
+        [
+          "VALUE_MINUS",
+          "Decrease selected value"
+        ],
+        [
+          "VALUE_PLUS",
+          "Increase selected value"
+        ],
+        [
+          "CENTER",
+          "Centre map"
+        ],
+        [
+          "REFRESH",
+          "Read current geometry"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "fullScreenRequired": true,
+    "hudCanvas": "1000x600",
+    "displayPresets": [
+      "fill",
+      "balanced",
+      "natural",
+      "legacy"
+    ]
+  }
+}

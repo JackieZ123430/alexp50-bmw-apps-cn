@@ -1,0 +1,176 @@
+{
+  "id": "green_light_alert",
+  "title": "Green Light Alert",
+  "description": "Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback",
+  "version": "0.2.0",
+  "vendor": "alexp50",
+  "loggingId": "OAB4",
+  "iconGlyph": "●)))",
+  "signals": {
+    "de.bmw.environmentalmodel.TrafficLightRecognitionFrontCameraLegacy": {
+      "_broadcasts": [
+        "RecognitionTrafficLightCamera"
+      ],
+      "_optional": "raw KAFAS traffic-light objects; BMW's validated display signal remains as a fallback"
+    },
+    "de.bmw.dass.driverassistanceapplications.TrafficSignDisplayControl": {
+      "displayForesight": "s"
+    },
+    "de.bmw.dass.settingsdriverassistancefunctions.SettingsDriverAssistanceFunctions": {
+      "settingDriveOffReminder": "sw",
+      "settingTrafficlightDriveOff": "sw"
+    },
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "statusCarSpeed2": "rs"
+    },
+    "de.bmw.infotainment.fasus.FASuS": {
+      "statusIDriveFASExtended": "rs"
+    },
+    "de.bmw.infotainment.gp.gongplayer.IGPCommand": {
+      "_methods": [
+        "requestGong"
+      ],
+      "_broadcasts": [
+        "gongStatusChangeAndConfirmation"
+      ],
+      "_optional": "audible green-light chime; visual alert remains available"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "Green Light Alert",
+      "settingsTab": false,
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "Next page"
+        ],
+        [
+          "BTN_ACTION",
+          "Request OEM ON"
+        ],
+        [
+          "BTN_SETTINGS",
+          "Settings"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "rawRedCode",
+      "label": "Raw KAFAS red colour code",
+      "type": "choice",
+      "default": "1",
+      "reset": 1,
+      "options": [
+        [
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "1 (expected)"
+        ],
+        [
+          "2",
+          "2"
+        ],
+        [
+          "3",
+          "3"
+        ],
+        [
+          "4",
+          "4"
+        ],
+        [
+          "5",
+          "5"
+        ]
+      ]
+    },
+    {
+      "key": "rawGreenCode",
+      "label": "Raw KAFAS green colour code",
+      "type": "choice",
+      "default": "3",
+      "reset": 1,
+      "options": [
+        [
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "1"
+        ],
+        [
+          "2",
+          "2"
+        ],
+        [
+          "3",
+          "3 (expected)"
+        ],
+        [
+          "4",
+          "4"
+        ],
+        [
+          "5",
+          "5"
+        ]
+      ]
+    },
+    {
+      "key": "demo",
+      "label": "Demo data",
+      "type": "choice",
+      "default": "off",
+      "reset": 1,
+      "options": [
+        [
+          "off",
+          "Never"
+        ],
+        [
+          "on",
+          "Always"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "fullScreenRequired": true,
+    "nativeSetting": "Configured through iDrive > Traffic light recognition > Drive off reminder"
+  }
+}

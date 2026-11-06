@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "apps": {
+    "path": "apps/*",
+    "manifest": "app.json",
+    "icon": "icon.png",
+    "mguHmi": ["ID7"],
+    "requires": {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.0"},
+    "build": {
+      "python": "kit/tools/build.py",
+      "args": ["{id}"],
+      "sdk": "oap-sdk",
+      "output": "dist/{id}@{version}.tgz"
+    }
+  },
+  "tools": [
+    {"id": "idrive7-renderd", "path": "components/idrive7-renderd"},
+    {"id": "mgu-inputgate", "path": "components/mgu-inputgate"},
+    {"id": "front-camera-cluster-helper", "path": "components/front-camera-cluster"},
+    {"id": "vehicle-network-observer", "path": "components/vehicle-network-observer"},
+    {"id": "waze-hud-control", "path": "components/waze-hud-control"}
+  ]
+}

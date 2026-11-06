@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('assert'),fs=require('fs'),path=require('path');
+const L=require(path.resolve(__dirname,'..','..','apps','start_stop_insight','logic'));
+const reply=[0x62,0x58,0xB1,0,0,0,1,0x58,0xB2,0,0,0,0];
+const split=L.splitReply(reply,[0x58B1,0x58B2]);assert.deepStrictEqual(split['58B1'],[0,0,0,1]);
+let v=L.decode(split);assert.strictEqual(v['58B1'],1);assert.deepStrictEqual(L.bitList(0x80000005),[0,2,31]);
+let s=L.stateOf({'58B1':0,'58B2':0,'58B3':0,'58B4':0,'58B5':4});assert.strictEqual(s.active[0].did,'58B5');assert.ok(/SYSTEM/.test(s.title));
+v={'429D':40,'43CA':2000,'43CB':1000,'43CC':1,'43FD':300,'4D12':128,voltage:14};const c=L.consumers(v);assert.strictEqual(c.length,5);assert.ok(c.every((x,i)=>!i||c[i-1].watts>=x.watts));
+const d83=L.decode({'43B9':[0x83,0x92],'43C0':[0x7B,0xCB],'43C1':[0x37,0xA2],'43FE':[0,0],'4A98':[0,0],'48F9':[0x7F,0xFF],'4D0B':[0x7F,0xFF],'56E3':[0x7F,0xFF],'43CC':[0],'43FD':[7,0xD0]});
+assert.ok(Math.abs(d83.voltage-14.242)<1e-6);assert.ok(Math.abs(d83.batteryCurrent+53.8)<1e-6);assert.ok(Math.abs(d83.generatorCurrent-114.375)<1e-6);assert.strictEqual(L.consumers(d83).length,5);
+assert.deepStrictEqual(L.stateOf({'58B1':0,'58B2':0,'58B3':0,'58B4':0,'58B5':0}).signature,'clear');
+const inhibited={'58B1':0,'58B2':0,'58B3':0,'58B4':1,'58B5':0};
+assert.strictEqual(L.operatingState(inhibited,true).title,'STOP INHIBITED · DRIVER CONDITION');
+assert.strictEqual(L.operatingState(inhibited,false).title,'AUTO-STOPPED · READY TO RESTART');
+assert.strictEqual(L.engineRunning('MOTOR_AUS'),false);assert.strictEqual(L.engineRunning('MOTOR_LAEUFT'),true);
+const main=fs.readFileSync(path.resolve(__dirname,'..','..','apps','start_stop_insight','main.js'),'utf8');
+assert.ok(/status:reader\.status\(\)/.test(main),'live view must render the status result, not the function source');
+console.log('Start/Stop Insight parsing, state and consumer ranking checks passed.');

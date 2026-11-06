@@ -1,0 +1,183 @@
+{
+  "id": "dpf_monitor",
+  "title": "DPF Monitor",
+  "description": "Read-only diesel particulate filter monitor: soot, regeneration progress, temperature, pressure and history",
+  "version": "0.3.2",
+  "vendor": "alexp50",
+  "loggingId": "OAA3",
+  "iconGlyph": "DPF",
+  "signals": {
+    "com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu": {
+      "_instances": "SystemFunctionsInternalTasuInst1",
+      "_methods": [
+        "sendTasuRequest"
+      ],
+      "_broadcasts": [
+        "sendTasuResponse"
+      ]
+    },
+    "de.bmw.infotainment.vehicle.CDS": {
+      "statusEngineTemperature": "rs"
+    },
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "statusCarSpeed2": "rs"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "DPF Monitor",
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "Next page"
+        ],
+        [
+          "BTN_ACTION",
+          "Refresh"
+        ],
+        [
+          "BTN_SETTINGS",
+          "Settings"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "variantPolicy",
+      "label": "DDE variant",
+      "type": "choice",
+      "default": "verified",
+      "options": [
+        [
+          "verified",
+          "Verified D70 / D75 / D83 only"
+        ],
+        [
+          "compatible",
+          "Try compatible DDE (unverified)"
+        ]
+      ]
+    },
+    {
+      "key": "liveInterval",
+      "label": "Live refresh interval",
+      "type": "number",
+      "unit": "s",
+      "default": 2,
+      "steps": [
+        1,
+        2,
+        3,
+        5,
+        10
+      ]
+    },
+    {
+      "key": "regenTarget",
+      "label": "Estimated regeneration end soot",
+      "type": "number",
+      "unit": "g",
+      "default": 6,
+      "markDefault": true,
+      "steps": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        10
+      ]
+    },
+    {
+      "key": "tempUnit",
+      "label": "Temperature",
+      "type": "choice",
+      "default": "C",
+      "options": [
+        [
+          "C",
+          "Celsius"
+        ],
+        [
+          "F",
+          "Fahrenheit"
+        ]
+      ]
+    },
+    {
+      "key": "theme",
+      "label": "Colour theme",
+      "type": "choice",
+      "default": "m_tricolour",
+      "options": [
+        [
+          "m_tricolour",
+          "M Tricolour"
+        ],
+        [
+          "ice",
+          "Ice White"
+        ],
+        [
+          "amber",
+          "Night Amber"
+        ],
+        [
+          "m_red",
+          "M Red"
+        ]
+      ]
+    },
+    {
+      "key": "demo",
+      "label": "Demo data",
+      "type": "choice",
+      "default": "off",
+      "reset": 1,
+      "options": [
+        [
+          "off",
+          "Never"
+        ],
+        [
+          "on",
+          "Always"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "ddeAddress": 18,
+    "readOnly": true,
+    "fullScreenRequired": true
+  }
+}

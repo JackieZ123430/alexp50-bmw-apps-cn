@@ -1,0 +1,19 @@
+[Unit]
+Description=Native BMW Night Vision and parking-camera projection for the cluster
+After=winston.service
+
+[Service]
+User=root
+Group=tm_oap_app
+SupplementaryGroups=mgu_wayland video mgu_dlt mgu_ufipc
+Environment=XDG_RUNTIME_DIR=/run/wayland
+Environment=XDG_CACHE_HOME=/run/wayland
+RuntimeDirectory=front-camera-cluster
+RuntimeDirectoryMode=0770
+ExecStart=/usr/bin/node /var/opt/front-camera-cluster-helper/current/controller.js
+ExecStopPost=/bin/sh -c 'export XDG_RUNTIME_DIR=/run/wayland; /usr/bin/ivi-control screen 5 renderorder 50331948 50331949; /usr/bin/ivi-control screen 8 renderorder 67109165; /usr/bin/ivi-control layer 65010 destroy >/dev/null 2>&1 || true; /usr/bin/ivi-control layer 65011 destroy >/dev/null 2>&1 || true'
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Full-size Waze HUD target controller
+After=waze-on-cluster.service
+Wants=waze-on-cluster.service
+
+[Service]
+User=root
+Group=tm_oap_app
+RuntimeDirectory=waze-hud-control
+RuntimeDirectoryMode=0770
+ExecStart=/usr/bin/node /var/opt/waze-hud-control/current/controller.js
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

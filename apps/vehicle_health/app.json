@@ -1,0 +1,139 @@
+{
+  "id": "vehicle_health",
+  "title": "Vehicle Health Center",
+  "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
+  "version": "0.1.4",
+  "vendor": "alexp50",
+  "loggingId": "OAAB",
+  "iconGlyph": "health",
+  "signals": {
+    "com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu": {
+      "_instances": "SystemFunctionsInternalTasuInst1",
+      "_methods": [
+        "sendTasuRequest"
+      ],
+      "_broadcasts": [
+        "sendTasuResponse"
+      ]
+    },
+    "de.bmw.infotainment.vehicle.CDS": {
+      "statusEngineTemperature": "rs",
+      "statusEngineStatus": "rs",
+      "statusBattery2": "rs"
+    },
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "statusOilDipstick2": "rs",
+      "statusCarSpeed2": "rs"
+    },
+    "de.bmw.infotainment.vehicle.TPMS": {
+      "statusTyrePressure": "rs",
+      "statusTyreTemperature": "rs",
+      "statusTargetTyrePressure": "rs"
+    },
+    "de.bmw.infotainment.KombiIF": {
+      "statusRangeTankStatus": "rs"
+    },
+    "de.bmw.infotainment.KombiInterface_2": {
+      "cbsDataServiceList": "rs",
+      "cbsDataSBA": "rs"
+    },
+    "de.bmw.infotainment.checkcontrol.CheckControlMaster": {
+      "basicList": "rs"
+    },
+    "de.bmw.infrastructure.EnvironmentalInformation": {
+      "ExteriorTemperature": "s"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "Vehicle Health Center",
+      "settingsTab": false,
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "Next page"
+        ],
+        [
+          "BTN_SCAN",
+          "Scan current faults"
+        ],
+        [
+          "BTN_SETTINGS",
+          "Settings"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "autoScan",
+      "label": "Scan current faults when opened",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "tempUnit",
+      "label": "Temperature",
+      "type": "choice",
+      "default": "C",
+      "options": [
+        [
+          "C",
+          "Celsius"
+        ],
+        [
+          "F",
+          "Fahrenheit"
+        ]
+      ]
+    },
+    {
+      "key": "demo",
+      "label": "Demo data",
+      "type": "choice",
+      "default": "off",
+      "options": [
+        [
+          "off",
+          "Never"
+        ],
+        [
+          "on",
+          "Always"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "ddeAddress": 18,
+    "fullScreenRequired": true
+  }
+}

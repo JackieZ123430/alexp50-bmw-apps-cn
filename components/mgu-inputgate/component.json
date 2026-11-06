@@ -1,0 +1,21 @@
+{
+  "id": "mgu-inputgate",
+  "kind": "tool",
+  "version": "1.0.0",
+  "title": "Controller gate",
+  "description": "Provides iDrive controller input to the full-screen custom apps",
+  "mguHmi": ["ID7"],
+  "requires": {"mgu-deploy": "0.6.1", "idrive7-renderd": "2.1.7"},
+  "uninstallable": true,
+  "files": [
+    {"path": "mgu-inputgate.so", "from": "files/mgu-inputgate.so", "mode": "0755"}
+  ],
+  "preload": {
+    "library": "mgu-inputgate.so",
+    "unit": "hmi.service",
+    "process": "HmiMain3D",
+    "strikes": 2,
+    "checkAfterSeconds": 120,
+    "healthySeconds": 60
+  }
+}

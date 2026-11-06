@@ -1,0 +1,102 @@
+{
+  "apps": {
+    "ambient_studio_full": {
+      "title": "Ambient Studio",
+      "description": "Full-screen drive-mode colours and rate-limited ambient-light alerts",
+      "author": "alexp50",
+      "icon": "ambient_studio_full.png",
+      "iconSha256": "434496689786ba9298ac6f597e24d6e02eff91e4fe0274e2793924d62f1129fb"
+    },
+    "dpf_monitor": {
+      "title": "DPF Monitor",
+      "description": "Read-only diesel particulate filter monitor: soot, regeneration progress, temperature, pressure and history",
+      "author": "alexp50",
+      "icon": "dpf_monitor.png",
+      "iconSha256": "05d736b1573e0e5603de7ba5417abc8c1b609ee1287c650463e3bf04e3c285d9"
+    },
+    "drive_hud_full": {
+      "title": "Drive HUD",
+      "description": "Full-screen HUD controls: turn arrows, Sport gear/RPM/shift lights and engine warm-up",
+      "author": "alexp50",
+      "icon": "drive_hud_full.png",
+      "iconSha256": "571b8d73e71aebfcea7b1fb1c24ceed58e768b123d0664a59dc655094533d0c7"
+    },
+    "front_camera_cluster": {
+      "title": "Night Vision Cluster",
+      "description": "Full-screen control for BMW Night Vision and parking-camera projection in the instrument cluster",
+      "author": "alexp50",
+      "icon": "front_camera_cluster.png",
+      "iconSha256": "cfd4f70c700e6659ad5249206c4fa0bba60e6d06ce153c656063048101d9c564"
+    },
+    "green_light_alert": {
+      "title": "Green Light Alert",
+      "description": "Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback",
+      "author": "alexp50",
+      "icon": "green_light_alert.png",
+      "iconSha256": "c4adae128b72c41d2adc00bc8f2c62ccb113af677194b408db3ef03bcc1c4339"
+    },
+    "parking_clearance": {
+      "title": "Parking & Clearance",
+      "description": "Read-only PDC distances, steering path and suspension stance for close parking",
+      "author": "alexp50",
+      "icon": "parking_clearance.png",
+      "iconSha256": "82ed2bf58e2cb6a0d55e0db3c43df9f48b16391870a282dbcad20ef52c6af64b"
+    },
+    "ride_height": {
+      "title": "Ride Height Studio",
+      "description": "Full-screen VDP Standard/High control and measured ride-height planner",
+      "author": "alexp50",
+      "icon": "ride_height.png",
+      "iconSha256": "0673ed96ff32911a21d025f441f9b1d8d906757a90b66ac407944f790f932976"
+    },
+    "road_trip_computer": {
+      "title": "Road Trip Computer",
+      "description": "Full-screen trip history with fuel use, fuel price, cost, range, outside temperature and GPS elevation",
+      "author": "alexp50",
+      "icon": "road_trip_computer.png",
+      "iconSha256": "f6869ed092dbf6d90de790b98329d0675ef4433f1d8c68b2989c7ec8eaefd9f4"
+    },
+    "start_stop_insight": {
+      "title": "Start/Stop Insight",
+      "description": "Current and last ten observed Start/Stop inhibition states plus live electrical consumers",
+      "author": "alexp50",
+      "icon": "start_stop_insight.png",
+      "iconSha256": "86ad4df3cabb06fab636ed8ceb7dced3e83b05ec6090109508151ddd42202f6d"
+    },
+    "telemetry_studio": {
+      "title": "Telemetry Studio",
+      "description": "Full-screen live powertrain, thermal, tyre and xDrive telemetry",
+      "author": "alexp50",
+      "icon": "telemetry_studio.png",
+      "iconSha256": "3f7d9d0cd043acac1abc69ea1b8c3a58c967d81b93515578ba1d9474704c089b"
+    },
+    "vehicle_health": {
+      "title": "Vehicle Health Center",
+      "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
+      "author": "alexp50",
+      "icon": "vehicle_health.png",
+      "iconSha256": "54d5df8cc616a3c0bbd6a5dd85eab7a6439dbebd56a9addfcb165427be82d0a3"
+    },
+    "vehicle_network": {
+      "title": "Vehicle Network",
+      "description": "Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup",
+      "author": "alexp50",
+      "icon": "vehicle_network.png",
+      "iconSha256": "3630c97a7de8cc97f05ddd43fa6b61a83dca0555cd851229e8708c94779d3363"
+    },
+    "waze_hud": {
+      "title": "Waze HUD",
+      "description": "Full-screen control for projecting the CarPlay navigation map into the head-up display",
+      "author": "alexp50",
+      "icon": "waze_hud.png",
+      "iconSha256": "23272f7dcbde1d72e2444d8ced3130b3e42fbfc268b66444b998d9e40177df9b"
+    },
+    "xdrive_studio": {
+      "title": "xDrive Studio",
+      "description": "Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics",
+      "author": "alexp50",
+      "icon": "xdrive_studio.png",
+      "iconSha256": "8c00bc6829c56fc0e0938b93ff9a08c2b04581dde91ed72739d579b1643974cb"
+    }
+  }
+}
