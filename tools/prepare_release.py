@@ -20,6 +20,7 @@ APP_REQUIRES = {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.1"}
 SPECIAL_REQUIRES = {
     "drive_hud_full": {"cluster-render": "0.3.10"},
     "front_camera_cluster": {"front-camera-cluster-helper": "0.2.1"},
+    "hotspot_studio": {"hotspot-studio-helper": "0.1.0"},
     "vehicle_network": {"vehicle-network-observer": "0.1.2"},
     "waze_hud": {"waze-hud-control": "0.3.0"},
 }

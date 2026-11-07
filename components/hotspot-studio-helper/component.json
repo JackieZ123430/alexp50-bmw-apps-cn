@@ -1,0 +1,17 @@
+{
+  "id": "hotspot-studio-helper",
+  "kind": "tool",
+  "version": "0.1.0",
+  "title": "Hotspot Studio helper",
+  "description": "Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway",
+  "mguHmi": ["ID7"],
+  "requires": {"mgu-deploy": "0.7.11", "mgu-python": "1.0.2", "mgu-uplink": "0.7.3"},
+  "uninstallable": true,
+  "keepRunning": true,
+  "files": [
+    {"path": "hotspot_studio_helper.py", "from": "files/hotspot_studio_helper.py", "mode": "0755"}
+  ],
+  "units": [{"name": "hotspot-studio-helper.service", "from": "units/hotspot-studio-helper.service"}],
+  "enable": [{"unit": "hotspot-studio-helper.service", "target": "multi-user.target"}],
+  "restart": ["hotspot-studio-helper.service"]
+}

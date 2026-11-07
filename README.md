@@ -20,6 +20,7 @@ The release catalog includes the shared GPU renderer and controller gate. Waze H
 | DPF Monitor | `dpf_monitor` | Read-only soot, regeneration estimate, temperatures, pressure and regeneration history. |
 | Drive HUD | `drive_hud_full` | HUD turn arrows, Sport gear/RPM/shift lights and engine warm-up information. |
 | Green Light Alert | `green_light_alert` | Watches the KAFAS traffic-light camera provider and BMW's validated display signal for red-to-green transitions. Experimental on region-restricted cars. |
+| Hotspot Studio | `hotspot_studio` | Shares the Huawei LTE uplink through BMW's hotspot. A parked-only Coding Gateway temporarily grants one selected client access to the ZGW. |
 | Night Vision Cluster | `front_camera_cluster` | Projects BMW Night Vision or the parking camera surface into the cluster. Experimental and limited to low speed. |
 | Parking & Clearance | `parking_clearance` | Read-only PDC distances, steering tracks and suspension stance. |
 | Ride Height Studio | `ride_height` | Requests the factory VDP Standard or High state and keeps a measured-height plan. Parked use only. |
@@ -38,7 +39,7 @@ The iDrive knob, press and directional push are shared by every app through the 
 ## Build and validate
 
 ```powershell
-python kit/tools/build.py ambient_studio_full dpf_monitor drive_hud_full front_camera_cluster green_light_alert parking_clearance ride_height road_trip_computer start_stop_insight telemetry_studio vehicle_health vehicle_network waze_hud xdrive_studio
+python kit/tools/build.py ambient_studio_full dpf_monitor drive_hud_full front_camera_cluster green_light_alert hotspot_studio parking_clearance ride_height road_trip_computer start_stop_insight telemetry_studio vehicle_health vehicle_network waze_hud xdrive_studio
 node kit/tools/test_controller.js
 python tools/build_components.py
 python tools/prepare_release.py

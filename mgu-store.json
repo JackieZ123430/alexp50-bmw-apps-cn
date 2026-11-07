@@ -35,6 +35,13 @@
       "icon": "green_light_alert.png",
       "iconSha256": "c4adae128b72c41d2adc00bc8f2c62ccb113af677194b408db3ef03bcc1c4339"
     },
+    "hotspot_studio": {
+      "title": "Hotspot Studio",
+      "description": "Shares the Huawei LTE uplink through BMW's hotspot and opens a timed single-client ENET gateway on request",
+      "author": "alexp50",
+      "icon": "hotspot_studio.png",
+      "iconSha256": "47ab652dd92b4ae2aea8d2501b38ebb148d5be9548a5b35635ebed3232e16365"
+    },
     "parking_clearance": {
       "title": "Parking & Clearance",
       "description": "Read-only PDC distances, steering path and suspension stance for close parking",

@@ -1,0 +1,18 @@
+[Unit]
+Description=BMW hotspot internet sharing and guarded ENET gateway
+After=network.target mgu-uplink.service
+Wants=mgu-uplink.service
+
+[Service]
+Type=simple
+User=root
+Group=tm_oap_app
+RuntimeDirectory=hotspot-studio
+RuntimeDirectoryMode=0770
+ExecStart=/var/opt/mgu-python/current/bin/python3 /var/opt/hotspot-studio-helper/current/hotspot_studio_helper.py --serve
+ExecStopPost=/var/opt/mgu-python/current/bin/python3 /var/opt/hotspot-studio-helper/current/hotspot_studio_helper.py --cleanup
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

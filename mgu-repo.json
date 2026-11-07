@@ -17,6 +17,7 @@
     {"id": "idrive7-renderd", "path": "components/idrive7-renderd"},
     {"id": "mgu-inputgate", "path": "components/mgu-inputgate"},
     {"id": "front-camera-cluster-helper", "path": "components/front-camera-cluster"},
+    {"id": "hotspot-studio-helper", "path": "components/hotspot-studio-helper"},
     {"id": "vehicle-network-observer", "path": "components/vehicle-network-observer"},
     {"id": "waze-hud-control", "path": "components/waze-hud-control"}
   ]
