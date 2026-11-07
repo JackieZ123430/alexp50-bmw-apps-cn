@@ -1,6 +1,17 @@
 'use strict';
 const assert = require('assert');
-const { VdpControl, AXLES, word, sensorValues } = require('../../dist/ride_height/source/javascript/control');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const ROOT = path.resolve(__dirname, '..', '..');
+
+// Stage the source exactly as the app build does. dist/ is intentionally not committed.
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ride-height-test-'));
+fs.mkdirSync(path.join(tmp, 'kit'));
+fs.copyFileSync(path.join(ROOT, 'apps', 'ride_height', 'control.js'), path.join(tmp, 'control.js'));
+fs.copyFileSync(path.join(ROOT, 'kit', 'runtime', 'diag.js'), path.join(tmp, 'kit', 'diag.js'));
+process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }));
+const { VdpControl, AXLES, word, sensorValues } = require(path.join(tmp, 'control'));
 
 const floats = (values) => {
     const b = Buffer.alloc(16);

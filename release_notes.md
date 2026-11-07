@@ -20,5 +20,6 @@
 * **Night Vision cluster helper** `0.2.1` — Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster
 * **GPU renderer** `2.1.7` — Full-screen 60 fps renderer used by the AlexP50 iDrive apps
 * **Controller gate** `1.0.0` — Provides iDrive controller input to the full-screen custom apps
+* **Controller gate** `1.0.1` — Provides iDrive controller input to full-screen custom apps, with a guarded HMI preload and repair diagnostics
 * **Vehicle network observer** `0.1.2` — Creates the passive network inventory consumed by the Vehicle Network app
 * **Waze HUD controller** `0.3.0` — Applies and persists the Waze HUD geometry selected in the Waze HUD app

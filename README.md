@@ -33,10 +33,13 @@ The release catalog includes the shared GPU renderer and controller gate. Waze H
 
 All app dashboards request the full iDrive canvas and use the 60 fps GPU renderer. Unsupported or stale readings are left blank rather than invented.
 
+The iDrive knob, press and directional push are shared by every app through the Controller gate. After installing or updating that tool, restart the head unit once so `mgu-inputgate.so` loads with the HMI. If the touchscreen works but the controller does not, run `tools/Repair-MGU-Controller.ps1`; it checks the preload, boot guard and competing renderer without changing ECU coding.
+
 ## Build and validate
 
 ```powershell
 python kit/tools/build.py ambient_studio_full dpf_monitor drive_hud_full front_camera_cluster green_light_alert parking_clearance ride_height road_trip_computer start_stop_insight telemetry_studio vehicle_health vehicle_network waze_hud xdrive_studio
+node kit/tools/test_controller.js
 python tools/build_components.py
 python tools/prepare_release.py
 ```

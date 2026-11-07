@@ -20,7 +20,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "ambient_studio_full.png",
@@ -44,7 +44,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "dpf_monitor.png",
@@ -68,7 +68,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0",
+        "mgu-inputgate": "1.0.1",
         "cluster-render": "0.3.10"
       },
       "author": "alexp50",
@@ -93,7 +93,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "green_light_alert.png",
@@ -117,7 +117,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0",
+        "mgu-inputgate": "1.0.1",
         "front-camera-cluster-helper": "0.2.1"
       },
       "author": "alexp50",
@@ -142,7 +142,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "parking_clearance.png",
@@ -166,7 +166,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "ride_height.png",
@@ -190,7 +190,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "road_trip_computer.png",
@@ -214,7 +214,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "start_stop_insight.png",
@@ -238,7 +238,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "telemetry_studio.png",
@@ -262,7 +262,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "vehicle_health.png",
@@ -286,7 +286,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0",
+        "mgu-inputgate": "1.0.1",
         "vehicle-network-observer": "0.1.2"
       },
       "author": "alexp50",
@@ -311,7 +311,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0",
+        "mgu-inputgate": "1.0.1",
         "waze-hud-control": "0.3.0"
       },
       "author": "alexp50",
@@ -336,7 +336,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.0"
+        "mgu-inputgate": "1.0.1"
       },
       "author": "alexp50",
       "icon": "xdrive_studio.png",
@@ -356,6 +356,27 @@
         "size": 5237,
         "sha256": "9b7272671604b0ee1e216834ac38651889883b9759a28f93a72e4c7e2678fb40",
         "url": "https://github.com/alexp50/bmw-apps/releases/download/mgu-inputgate@1.0.0/mgu-inputgate@1.0.0.tgz"
+      },
+      "uninstallable": true,
+      "requires": {
+        "mgu-deploy": "0.6.1",
+        "idrive7-renderd": "2.1.7"
+      }
+    },
+    {
+      "id": "mgu-inputgate",
+      "kind": "tool",
+      "version": "1.0.1",
+      "title": "Controller gate",
+      "description": "Provides iDrive controller input to full-screen custom apps, with a guarded HMI preload and repair diagnostics",
+      "mguHmi": [
+        "ID7"
+      ],
+      "artifact": {
+        "name": "mgu-inputgate@1.0.1.tgz",
+        "size": 5275,
+        "sha256": "3ebfe62da5c78bf74853dd9aef2ed5b35917930699122d3209c030789d03f7d3",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/mgu-inputgate@1.0.1/mgu-inputgate@1.0.1.tgz"
       },
       "uninstallable": true,
       "requires": {
