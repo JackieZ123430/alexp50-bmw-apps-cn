@@ -1,8 +1,8 @@
 {
   "id": "ride_height",
   "title": "Ride Height Studio",
-  "description": "Full-screen VDP Standard/High control and measured ride-height planner",
-  "version": "0.5.4",
+  "description": "Full-screen VDP Low/Standard/High control and measured ride-height planner",
+  "version": "0.5.5",
   "vendor": "alexp50",
   "loggingId": "OAA6",
   "iconGlyph": "RH",

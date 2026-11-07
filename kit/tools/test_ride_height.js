@@ -41,7 +41,8 @@ async function main() {
     assert(requests.some((r) => r.join(',') === [0x2E, 0xDC, 0x11, 0, 8].join(',')));
     assert.strictEqual(await c.level('High'), 'High');
     assert(requests.some((r) => r.join(',') === [0x2E, 0xDC, 0x11, 0, 16].join(',')));
-    await assert.rejects(c.level('Low'), /Unknown ride level/);
+    assert.strictEqual(await c.level('Low'), 'Low');
+    assert(requests.some((r) => r.join(',') === [0x2E, 0xDC, 0x11, 0, 2].join(',')));
     assert(requests.filter((r) => r[0] === 0x2E).every((r) => r[1] === 0xDC && r[2] === 0x11));
     console.log('VDP preset-control packet, Park gate, direct-speed gate and write allowlist checks passed.');
 }

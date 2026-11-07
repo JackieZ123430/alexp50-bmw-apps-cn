@@ -45,7 +45,7 @@ The GitHub workflow publishes every artifact in `packages/`, plus `catalog.json`
 
 ## Safety and scope
 
-These are unofficial enthusiast apps and are not affiliated with BMW. Diagnostic dashboards are read-only unless their description explicitly says otherwise. Use visual apps while parked or let a passenger operate them. Ride Height Studio exposes only BMW's Standard/High request used on this car; it does not perform ISTA ride-height calibration or direct individual-strut actuation.
+These are unofficial enthusiast apps and are not affiliated with BMW. Diagnostic dashboards are read-only unless their description explicitly says otherwise. Use visual apps while parked or let a passenger operate them. Ride Height Studio exposes BMW's Low, Standard and High preset requests; it does not perform ISTA ride-height calibration or direct individual-strut actuation.
 
 ## License
 

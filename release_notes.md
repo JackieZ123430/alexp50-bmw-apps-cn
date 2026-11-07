@@ -7,7 +7,7 @@
 * **Night Vision Cluster** `0.2.1` — Full-screen control for BMW Night Vision and parking-camera projection in the instrument cluster
 * **Green Light Alert** `0.2.0` — Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback
 * **Parking & Clearance** `0.1.8` — Read-only PDC distances, steering path and suspension stance for close parking
-* **Ride Height Studio** `0.5.4` — Full-screen VDP Standard/High control and measured ride-height planner
+* **Ride Height Studio** `0.5.5` — Full-screen VDP Low/Standard/High control and measured ride-height planner
 * **Road Trip Computer** `1.0.0` — Full-screen trip history with fuel use, fuel price, cost, range, outside temperature and GPS elevation
 * **Start/Stop Insight** `0.1.3` — Current and last ten observed Start/Stop inhibition states plus live electrical consumers
 * **Telemetry Studio** `0.1.2` — Full-screen live powertrain, thermal, tyre and xDrive telemetry

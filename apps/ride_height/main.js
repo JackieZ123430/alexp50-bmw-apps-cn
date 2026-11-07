@@ -73,7 +73,7 @@ mgu.run({ async start(ctx) {
             ' mm. Current calibration remains unchanged.' :
             'Enter all four current measurements before relying on target numbers.',
             34, 456, 23, plan.complete ? C.text : C.amber, { font: 'bold' });
-        cv.text('Targets are previews. Control offers only the VDP Standard and High presets.',
+        cv.text('Targets are previews. Control offers the VDP Low, Standard and High presets.',
             34, 492, 21, C.amber, { font: 'bold' });
     }
     function drawMeasurements(cv) {
@@ -96,10 +96,10 @@ mgu.run({ async start(ctx) {
         cv.text('CURRENT VDP LEVEL', 58, 183, 23, C.dim, { font: 'bold' });
         cv.text(level, 58, 251, 47, C.text, { font: 'bold' });
         cv.text('Safety: ' + guard.status, 58, 323, 23, C.dim);
-        [['Standard', C.green], ['High', C.amber]].forEach(([name, color], i) =>
-            button(cv, 32 + i * 782, 382, 766, 68, 'Request ' + name,
+        [['Low', C.blue], ['Standard', C.green], ['High', C.amber]].forEach(([name, color], i) =>
+            button(cv, 32 + i * 516, 382, 500, 68, 'Request ' + name,
                 () => operate(name, () => control.level(name)), false, color));
-        cv.text('High raised this car in testing, then returned to Standard. Calibration is unchanged.',
+        cv.text('Preset requests are temporary VDP level controls. Calibration is unchanged.',
             34, 493, 21, C.amber);
     }
     function drawVehicle(cv) {

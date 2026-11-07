@@ -3,7 +3,7 @@
 const { Diag, replyTo, NRC } = require('./kit/diag');
 
 const VDP = 0x76;
-const LEVELS = Object.freeze({ Standard: 8, High: 16 });
+const LEVELS = Object.freeze({ Low: 2, Standard: 8, High: 16 });
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const word = (n) => [(n >> 8) & 255, n & 255];
 

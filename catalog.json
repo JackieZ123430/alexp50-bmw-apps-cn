@@ -151,17 +151,17 @@
     {
       "id": "ride_height",
       "kind": "app",
-      "version": "0.5.4",
+      "version": "0.5.5",
       "title": "Ride Height Studio",
-      "description": "Full-screen VDP Standard/High control and measured ride-height planner",
+      "description": "Full-screen VDP Low/Standard/High control and measured ride-height planner",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "ride_height@0.5.4.tgz",
-        "size": 1097066,
-        "sha256": "fcebba4c2bcf027f9707b698180508cd8f42f73cfde8154b35c750f4e0fd502d",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/ride_height@0.5.4/ride_height@0.5.4.tgz"
+        "name": "ride_height@0.5.5.tgz",
+        "size": 1093880,
+        "sha256": "3b83a28cd2dbce7958edb475479b5f696c35ae3ea06fa2ea18554add240e01e1",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/ride_height@0.5.5/ride_height@0.5.5.tgz"
       },
       "uninstallable": true,
       "requires": {
