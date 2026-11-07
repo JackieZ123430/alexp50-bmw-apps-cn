@@ -4,6 +4,8 @@ const { Diag, replyTo, NRC } = require('./kit/diag');
 
 const VDP = 0x76;
 const LEVELS = Object.freeze({ Low: 2, Standard: 8, High: 16 });
+const AXLES = Object.freeze({ Front: 0xC6, Rear: 0xC3 });
+const AXLE_ACTIONS = Object.freeze({ Vent: 2, Fill: 3 });
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const word = (n) => [(n >> 8) & 255, n & 255];
 
@@ -123,6 +125,39 @@ class VdpControl {
             throw new Error('VDP accepted the request but did not report ' + name + ' within 12 s');
         });
     }
+    async axle(axle, direction, seconds) {
+        if (!Object.prototype.hasOwnProperty.call(AXLES, axle)) throw new Error('Unknown axle');
+        if (!Object.prototype.hasOwnProperty.call(AXLE_ACTIONS, direction)) throw new Error('Unknown direction');
+        if (!Number.isInteger(seconds) || seconds < 1 || seconds > 30)
+            throw new Error('Select an axle-control duration from 1 to 30 seconds');
+        return this.run(async () => {
+            const health = await this.read(0xDC06);
+            if (health.length < 8 || [0, 2, 4, 6].some((i) => health[i] !== 0 || health[i + 1] !== 0))
+                throw new Error('Height sensor fault or incomplete status');
+            const before = sensorValues(await this.read(0xDC05));
+            await this.read(0xF150);
+            this.guard.check();
+            await this.requireVdpStopped();
+            const localId = AXLES[axle];
+            const action = AXLE_ACTIONS[direction];
+            // VDP_G11 DB77 uses three big-endian unsigned integers in PRG order:
+            // action, adjustment time in seconds, aggregate air-spring local ID.
+            // C6 selects both front struts; C3 selects both rear struts.
+            try {
+                await this.write(0xDB77, word(action).concat(word(seconds), word(localId)));
+                await pause(seconds * 1000 + 150);
+            } finally {
+                // The ECU owns the command timer. OFF is an independent stop path.
+                await this.write(0xDB77, word(0).concat(word(0), word(localId))).catch(() => {});
+            }
+            await pause(500);
+            this.guard.check();
+            const after = sensorValues(await this.read(0xDC05));
+            const indexes = axle === 'Front' ? [0, 1] : [2, 3];
+            const average = (values) => (values[indexes[0]] + values[indexes[1]]) / 2;
+            return { before: average(before), after: average(after), axle, direction, seconds };
+        });
+    }
 }
 
-module.exports = { VdpControl, ParkGuard, LEVELS, sensorValues, word };
+module.exports = { VdpControl, ParkGuard, LEVELS, AXLES, AXLE_ACTIONS, sensorValues, word };

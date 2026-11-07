@@ -151,17 +151,17 @@
     {
       "id": "ride_height",
       "kind": "app",
-      "version": "0.5.5",
+      "version": "0.6.0",
       "title": "Ride Height Studio",
-      "description": "Full-screen VDP Low/Standard/High control and measured ride-height planner",
+      "description": "Full-screen VDP presets plus direct front/rear air-spring fill and vent control",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "ride_height@0.5.5.tgz",
-        "size": 1093880,
-        "sha256": "3b83a28cd2dbce7958edb475479b5f696c35ae3ea06fa2ea18554add240e01e1",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/ride_height@0.5.5/ride_height@0.5.5.tgz"
+        "name": "ride_height@0.6.0.tgz",
+        "size": 1095108,
+        "sha256": "5b73f3279e1f8a9f191bf24e8546ff44c12002a8904d0ce5fa3e74b8b71bb383",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/ride_height@0.6.0/ride_height@0.6.0.tgz"
       },
       "uninstallable": true,
       "requires": {

@@ -7,7 +7,7 @@ const { HeightPlan, CORNERS } = require('./plan');
 const W = 1600, H = 520, VDP = 0x76;
 const C = { bg: '#0d1119', panel: '#1b2431', edge: '#354456', text: '#f3f6f9',
     dim: '#aebdca', blue: '#4cb5ff', green: '#56d89a', amber: '#ffb84c', red: '#ef6a67' };
-const pages = ['Targets', 'Measurements', 'Control', 'Vehicle'];
+const pages = ['Targets', 'Measurements', 'Presets', 'Axles', 'Vehicle'];
 const signed = (n) => (n > 0 ? '+' : '') + n;
 
 mgu.run({ async start(ctx) {
@@ -15,7 +15,7 @@ mgu.run({ async start(ctx) {
     const guard = new ParkGuard(ctx.signals, ctx.log);
     const control = new VdpControl(ctx.signals, ctx.log, guard);
     let page = 0, notice = '', identity = 'Checking VDP', level = 'Not read';
-    let live = [null, null, null, null], updated = 0, polling = false, hits = [];
+    let live = [null, null, null, null], updated = 0, polling = false, hits = [], pulseSeconds = 3;
 
     async function operate(label, fn) {
         if (control.busy) return;
@@ -90,7 +90,7 @@ mgu.run({ async start(ctx) {
             34, 466, 23, C.dim);
         cv.text('Bar controls: next page • next corner • -1 mm • +1 mm', 34, 496, 20, C.dim);
     }
-    function drawControl(cv) {
+    function drawPresets(cv) {
         headline(cv, 'VDP ride level control', 'BMW Low / Standard / High requests. Physical millimetres vary by car.');
         card(cv, 32, 139, 1536, 224, C.blue);
         cv.text('CURRENT VDP LEVEL', 58, 183, 23, C.dim, { font: 'bold' });
@@ -101,6 +101,36 @@ mgu.run({ async start(ctx) {
                 () => operate(name, () => control.level(name)), false, color));
         cv.text('Preset requests are temporary VDP level controls. Calibration is unchanged.',
             34, 493, 21, C.amber);
+    }
+    function drawAxles(cv) {
+        headline(cv, 'Direct air-spring control',
+            'VDP component actuation: both front struts or both rear struts together.');
+        [['Front', 0, C.blue], ['Rear', 786, C.green]].forEach(([axle, offset, color]) => {
+            card(cv, 32 + offset, 139, 750, 235, color);
+            cv.text(axle.toUpperCase() + ' AXLE', 56 + offset, 181, 23, C.dim, { font: 'bold' });
+            const indexes = axle === 'Front' ? [0, 1] : [2, 3];
+            const values = indexes.map((i) => live[i]);
+            const average = values.every((v) => v !== null) ? (values[0] + values[1]) / 2 : null;
+            cv.text(average === null ? '--' : signed(average.toFixed(1)) + ' mm',
+                56 + offset, 237, 43, C.text, { font: 'bold' });
+            cv.text('relative sensor average', 56 + offset, 270, 19, C.dim);
+            button(cv, 56 + offset, 297, 330, 58, 'Vent ' + pulseSeconds + ' s',
+                () => operate(axle + ' vent', () => control.axle(axle, 'Vent', pulseSeconds)), false, C.amber);
+            button(cv, 405 + offset, 297, 351, 58, 'Fill ' + pulseSeconds + ' s',
+                () => operate(axle + ' fill', () => control.axle(axle, 'Fill', pulseSeconds)), false, C.green);
+        });
+        cv.text('COMMAND DURATION', 34, 413, 19, C.dim, { font: 'bold' });
+        button(cv, 250, 388, 160, 58, '-1 s', () => action(() => {
+            pulseSeconds = Math.max(1, pulseSeconds - 1);
+        }));
+        cv.text(String(pulseSeconds) + ' seconds', 500, 428, 30, C.text, { font: 'bold', align: 'center' });
+        button(cv, 590, 388, 160, 58, '+1 s', () => action(() => {
+            pulseSeconds = Math.min(30, pulseSeconds + 1);
+        }));
+        cv.text('No action-count lockout. VDP timer plus explicit OFF stop every command.',
+            790, 426, 21, C.amber, { font: 'bold' });
+        cv.text('Use on level ground. Park and live VDP speed are checked immediately before actuation.',
+            34, 493, 20, C.dim);
     }
     function drawVehicle(cv) {
         headline(cv, 'Vehicle status', 'Live VDP suspension data at diagnostic address 0x76');
@@ -130,7 +160,8 @@ mgu.run({ async start(ctx) {
         hits = [];
         if (page === 0) drawTargets(cv);
         else if (page === 1) drawMeasurements(cv);
-        else if (page === 2) drawControl(cv);
+        else if (page === 2) drawPresets(cv);
+        else if (page === 3) drawAxles(cv);
         else drawVehicle(cv);
         if (notice) cv.text(notice.slice(0, 108), 34, 456, 21, C.red, { font: 'bold' });
         G.frame(cv, ctx.theme(), pages, page, [{ text: control.busy ? 'VDP BUSY' : 'PARK ONLY', color: C.amber }]);
@@ -140,7 +171,8 @@ mgu.run({ async start(ctx) {
     function adjust(step) {
         if (page === 1) action(() => plan.measure(step));
         else if (page === 0) action(() => plan.adjustDelta(step));
-        else if (page === 3) poll();
+        else if (page === 3) action(() => { pulseSeconds = Math.max(1, Math.min(30, pulseSeconds + step)); });
+        else if (page === 4) poll();
     }
     ctx.ui.onClick('BTN_PAGE', nextPage);
     ctx.ui.onClick('BTN_SELECT', () => { if (page === 1) action(() => plan.select()); else nextPage(); });

@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('assert');
-const { VdpControl, word, sensorValues } = require('../../dist/ride_height/source/javascript/control');
+const { VdpControl, AXLES, word, sensorValues } = require('../../dist/ride_height/source/javascript/control');
 
 const floats = (values) => {
     const b = Buffer.alloc(16);
@@ -18,8 +18,9 @@ async function main() {
     c.diag.physical = async (_ecu, sid, bytes) => {
         requests.push([sid].concat(bytes));
         if (sid === 0x2E) {
-            assert.deepStrictEqual(bytes.slice(0, 2), [0xDC, 0x11], 'only preset ride-level writes are allowed');
-            requestedLevel = bytes[3];
+            const did = (bytes[0] << 8) | bytes[1];
+            assert([0xDC11, 0xDB77].includes(did), 'only preset or axle-component writes are allowed');
+            if (did === 0xDC11) requestedLevel = bytes[3];
             return [0x6E, bytes[0], bytes[1]];
         }
         if (bytes[0] === 0xF1 && bytes[1] === 0x50) return [0x62, 0xF1, 0x50, 0x0F, 0x1F, 0x50];
@@ -28,6 +29,9 @@ async function main() {
             return [0x62, 0xDD, 0x3A].concat(Array.from(b));
         }
         if (bytes[0] === 0xD8 && bytes[1] === 0xEC) return [0x62, 0xD8, 0xEC, 0x00, requestedLevel];
+        if (bytes[0] === 0xDC && bytes[1] === 0x06) return [0x62, 0xDC, 0x06, 0, 0, 0, 0, 0, 0, 0, 0];
+        if (bytes[0] === 0xDC && bytes[1] === 0x05)
+            return [0x62, 0xDC, 0x05].concat(floats([2, 3, 4, 5]));
         throw new Error('unexpected diagnostic read');
     };
     await assert.rejects(c.level('Standard'), /unsafe/);
@@ -43,7 +47,18 @@ async function main() {
     assert(requests.some((r) => r.join(',') === [0x2E, 0xDC, 0x11, 0, 16].join(',')));
     assert.strictEqual(await c.level('Low'), 'Low');
     assert(requests.some((r) => r.join(',') === [0x2E, 0xDC, 0x11, 0, 2].join(',')));
-    assert(requests.filter((r) => r[0] === 0x2E).every((r) => r[1] === 0xDC && r[2] === 0x11));
-    console.log('VDP preset-control packet, Park gate, direct-speed gate and write allowlist checks passed.');
+    assert.strictEqual(AXLES.Front, 0xC6);
+    assert.strictEqual(AXLES.Rear, 0xC3);
+    const front = await c.axle('Front', 'Fill', 1);
+    assert(front.after > 0);
+    assert(requests.some((r) => r.join(',') === [0x2E, 0xDB, 0x77, 0, 3, 0, 1, 0, 0xC6].join(',')));
+    assert(requests.some((r) => r.join(',') === [0x2E, 0xDB, 0x77, 0, 0, 0, 0, 0, 0xC6].join(',')));
+    const rear = await c.axle('Rear', 'Vent', 1);
+    assert(rear.after > 0);
+    assert(requests.some((r) => r.join(',') === [0x2E, 0xDB, 0x77, 0, 2, 0, 1, 0, 0xC3].join(',')));
+    assert(requests.some((r) => r.join(',') === [0x2E, 0xDB, 0x77, 0, 0, 0, 0, 0, 0xC3].join(',')));
+    assert(!requests.some((r) => r[0] === 0x2E && r[1] === 0xDB && r[2] === 0x77 &&
+        [0xC1, 0xC2, 0xC4, 0xC5].includes(r[8])));
+    console.log('VDP presets, aggregate axle DB77 packets, OFF stop, Park gate and write allowlist checks passed.');
 }
 main().catch((e) => { console.error(e); process.exitCode = 1; });

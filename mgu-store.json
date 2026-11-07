@@ -44,7 +44,7 @@
     },
     "ride_height": {
       "title": "Ride Height Studio",
-      "description": "Full-screen VDP Low/Standard/High control and measured ride-height planner",
+      "description": "Full-screen VDP presets plus direct front/rear air-spring fill and vent control",
       "author": "alexp50",
       "icon": "ride_height.png",
       "iconSha256": "0673ed96ff32911a21d025f441f9b1d8d906757a90b66ac407944f790f932976"
