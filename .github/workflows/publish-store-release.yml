@@ -63,3 +63,4 @@ jobs:
           else
             gh release create catalog catalog.json mgu-store.json *.png \
               --title "MGU Store catalog" --notes-file release_notes.md --latest
+          fi
