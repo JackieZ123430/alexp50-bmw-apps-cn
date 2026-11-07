@@ -13,9 +13,9 @@
 * **Start/Stop Insight** `0.1.3` — Current and last ten observed Start/Stop inhibition states plus live electrical consumers
 * **Telemetry Studio** `0.1.2` — Full-screen live powertrain, thermal, tyre and xDrive telemetry
 * **Vehicle Health Center** `0.1.4` — Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults
-* **Vehicle Network** `0.1.2` — Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup
+* **Vehicle Network** `0.1.3` — Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup
 * **Waze HUD** `0.3.0` — Full-screen control for projecting the CarPlay navigation map into the head-up display
-* **xDrive Studio** `0.1.3` — Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics
+* **xDrive Studio** `0.1.4` — Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics
 
 ## Required tools
 * **Night Vision cluster helper** `0.2.1` — Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster
@@ -23,5 +23,6 @@
 * **GPU renderer** `2.1.7` — Full-screen 60 fps renderer used by the AlexP50 iDrive apps
 * **Controller gate** `1.0.0` — Provides iDrive controller input to the full-screen custom apps
 * **Controller gate** `1.0.1` — Provides iDrive controller input to full-screen custom apps, with a guarded HMI preload and repair diagnostics
+* **Controller gate** `1.0.2` — Reinstalls the guarded HMI preload that provides iDrive controller input to full-screen custom apps
 * **Vehicle network observer** `0.1.2` — Creates the passive network inventory consumed by the Vehicle Network app
 * **Waze HUD controller** `0.3.0` — Applies and persists the Waze HUD geometry selected in the Waze HUD app

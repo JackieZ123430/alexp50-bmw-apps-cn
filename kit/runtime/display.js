@@ -71,7 +71,11 @@ const FULL = {
     barH: 48,                                   // slim button bar
     // part of the app's 1600 x 520 drawing shown: the tab bar (y < 38) moves to the header and
     // the side margins are trimmed a little, so the content can be scaled up further
-    src: { x: 12, y: 38, w: 1576, h: 482 },
+    // G.header occupies the complete first 44 logical pixels.  Cropping at
+    // 38 left its lower edge and tab labels visible underneath the native
+    // title strip on ID7, which also put the touch/controller hit boxes six
+    // pixels out of step with what was shown.
+    src: { x: 12, y: 44, w: 1576, h: 476 },
 };
 const LAYOUTS = ['full', 'standard'];
 const SHOW_DELAY_MS = 350;

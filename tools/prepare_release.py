@@ -16,7 +16,7 @@ import urllib.parse
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PACKAGES = os.path.join(ROOT, "packages")
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "alexp50/bmw-apps")
-APP_REQUIRES = {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.1"}
+APP_REQUIRES = {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.2"}
 SPECIAL_REQUIRES = {
     "drive_hud_full": {"cluster-render": "0.3.10"},
     "front_camera_cluster": {"front-camera-cluster-helper": "0.2.1"},

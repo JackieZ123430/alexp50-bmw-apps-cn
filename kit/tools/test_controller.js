@@ -10,7 +10,12 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
-const { Display } = require(path.join(ROOT, 'kit', 'runtime', 'display'));
+const { Display, FULL } = require(path.join(ROOT, 'kit', 'runtime', 'display'));
+
+// The app-drawn header is 44 px high.  A smaller crop leaves its lower edge
+// under the native title strip and misaligns the tab/controller hit targets.
+assert.strictEqual(FULL.src.y, 44, 'full-screen crop must clear the complete app header');
+assert.strictEqual(FULL.src.y + FULL.src.h, 520, 'full-screen crop must retain the complete page body');
 
 const apps = fs.readdirSync(path.join(ROOT, 'apps'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())

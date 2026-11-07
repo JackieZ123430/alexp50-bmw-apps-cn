@@ -2,7 +2,7 @@
   "id": "xdrive_studio",
   "title": "xDrive Studio",
   "description": "Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "vendor": "alexp50",
   "loggingId": "OAAA",
   "iconGlyph": "xD",

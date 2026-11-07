@@ -2,7 +2,7 @@
   "id": "vehicle_network",
   "title": "Vehicle Network",
   "description": "Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "vendor": "alexp50",
   "loggingId": "OAB6",
   "iconGlyph": "IP",

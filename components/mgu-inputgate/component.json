@@ -1,9 +1,9 @@
 {
   "id": "mgu-inputgate",
   "kind": "tool",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "title": "Controller gate",
-  "description": "Provides iDrive controller input to full-screen custom apps, with a guarded HMI preload and repair diagnostics",
+  "description": "Reinstalls the guarded HMI preload that provides iDrive controller input to full-screen custom apps",
   "mguHmi": ["ID7"],
   "requires": {"mgu-deploy": "0.6.1", "idrive7-renderd": "2.1.7"},
   "uninstallable": true,
