@@ -108,6 +108,8 @@ class Controller{
         const display=this.displayStatusUcc&&this.displayStatusUcc.value;
         const setting=this.settings.trafficlightDriveOff||this.settings.driveOffReminder;
         const availability=setting&&setting.availability;
+        if(fas===0&&this.settingConn&&this.settingConn.available===false)
+            return {level:'blocked',title:'NATIVE SETTINGS PROVIDER ABSENT',detail:'Romania passes the FAS region gate, but BMW service 0x3055 is not offered. Native UCC activation cannot complete on this vehicle software/production cohort.'};
         if(fas===0&&display===0)return {level:'ok',title:'REGION ACCEPTED',detail:'BMW FAS and the country-display provider both allow UCC here.'};
         if(display===2&&fas===1)return {level:'blocked',title:'COUNTRY GATE CONFIRMED',detail:'BMW country eligibility and FAS both reject this region. This is downstream of the all-country FDL masks.'};
         if(display===0&&fas===1)return {level:'blocked',title:'FAS / ECU GATE',detail:'The country-display provider allows the country, but FAS still rejects UCC. Check SAS/VIP presence and synchronized coding.'};

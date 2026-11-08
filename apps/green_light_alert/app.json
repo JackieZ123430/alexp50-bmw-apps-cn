@@ -2,7 +2,7 @@
   "id": "green_light_alert",
   "title": "Green Light Alert",
   "description": "Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "vendor": "alexp50",
   "loggingId": "OAB4",
   "iconGlyph": "●)))",
