@@ -65,12 +65,12 @@ mgu.run({async start(ctx){
         cv.text(rt.state==='RUNNING'?'BERLIN CONTEXT ACTIVE':rt.state,54,142,52,rt.state==='RUNNING'?AMBER:rt.result.indexOf('PASS:')===0?GREEN:t.text,{font:'bold'});
         cv.text(rt.state==='RUNNING'?'ON UNTIL YOU TURN IT OFF':rt.result,54,192,24,rt.state==='RUNNING'?AMBER:t.text);
         cv.text('Switch Germany ON while stationary, then perform the road test.',54,258,22,t.dim);
-        cv.text('Press Run selected action again to restore the saved real position.',54,298,22,t.dim);
-        cv.text('This tests BMW\'s own UCC regional decision; it does not recode an ECU.',54,338,22,t.dim);
+        cv.text('OEM Navigation and the CAN location remain in Berlin until you turn it OFF.',54,298,22,t.dim);
+        cv.text('OFF exits BMW demo mode and restores the saved CAN position. No ECU coding.',54,338,22,t.dim);
         cv.text(rt.state==='RUNNING'?'Run selected action: TURN OFF + RESTORE':'Run selected action: TURN GERMANY ON',54,446,24,rt.state==='RUNNING'?AMBER:BLUE,{font:'bold'});
         G.panel(cv,t,1024,54,552,458,'Live decision');
         const before=rt.before===null?'--':uccRegion(rt.before),during=rt.during===null?'--':uccRegion(rt.during);
-        const rows=[['Vehicle speed',fmt(C.speed,1)+' km/h'],['GPS provider',C.gpsConn&&C.gpsConn.available?'AVAILABLE':'WAITING'],['Before',before],['During',during],['Original saved',rt.original?'YES':'NO']];
+        const rows=[['Vehicle speed',fmt(C.speed,1)+' km/h'],['CAN GPS',C.gpsConn&&C.gpsConn.available?'AVAILABLE':'WAITING'],['OEM Navigation',C.navConn&&C.navConn.available?'AVAILABLE':'WAITING'],['Nav demo',C.navDemoActive===true?'ACTIVE':C.navDemoActive===false?'OFF':'--'],['UCC before / during',before+' / '+during]];
         G.table(cv,t,1048,112,504,[{label:'',w:250},{label:'',w:254,align:'right'}],rows,{rowH:58,size:21});
     }
     async function render(){
