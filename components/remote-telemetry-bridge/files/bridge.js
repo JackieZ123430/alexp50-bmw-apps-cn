@@ -14,6 +14,7 @@ const SOMEIP_DIR = path.join(ROOT, 'someip');
 const RUN = '/run/remote-telemetry-bridge';
 const STATUS = path.join(RUN, 'status.json');
 const LAST_STATUS = path.join(ROOT, 'last-status.json');
+const RETAINED = path.join(ROOT, 'retained-telemetry.json');
 const LEASE = '/run/mgu-uplink/lease.json';
 const FALLBACK_UID = 65534;
 const SIGNAL_APP = 'vehicle_health';
@@ -21,12 +22,14 @@ const OAP_UIDS = '/var/opt/public/oap/oap_12201/security/uids.txt';
 const UPLINK_UID_FILE = '/var/opt/mgu-uplink/uids.d/remote-telemetry-bridge';
 const INTERVAL_MS = 30000;
 
+const retained = readJson(RETAINED, {});
 const state = {
-    startedAt: new Date().toISOString(), lastSampleAt: null, lastUploadAt: null,
+    startedAt: new Date().toISOString(), lastSampleAt: retained.sampledAt || null, lastUploadAt: null,
     lastHttpStatus: null, error: null, configured: false, uplink: false,
-    providers: {}, telemetry: {}, awake: true, phase: 'starting', signalUid: null,
-    batteryVoltageSource: null, outsideTemperatureSource: null,
-    outsideTemperatureSampledAt: null
+    providers: {}, telemetry: retained.telemetry || {}, awake: true, phase: 'starting', signalUid: null,
+    batteryVoltageSource: retained.batteryVoltageSource || null,
+    outsideTemperatureSource: retained.outsideTemperatureSource || null,
+    outsideTemperatureSampledAt: retained.outsideTemperatureSampledAt || null
 };
 let stopping = false;
 const proxies = [];
@@ -43,6 +46,17 @@ function atomicJson(file, value) {
 function writeStatus() {
     try { atomicJson(STATUS, state); } catch (e) {}
     try { atomicJson(LAST_STATUS, state); } catch (e) {}
+    const slow = {};
+    if (finite(state.telemetry.batteryVoltage)) slow.batteryVoltage = state.telemetry.batteryVoltage;
+    if (finite(state.telemetry.outsideTemperatureC)) slow.outsideTemperatureC = state.telemetry.outsideTemperatureC;
+    if (Object.keys(slow).length) {
+        try { atomicJson(RETAINED, {
+            sampledAt: state.lastSampleAt, telemetry: slow,
+            batteryVoltageSource: state.batteryVoltageSource,
+            outsideTemperatureSource: state.outsideTemperatureSource,
+            outsideTemperatureSampledAt: state.outsideTemperatureSampledAt
+        }); } catch (e) {}
+    }
 }
 function finite(v) { return typeof v === 'number' && isFinite(v); }
 function temp(raw) { return finite(raw) && raw !== 255 ? Math.round((raw * 0.5 - 40) * 10) / 10 : null; }

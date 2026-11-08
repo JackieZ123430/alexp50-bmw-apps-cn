@@ -76,7 +76,7 @@ fun ParkedBmwApp(context: Context) {
 
     MaterialTheme(colorScheme = darkColorScheme(background=Bg, surface=Panel, primary=Cyan, secondary=Blue)) {
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF0B1B27), Bg)))) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement=Arrangement.spacedBy(14.dp)) {
+            Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement=Arrangement.spacedBy(14.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("PARKED BMW", color=Color.White, fontSize=28.sp, fontWeight=FontWeight.Black)

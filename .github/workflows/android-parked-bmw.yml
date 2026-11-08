@@ -28,22 +28,33 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
-      - name: Build debug APK
-        run: gradle -p android/parked-bmw :app:assembleDebug --stacktrace
+      - name: Restore persistent signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/parked-bmw-signing.p12"
+      - name: Build signed APK
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/parked-bmw-signing.p12
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+        run: gradle -p android/parked-bmw :app:assembleRelease --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: Parked-BMW-0.1.1-debug
-          path: android/parked-bmw/app/build/outputs/apk/debug/app-debug.apk
+          name: Parked-BMW-0.1.2
+          path: android/parked-bmw/app/build/outputs/apk/release/app-release.apk
       - name: Publish installable APK
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp android/parked-bmw/app/build/outputs/apk/debug/app-debug.apk Parked-BMW-0.1.1-debug.apk
-          if gh release view 'parked-bmw-android@0.1.1' >/dev/null 2>&1; then
-            gh release upload 'parked-bmw-android@0.1.1' Parked-BMW-0.1.1-debug.apk --clobber
+          cp android/parked-bmw/app/build/outputs/apk/release/app-release.apk Parked-BMW-0.1.2.apk
+          if gh release view 'parked-bmw-android@0.1.2' >/dev/null 2>&1; then
+            gh release upload 'parked-bmw-android@0.1.2' Parked-BMW-0.1.2.apk --clobber
           else
-            gh release create 'parked-bmw-android@0.1.1' Parked-BMW-0.1.1-debug.apk \
-              --title 'Parked BMW for Android 0.1.1' \
-              --notes 'Read-only remote cabin and parked-car telemetry dashboard with measured 12 V battery voltage. Install the APK manually on Android.' \
+            gh release create 'parked-bmw-android@0.1.2' Parked-BMW-0.1.2.apk \
+              --title 'Parked BMW for Android 0.1.2' \
+              --notes 'Read-only remote parked-car telemetry dashboard. This and future releases use a persistent signing identity so updates install normally. If 0.1.0 or 0.1.1 is installed, uninstall it once before installing 0.1.2.' \
               --latest=false
           fi

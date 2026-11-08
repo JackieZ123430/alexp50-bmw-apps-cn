@@ -11,8 +11,25 @@ android {
         applicationId = "com.alexp50.parkedbmw"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
+    }
+    val signingStore = System.getenv("ANDROID_SIGNING_STORE_FILE")
+    if (!signingStore.isNullOrBlank()) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(signingStore)
+                storePassword = System.getenv("ANDROID_SIGNING_STORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_SIGNING_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_SIGNING_KEY_PASSWORD")
+            }
+        }
+        buildTypes {
+            getByName("release") {
+                signingConfig = signingConfigs.getByName("release")
+                isMinifyEnabled = false
+            }
+        }
     }
     buildFeatures { compose = true }
     compileOptions {
