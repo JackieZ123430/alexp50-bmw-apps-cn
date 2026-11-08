@@ -21,6 +21,7 @@ const SIGNAL_APP = 'vehicle_health';
 const OAP_UIDS = '/var/opt/public/oap/oap_12201/security/uids.txt';
 const UPLINK_UID_FILE = '/var/opt/mgu-uplink/uids.d/remote-telemetry-bridge';
 const INTERVAL_MS = 30000;
+const COMMAND_INTERVAL_MS = 5000;
 
 const retained = readJson(RETAINED, {});
 const state = {
@@ -34,6 +35,8 @@ const state = {
 let stopping = false;
 const proxies = [];
 let runtimeConfig = {};
+let climateProxy = null;
+let commandBusy = false;
 
 function readJson(file, fallback) {
     try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return fallback; }
@@ -89,7 +92,7 @@ function setOutsideDegrees(degrees, source, preferred) {
 }
 
 function ensureSomeIp() {
-    const marker = path.join(SOMEIP_DIR, '.bridge-config-v4');
+    const marker = path.join(SOMEIP_DIR, '.bridge-config-v5');
     if (fs.existsSync(marker)) return;
     if (!fs.existsSync(SOMEIP_DIR)) fs.mkdirSync(SOMEIP_DIR);
     try {
@@ -186,6 +189,127 @@ function watch(someip, iface, field, receive) {
         }, 15000);
         return proxy;
     }).catch((e) => { state.providers[iface] = false; state.error = iface + ': ' + e.message; writeStatus(); return null; });
+}
+
+function watchClimate(someip) {
+    const iface = 'de.bmw.infotainment.climate.Climate2';
+    let cfg;
+    try { cfg = JSON.parse(fs.readFileSync(configFile(iface), 'utf8')); }
+    catch (e) { state.providers[iface] = false; state.error = iface + ': no generated interface configuration'; writeStatus(); return Promise.resolve(null); }
+    return nativeTick(() => someip.buildProxy(cfg, '1').then((proxy) => proxy.init().then(() => proxy))).then((proxy) => {
+        proxies.push(proxy); climateProxy = proxy; state.providers[iface] = false;
+        const receive = (value) => setTelemetry('insideTemperatureC', temp(value && value.temperatureInside));
+        proxy.subscribeToAvailability((available) => {
+            state.providers[iface] = !!available;
+            if (available) proxy.getValue('statusTemperatureInside', 3000).then(receive).catch(() => {});
+            writeStatus();
+        });
+        try { proxy.subscribe({name:'statusTemperatureInside', onReceive:receive}).catch(() => {}); } catch (e) {}
+        setInterval(() => { if (state.providers[iface]) proxy.getValue('statusTemperatureInside', 3000).then(receive).catch(() => {}); }, 15000);
+        return proxy;
+    }).catch((e) => { state.providers[iface] = false; state.error = iface + ': ' + e.message; writeStatus(); return null; });
+}
+
+function parkClimateValue(on) {
+    return {
+        operationParkHeat:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
+        operationIndependentVentilate:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
+        operationExtraHeater:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
+        operationParkAirConditioning:on ? 'STANDKLIMATISIERUNG_EIN' : 'STANDKLIMATISIERUNG_AUS',
+        operationParkFunctionAutoMode:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
+        operationRemoteStart:'KEINE_AKTION_NICHT_VERFUEGBAR'
+    };
+}
+
+function frontClimateValue(command) {
+    const no = 'SIGNAL_UNBEFUELLT';
+    const value = {
+        operationOnDR:no, operationOnPS:no, operationAircon:no,
+        operationModeAirConditioningDR:no, operationModeAirConditioningPS:no,
+        operationTemperatureTargetDR:255, operationTemperatureTargetPS:255,
+        operationIntensityDR:no, operationIntensityPS:no, requestAICPIA:no,
+        operationDefrost:no, operationMaximumAirCondition:no,
+        operationManualBlowerLevelDR:no, operationManualBlowerLevelPS:no,
+        operationAirdistributionProgramDR:no, operationAirdistributionProgramPS:no
+    };
+    if (command.type === 'defrost_on' || command.type === 'defrost_off') value.operationDefrost = command.type === 'defrost_on' ? 'EIN' : 'AUS';
+    if (command.type === 'set_temperature') {
+        value.operationTemperatureTargetDR = Math.round(command.celsius * 2);
+        value.operationTemperatureTargetPS = Math.round(command.celsius * 2);
+    }
+    if (command.type === 'set_fan') {
+        value.operationManualBlowerLevelDR = 'STUFE_' + command.level;
+        value.operationManualBlowerLevelPS = 'STUFE_' + command.level;
+    }
+    return value;
+}
+
+function seatClimateValue(command) {
+    const value = {
+        operationStratificationSeatHeaterDR:255, operationStratificationSeatHeaterPS:255,
+        operationStratificationSeatHeaterDRR:255, operationStratificationSeatHeaterPSR:255,
+        operationFunctionStageSeatHeaterDR:0, operationFunctionStageSeatClimateDR:0,
+        operationFunctionStageSeatHeaterPS:0, operationFunctionStageSeatClimatePS:0,
+        operationFunctionStageSeatHeaterDRR:0, operationFunctionStageSeatClimateDRR:0,
+        operationFunctionStageSeatHeaterPSR:0, operationFunctionStageSeatClimatePSR:0,
+        operationFunctionStageNeckHeaterDR:'KEINE_AKTION', operationFunctionStageNeckHeaterPS:'KEINE_AKTION',
+        operationFunctionNeckHeaterDR:'KEINE_AKTION', operationFunctionNeckHeaterPS:'KEINE_AKTION'
+    };
+    const suffix = {driver:'DR', frontPassenger:'PS', rearLeft:'DRR', rearRight:'PSR'}[command.seat];
+    const kind = command.type === 'seat_heat' ? 'Heater' : 'Climate';
+    value['operationFunctionStageSeat' + kind + suffix] = command.level + 1;
+    return value;
+}
+
+async function executeCommand(command) {
+    if (!climateProxy || !state.providers['de.bmw.infotainment.climate.Climate2']) throw new Error('BMW Climate2 provider is unavailable');
+    let field, value, description;
+    if (command.type === 'climate_on' || command.type === 'climate_off') {
+        field = 'airConditionParkFunctions'; value = parkClimateValue(command.type === 'climate_on'); description = command.type === 'climate_on' ? 'Parked climate on' : 'Parked climate off';
+    } else if (command.type === 'defrost_on' || command.type === 'defrost_off' || command.type === 'set_temperature' || command.type === 'set_fan') {
+        field = 'operationAirConditioningFront'; value = frontClimateValue(command); description = command.type.replace(/_/g, ' ');
+    } else if (command.type === 'seat_heat' || command.type === 'seat_vent') {
+        field = 'operationStratificationSeatHeating'; value = seatClimateValue(command); description = command.type.replace(/_/g, ' ') + ' ' + command.seat + ' level ' + command.level;
+    } else throw new Error('Unsupported command type');
+    await nativeTick(() => climateProxy.setValue(field, value, 6000));
+    return description + ' accepted by BMW Climate2';
+}
+
+function relayRequest(config, method, pathName, body) {
+    return new Promise((resolve, reject) => {
+        const target = url.parse(config.endpoint.replace(/\/$/, '') + '/v1/cars/' + encodeURIComponent(config.carId) + pathName);
+        const payload = body == null ? null : Buffer.from(JSON.stringify(body));
+        const headers = {'Authorization':'Bearer ' + config.writeToken, 'Accept':'application/json', 'User-Agent':'BMW-MGU-Remote-Telemetry/0.2'};
+        if (payload) { headers['Content-Type'] = 'application/json'; headers['Content-Length'] = payload.length; }
+        const req = https.request({protocol:'https:', hostname:target.hostname, port:target.port || 443, path:target.path, method, timeout:10000, lookup:uplinkLookup, headers}, (res) => {
+            const chunks = []; res.on('data', (chunk) => chunks.push(chunk));
+            res.on('end', () => {
+                const text = Buffer.concat(chunks).toString('utf8');
+                let parsed = null; try { parsed = text ? JSON.parse(text) : null; } catch (e) {}
+                resolve({status:res.statusCode, body:parsed});
+            });
+        });
+        req.on('timeout', () => req.destroy(new Error('relay timeout'))); req.on('error', reject);
+        if (payload) req.write(payload); req.end();
+    });
+}
+
+async function pollCommand(config) {
+    if (commandBusy || !config.endpoint || !config.writeToken || !config.carId) return;
+    commandBusy = true;
+    try {
+        configureDns();
+        const response = await relayRequest(config, 'GET', '/commands', null);
+        if (response.status === 204) return;
+        if (response.status !== 200 || !response.body || !response.body.id) throw new Error('command relay HTTP ' + response.status);
+        const command = response.body;
+        let status = 'accepted', result;
+        try { result = await executeCommand(command); } catch (e) { status = 'rejected'; result = e.message; }
+        await relayRequest(config, 'POST', '/commands/' + encodeURIComponent(command.id), {status, result});
+        state.lastCommand = {id:command.id, type:command.type, status, result, completedAt:new Date().toISOString()};
+        writeStatus();
+    } catch (e) { state.commandError = e.message; writeStatus(); }
+    finally { commandBusy = false; }
 }
 
 // DDE DID 43C1 is the IBS-measured 12 V system voltage in millivolts. DDE DID
@@ -291,8 +415,7 @@ async function main() {
     }
     writeStatus();
     await Promise.all([
-        watch(someip, 'de.bmw.infotainment.climate.Climate2', 'statusTemperatureInside',
-            (v) => setTelemetry('insideTemperatureC', temp(v && v.temperatureInside))),
+        watchClimate(someip),
         watch(someip, 'de.bmw.infrastructure.EnvironmentalInformation', 'ExteriorTemperature',
             (v) => setOutside(v, 'ExteriorTemperature', true)),
         watch(someip, 'de.bmw.infrastructure.EnvironmentalInformation', 'unfilteredExteriorTemperature',
@@ -315,6 +438,8 @@ async function main() {
     writeStatus();
     const tick = () => { if (!stopping) upload(runtimeConfig).catch(() => {}); };
     tick(); setInterval(tick, INTERVAL_MS);
+    const commandTick = () => { if (!stopping) pollCommand(runtimeConfig).catch(() => {}); };
+    commandTick(); setInterval(commandTick, COMMAND_INTERVAL_MS);
 }
 
 function stop() {

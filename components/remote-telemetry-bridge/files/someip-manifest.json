@@ -6,7 +6,12 @@
       "instances": "SystemFunctionsInternalTasuInst1"
     },
     "de.bmw.infotainment.climate.Climate2": {
-      "attributes": {"statusTemperatureInside": "rs"},
+      "attributes": {
+        "airConditionParkFunctions": "w",
+        "operationAirConditioningFront": "w",
+        "operationStratificationSeatHeating": "w",
+        "statusTemperatureInside": "rs"
+      },
       "instances": "1"
     },
     "de.bmw.infrastructure.EnvironmentalInformation": {

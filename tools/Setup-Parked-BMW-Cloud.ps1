@@ -25,10 +25,13 @@ try {
 
     $writeToken = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
     $readToken = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
+    $commandToken = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
     $writeToken | & $npx wrangler secret put CAR_WRITE_TOKEN
     if ($LASTEXITCODE -ne 0) { throw 'Uploading the car write token failed.' }
     $readToken | & $npx wrangler secret put APP_READ_TOKEN
     if ($LASTEXITCODE -ne 0) { throw 'Uploading the Android read token failed.' }
+    $commandToken | & $npx wrangler secret put APP_COMMAND_TOKEN
+    if ($LASTEXITCODE -ne 0) { throw 'Uploading the Android command token failed.' }
 
     # Wrangler prints successful-deployment warnings to stderr. Under Windows
     # PowerShell plus ErrorActionPreference=Stop those warnings otherwise abort
@@ -51,12 +54,13 @@ try {
         carId = 'my-g12'
         writeToken = $writeToken
         readToken = $readToken
+        commandToken = $commandToken
         createdAt = [DateTime]::UtcNow.ToString('o')
     }
     $connectionPath = Join-Path $worker 'parked-bmw-connection.json'
     $connection | ConvertTo-Json | Set-Content -LiteralPath $connectionPath -Encoding utf8
     Write-Host "Private connection file written to $connectionPath" -ForegroundColor Green
-    Write-Host 'Keep this file private. The write token goes only to the car; the read token goes only to the Android app.'
+    Write-Host 'Keep this file private. The write token goes only to the car; the read and command tokens go only to the Android app.'
 } finally {
     Pop-Location
 }

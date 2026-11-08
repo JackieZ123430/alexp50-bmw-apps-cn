@@ -21,9 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
+import java.net.URLEncoder
 import java.net.URL
 import java.time.Duration
 import java.time.Instant
@@ -35,6 +37,7 @@ data class Snapshot(
     val received: Instant, val sampled: Instant?, val awake: Boolean,
     val inside: Double?, val outside: Double?, val battery: Double?, val voltage: Double?, val speed: Double?, val tyres: Tyres?
 )
+data class CommandResult(val id: String, val status: String, val result: String?)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,12 +59,15 @@ fun ParkedBmwApp(context: Context) {
     val prefs = remember { context.getSharedPreferences("connection", Context.MODE_PRIVATE) }
     var endpoint by remember { mutableStateOf(prefs.getString("endpoint", "") ?: "") }
     var token by remember { mutableStateOf(prefs.getString("token", "") ?: "") }
+    var commandToken by remember { mutableStateOf(prefs.getString("commandToken", "") ?: "") }
     var carId by remember { mutableStateOf(prefs.getString("carId", "my-g12") ?: "my-g12") }
     var editing by remember { mutableStateOf(endpoint.isBlank() || token.isBlank()) }
     var snapshot by remember { mutableStateOf<Snapshot?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var refreshing by remember { mutableStateOf(false) }
     var refreshKey by remember { mutableIntStateOf(0) }
+    var commandState by remember { mutableStateOf("Ready") }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(endpoint, token, carId, refreshKey) {
         if (endpoint.isBlank() || token.isBlank() || carId.isBlank()) return@LaunchedEffect
@@ -84,9 +90,9 @@ fun ParkedBmwApp(context: Context) {
                     }
                     TextButton(onClick={ editing = !editing }) { Text(if (editing) "CLOSE" else "SETUP") }
                 }
-                if (editing) ConnectionCard(endpoint, token, carId,
-                    onEndpoint={endpoint=it}, onToken={token=it}, onCar={carId=it}, onSave={
-                        prefs.edit().putString("endpoint",endpoint.trimEnd('/')).putString("token",token).putString("carId",carId).apply()
+                if (editing) ConnectionCard(endpoint, token, commandToken, carId,
+                    onEndpoint={endpoint=it}, onToken={token=it}, onCommandToken={commandToken=it}, onCar={carId=it}, onSave={
+                        prefs.edit().putString("endpoint",endpoint.trimEnd('/')).putString("token",token).putString("commandToken",commandToken).putString("carId",carId).apply()
                         editing=false; refreshKey++
                     })
                 FreshnessCard(snapshot, error, refreshing) { refreshKey++ }
@@ -100,22 +106,98 @@ fun ParkedBmwApp(context: Context) {
                     MetricCard("VEHICLE SPEED", value(snapshot?.speed,1), "km/h", Cyan, Modifier.weight(1f))
                 }
                 TyreCard(snapshot?.tyres)
+                ClimateControls(enabled=isLive(snapshot) && commandToken.isNotBlank(), state=commandState) { command ->
+                    scope.launch {
+                        commandState = "Sending…"
+                        try {
+                            val result = sendCommand(endpoint, commandToken, carId, command)
+                            commandState = when (result.status) {
+                                "accepted" -> result.result ?: "Accepted by the car"
+                                "rejected", "error", "expired" -> result.result ?: result.status
+                                else -> "Queued for the car"
+                            }
+                        } catch (e: Exception) { commandState = e.message ?: "Command failed" }
+                    }
+                }
                 Text("The MGU and LTE modem switch off when the car sleeps. Values remain visible with their timestamp and are never presented as live after updates stop.", color=Color(0xFF8EA5B5), fontSize=13.sp)
             }
         }
     }
 }
 
-@Composable private fun ConnectionCard(endpoint:String, token:String, carId:String, onEndpoint:(String)->Unit, onToken:(String)->Unit, onCar:(String)->Unit, onSave:()->Unit) {
+@Composable private fun ConnectionCard(endpoint:String, token:String, commandToken:String, carId:String, onEndpoint:(String)->Unit, onToken:(String)->Unit, onCommandToken:(String)->Unit, onCar:(String)->Unit, onSave:()->Unit) {
     Card(colors=CardDefaults.cardColors(containerColor=Panel), shape=RoundedCornerShape(18.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement=Arrangement.spacedBy(10.dp)) {
             Text("CONNECTION", fontWeight=FontWeight.Bold, color=Cyan)
             OutlinedTextField(endpoint,onEndpoint,label={Text("Relay HTTPS URL")},singleLine=true,modifier=Modifier.fillMaxWidth())
             OutlinedTextField(carId,onCar,label={Text("Car ID")},singleLine=true,modifier=Modifier.fillMaxWidth())
             OutlinedTextField(token,onToken,label={Text("Read token")},visualTransformation=PasswordVisualTransformation(),singleLine=true,modifier=Modifier.fillMaxWidth())
+            OutlinedTextField(commandToken,onCommandToken,label={Text("Climate command token")},visualTransformation=PasswordVisualTransformation(),singleLine=true,modifier=Modifier.fillMaxWidth())
             Button(onClick=onSave,enabled=endpoint.startsWith("https://")&&token.length>=16&&carId.isNotBlank(),modifier=Modifier.fillMaxWidth()){Text("SAVE AND CONNECT")}
         }
     }
+}
+
+private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.between(s.received, Instant.now()).seconds in 0..89
+
+@Composable private fun ClimateControls(enabled:Boolean, state:String, send:(JSONObject)->Unit) {
+    var temperature by remember { mutableDoubleStateOf(21.0) }
+    var fan by remember { mutableIntStateOf(3) }
+    Card(colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(18.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) { Text("REMOTE CLIMATE", color=Cyan, fontWeight=FontWeight.Bold); Text(state, color=Color(0xFFAFC1CC), fontSize=12.sp) }
+                Text(if(enabled) "CAR ONLINE" else "OFFLINE", color=if(enabled) Green else Amber, fontSize=11.sp, fontWeight=FontWeight.Bold)
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                Button(onClick={send(JSONObject().put("type","climate_on"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("CLIMATE ON")}
+                OutlinedButton(onClick={send(JSONObject().put("type","climate_off"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("OFF")}
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                Button(onClick={send(JSONObject().put("type","defrost_on"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("DEFROST")}
+                OutlinedButton(onClick={send(JSONObject().put("type","defrost_off"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("DEFROST OFF")}
+            }
+            ControlStepper("TARGET", String.format("%.1f °C", temperature), enabled,
+                decrease={temperature=(temperature-0.5).coerceAtLeast(16.0)}, increase={temperature=(temperature+0.5).coerceAtMost(28.0)},
+                apply={send(JSONObject().put("type","set_temperature").put("celsius",temperature))})
+            ControlStepper("FAN", "Level $fan", enabled,
+                decrease={fan=(fan-1).coerceAtLeast(1)}, increase={fan=(fan+1).coerceAtMost(9)},
+                apply={send(JSONObject().put("type","set_fan").put("level",fan))})
+            Text("SEATS", color=Color(0xFFAFC1CC), fontSize=12.sp, fontWeight=FontWeight.Bold)
+            SeatControl("Driver", "driver", enabled, send)
+            SeatControl("Front passenger", "frontPassenger", enabled, send)
+            SeatControl("Rear left", "rearLeft", enabled, send)
+            SeatControl("Rear right", "rearRight", enabled, send)
+            Text("Commands expire after two minutes. The app shows the car's actual acceptance result.", color=Color(0xFF7E96A5), fontSize=11.sp)
+        }
+    }
+}
+
+@Composable private fun ControlStepper(label:String, value:String, enabled:Boolean, decrease:()->Unit, increase:()->Unit, apply:()->Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)){Text(label,color=Color(0xFF7E96A5),fontSize=11.sp);Text(value,color=Color.White,fontWeight=FontWeight.Bold)}
+        OutlinedButton(decrease, enabled=enabled, contentPadding=PaddingValues(horizontal=14.dp)){Text("−")}
+        Spacer(Modifier.width(6.dp)); OutlinedButton(increase, enabled=enabled, contentPadding=PaddingValues(horizontal=14.dp)){Text("+")}
+        Spacer(Modifier.width(6.dp)); Button(apply, enabled=enabled){Text("SET")}
+    }
+}
+
+@Composable private fun SeatControl(label:String, seat:String, enabled:Boolean, send:(JSONObject)->Unit) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement=Arrangement.spacedBy(5.dp)) {
+        Text(label, color=Color.White, fontWeight=FontWeight.SemiBold, fontSize=13.sp)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(5.dp)) {
+            Text("HEAT", color=Red, fontSize=10.sp, modifier=Modifier.width(36.dp).align(Alignment.CenterVertically))
+            (0..3).forEach { level -> SmallLevelButton(if(level==0) "OFF" else "$level", enabled) { send(JSONObject().put("type","seat_heat").put("seat",seat).put("level",level)) } }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(5.dp)) {
+            Text("VENT", color=Blue, fontSize=10.sp, modifier=Modifier.width(36.dp).align(Alignment.CenterVertically))
+            (0..3).forEach { level -> SmallLevelButton(if(level==0) "OFF" else "$level", enabled) { send(JSONObject().put("type","seat_vent").put("seat",seat).put("level",level)) } }
+        }
+    }
+}
+
+@Composable private fun SmallLevelButton(text:String, enabled:Boolean, click:()->Unit) {
+    OutlinedButton(click, enabled=enabled, modifier=Modifier.height(34.dp), contentPadding=PaddingValues(horizontal=12.dp, vertical=0.dp)){Text(text, fontSize=11.sp)}
 }
 
 @Composable private fun FreshnessCard(s:Snapshot?, error:String?, loading:Boolean, refresh:()->Unit) {
@@ -182,6 +264,29 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
         )
     } else null
     Snapshot(Instant.parse(root.getString("serverReceivedAt")),root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},root.optBoolean("awake",false),number("insideTemperatureC"),number("outsideTemperatureC"),number("batteryChargePercent"),number("batteryVoltage"),number("speedKmh"),tyre)
+}
+
+private suspend fun sendCommand(endpoint:String, token:String, carId:String, command:JSONObject):CommandResult = withContext(Dispatchers.IO) {
+    if (token.isBlank()) throw@withContext IllegalStateException("Add the climate command token in Setup")
+    val base = endpoint.trimEnd('/') + "/v1/cars/" + URLEncoder.encode(carId, "UTF-8") + "/commands"
+    fun request(target:String, method:String, body:String? = null):Pair<Int,String> {
+        val connection = URL(target).openConnection() as HttpURLConnection
+        connection.requestMethod=method;connection.connectTimeout=12_000;connection.readTimeout=12_000
+        connection.setRequestProperty("Authorization","Bearer $token");connection.setRequestProperty("Accept","application/json")
+        if(body!=null){connection.doOutput=true;connection.setRequestProperty("Content-Type","application/json");connection.outputStream.use{it.write(body.toByteArray())}}
+        val code=connection.responseCode
+        val text=(if(code in 200..299)connection.inputStream else connection.errorStream)?.bufferedReader()?.use{it.readText()} ?: ""
+        return code to text
+    }
+    val (queuedCode, queuedText)=request(base,"POST",command.toString())
+    if(queuedCode !in 200..299) throw@withContext IllegalStateException("Command relay HTTP $queuedCode")
+    val queued=JSONObject(queuedText);val id=queued.getString("id")
+    repeat(8) {
+        Thread.sleep(2500)
+        val (code,text)=request("$base/$id","GET")
+        if(code==200){val value=JSONObject(text);val status=value.optString("status","queued");if(status in setOf("accepted","rejected","error","expired")) return@withContext CommandResult(id,status,value.optString("result").takeIf{it.isNotBlank()})}
+    }
+    CommandResult(id,"queued",null)
 }
 private fun value(v:Double?,digits:Int)=v?.let{String.format("%.${digits}f",it)}?:"--"
 private fun temp(v:Double?)=value(v,1)

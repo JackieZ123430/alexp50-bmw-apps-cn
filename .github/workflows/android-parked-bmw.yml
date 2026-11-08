@@ -43,18 +43,18 @@ jobs:
         run: gradle -p android/parked-bmw :app:assembleRelease --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: Parked-BMW-0.1.2
+          name: Parked-BMW-0.2.0
           path: android/parked-bmw/app/build/outputs/apk/release/app-release.apk
       - name: Publish installable APK
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp android/parked-bmw/app/build/outputs/apk/release/app-release.apk Parked-BMW-0.1.2.apk
-          if gh release view 'parked-bmw-android@0.1.2' >/dev/null 2>&1; then
-            gh release upload 'parked-bmw-android@0.1.2' Parked-BMW-0.1.2.apk --clobber
+          cp android/parked-bmw/app/build/outputs/apk/release/app-release.apk Parked-BMW-0.2.0.apk
+          if gh release view 'parked-bmw-android@0.2.0' >/dev/null 2>&1; then
+            gh release upload 'parked-bmw-android@0.2.0' Parked-BMW-0.2.0.apk --clobber
           else
-            gh release create 'parked-bmw-android@0.1.2' Parked-BMW-0.1.2.apk \
-              --title 'Parked BMW for Android 0.1.2' \
-              --notes 'Read-only remote parked-car telemetry dashboard. This and future releases use a persistent signing identity so updates install normally. If 0.1.0 or 0.1.1 is installed, uninstall it once before installing 0.1.2.' \
+            gh release create 'parked-bmw-android@0.2.0' Parked-BMW-0.2.0.apk \
+              --title 'Parked BMW for Android 0.2.0' \
+              --notes 'Adds authenticated remote parked climate, defrost, temperature, fan, and four-seat heat/vent controls with two-minute command expiry and car-side acceptance results.' \
               --latest=false
           fi

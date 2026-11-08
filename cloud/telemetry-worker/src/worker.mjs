@@ -33,6 +33,22 @@ function validSnapshot(body) {
   return true;
 }
 
+const seats = new Set(["driver", "frontPassenger", "rearLeft", "rearRight"]);
+const simpleCommands = new Set(["climate_on", "climate_off", "defrost_on", "defrost_off"]);
+function normalizeCommand(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body) || typeof body.type !== "string") return null;
+  const type = body.type;
+  if (simpleCommands.has(type)) return {type};
+  if ((type === "seat_heat" || type === "seat_vent") && seats.has(body.seat) && Number.isInteger(body.level) && body.level >= 0 && body.level <= 3) {
+    return {type, seat: body.seat, level: body.level};
+  }
+  if (type === "set_temperature" && typeof body.celsius === "number" && Number.isFinite(body.celsius) && body.celsius >= 16 && body.celsius <= 28) {
+    return {type, celsius: Math.round(body.celsius * 2) / 2};
+  }
+  if (type === "set_fan" && Number.isInteger(body.level) && body.level >= 1 && body.level <= 9) return {type, level: body.level};
+  return null;
+}
+
 async function appendHistory(env, carId, snapshot) {
   const key = `history:${carId}`;
   const old = await env.TELEMETRY.get(key, "json") || [];
@@ -42,15 +58,33 @@ async function appendHistory(env, carId, snapshot) {
   await env.TELEMETRY.put(key, JSON.stringify(old.slice(-288)));
 }
 
+async function commandList(env, carId) {
+  return await env.TELEMETRY.get(`commands:${carId}`, "json") || [];
+}
+async function saveCommands(env, carId, commands) {
+  await env.TELEMETRY.put(`commands:${carId}`, JSON.stringify(commands.slice(-30)));
+}
+function expireCommands(commands) {
+  const now = Date.now();
+  for (const command of commands) {
+    if ((command.status === "queued" || command.status === "delivered") && Date.parse(command.expiresAt) <= now) {
+      command.status = "expired";
+      command.completedAt = new Date().toISOString();
+      command.result = "The car did not collect this command before it expired.";
+    }
+  }
+  return commands;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const target = new URL(request.url);
     if (target.pathname === "/health") return json({ok: true, service: "parked-bmw-telemetry"});
-    const match = /^\/v1\/cars\/([A-Za-z0-9_-]{1,48})\/(telemetry|history)$/.exec(target.pathname);
+    const match = /^\/v1\/cars\/([A-Za-z0-9_-]{1,48})\/(telemetry|history|commands)(?:\/([A-Za-z0-9-]{1,64}))?$/.exec(target.pathname);
     if (!match) return json({error: "not found"}, 404);
-    const carId = match[1], resource = match[2], token = bearer(request);
+    const carId = match[1], resource = match[2], commandId = match[3], token = bearer(request);
 
-    if (request.method === "POST" && resource === "telemetry") {
+    if (request.method === "POST" && resource === "telemetry" && !commandId) {
       if (!await sameSecret(token, env.CAR_WRITE_TOKEN)) return json({error: "unauthorized"}, 401);
       const length = Number(request.headers.get("content-length") || 0);
       if (length > 16384) return json({error: "payload too large"}, 413);
@@ -63,7 +97,57 @@ export default {
       return json({ok: true, serverReceivedAt: snapshot.serverReceivedAt}, 202);
     }
 
-    if (request.method === "GET") {
+    if (resource === "commands" && request.method === "POST" && !commandId) {
+      if (!await sameSecret(token, env.APP_COMMAND_TOKEN)) return json({error: "unauthorized"}, 401);
+      let body;
+      try { body = await request.json(); } catch (_) { return json({error: "invalid JSON"}, 400); }
+      const command = normalizeCommand(body);
+      if (!command) return json({error: "unsupported or invalid command"}, 422);
+      const now = new Date();
+      const entry = {...command, id: crypto.randomUUID(), status: "queued", createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + 120000).toISOString()};
+      const commands = expireCommands(await commandList(env, carId));
+      commands.push(entry);
+      await saveCommands(env, carId, commands);
+      return json(entry, 202);
+    }
+
+    if (resource === "commands" && request.method === "GET" && !commandId) {
+      if (!await sameSecret(token, env.CAR_WRITE_TOKEN)) return json({error: "unauthorized"}, 401);
+      const commands = expireCommands(await commandList(env, carId));
+      const command = commands.find((one) => one.status === "queued");
+      if (!command) { await saveCommands(env, carId, commands); return new Response(null, {status: 204, headers:{"cache-control":"no-store"}}); }
+      command.status = "delivered";
+      command.deliveredAt = new Date().toISOString();
+      await saveCommands(env, carId, commands);
+      return json(command);
+    }
+
+    if (resource === "commands" && request.method === "GET" && commandId) {
+      if (!await sameSecret(token, env.APP_COMMAND_TOKEN)) return json({error: "unauthorized"}, 401);
+      const commands = expireCommands(await commandList(env, carId));
+      await saveCommands(env, carId, commands);
+      const command = commands.find((one) => one.id === commandId);
+      return command ? json(command) : json({error: "command not found"}, 404);
+    }
+
+    if (resource === "commands" && request.method === "POST" && commandId) {
+      if (!await sameSecret(token, env.CAR_WRITE_TOKEN)) return json({error: "unauthorized"}, 401);
+      let body;
+      try { body = await request.json(); } catch (_) { return json({error: "invalid JSON"}, 400); }
+      if (!body || !["accepted", "rejected", "error"].includes(body.status) || (body.result != null && typeof body.result !== "string")) {
+        return json({error: "invalid command result"}, 422);
+      }
+      const commands = expireCommands(await commandList(env, carId));
+      const command = commands.find((one) => one.id === commandId);
+      if (!command) return json({error: "command not found"}, 404);
+      command.status = body.status;
+      command.result = String(body.result || "").slice(0, 512);
+      command.completedAt = new Date().toISOString();
+      await saveCommands(env, carId, commands);
+      return json(command);
+    }
+
+    if (request.method === "GET" && (resource === "telemetry" || resource === "history") && !commandId) {
       if (!await sameSecret(token, env.APP_READ_TOKEN)) return json({error: "unauthorized"}, 401);
       const key = resource === "history" ? `history:${carId}` : `latest:${carId}`;
       const value = await env.TELEMETRY.get(key, "json");

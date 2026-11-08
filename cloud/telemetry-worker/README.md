@@ -1,6 +1,6 @@
 # Parked BMW telemetry relay
 
-Cloudflare Worker that accepts authenticated snapshots from the MGU and exposes the latest snapshot plus a five-minute history to the Android app. The car has a write-only token; the phone has a separate read-only token.
+Cloudflare Worker that accepts authenticated snapshots from the MGU, exposes the latest snapshot plus a five-minute history, and carries short-lived climate commands. The car has a write/execute token; the phone has separate read and command tokens.
 
 From the repository root on Windows, run:
 
@@ -16,4 +16,4 @@ With the car awake and reachable, install the bridge using the generated connect
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Install-Parked-BMW-Bridge.ps1 -HostAddress 192.168.68.114
 ```
 
-No location is collected by version 0.1. The retained history contains at most 288 five-minute samples.
+Commands are strictly allowlisted, expire after two minutes and retain their car-side result. No location is collected. Telemetry history contains at most 288 five-minute samples.
