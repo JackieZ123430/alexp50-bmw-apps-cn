@@ -21,6 +21,10 @@ APP_REQUIRES = {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.0"}
 # a default MGU Store source. Publishing private forks under the same IDs makes
 # the updater correctly reject a cross-source takeover of an installed tool.
 EXTERNAL_COMPONENTS = {"idrive7-renderd", "mgu-inputgate"}
+# The MGU's LTE path occasionally times out while following github.com release
+# redirects. This tiny always-on tool is also committed under packages/, so use
+# GitHub's direct raw-content host and keep the catalog SHA-256 verification.
+RAW_ARTIFACTS = {"remote-telemetry-bridge"}
 SPECIAL_REQUIRES = {
     "drive_hud_full": {"cluster-render": "0.3.10"},
     "front_camera_cluster": {"front-camera-cluster-helper": "0.2.1"},
@@ -117,15 +121,21 @@ def main() -> None:
             requires = {**APP_REQUIRES, **SPECIAL_REQUIRES.get(component_id, {}), **requires}
         filename = os.path.basename(path)
         release_tag = f"{component_id}@{manifest['version']}"
+        if component_id in RAW_ARTIFACTS:
+            artifact_url = "https://raw.githubusercontent.com/{}/main/packages/{}".format(
+                REPOSITORY, urllib.parse.quote(filename, safe="@")
+            )
+        else:
+            artifact_url = "https://github.com/{}/releases/download/{}/{}".format(
+                REPOSITORY,
+                urllib.parse.quote(release_tag, safe="@"),
+                urllib.parse.quote(filename, safe="@"),
+            )
         artifact = {
             "name": filename,
             "size": os.path.getsize(path),
             "sha256": sha256(path),
-            "url": "https://github.com/{}/releases/download/{}/{}".format(
-                REPOSITORY,
-                urllib.parse.quote(release_tag, safe="@"),
-                urllib.parse.quote(filename, safe="@"),
-            ),
+            "url": artifact_url,
         }
         item = {
             "id": component_id,

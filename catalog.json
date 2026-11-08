@@ -423,7 +423,7 @@
         "name": "remote-telemetry-bridge@0.1.3.tgz",
         "size": 5011,
         "sha256": "4a82a39b705d3ceb816a73392bf2e8b65593af2bd2561cd0da2e255fed4ff8e6",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/remote-telemetry-bridge@0.1.3/remote-telemetry-bridge@0.1.3.tgz"
+        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.1.3.tgz"
       },
       "uninstallable": true,
       "requires": {
