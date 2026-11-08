@@ -21,12 +21,27 @@ function main() {
     if (!out) throw new Error('output directory required');
     const db = JSON.parse(fs.readFileSync('/etc/oap/someip/someip-interfaces.json', 'utf8'));
     const manifest = JSON.parse(fs.readFileSync(path.join(root, 'someip-manifest.json'), 'utf8'));
-    const configs = loadFromFirmware('IFConfigGenerator').generate(db, manifest);
     if (!fs.existsSync(out)) fs.mkdirSync(out);
-    Object.keys(configs).forEach((id) => {
-        fs.writeFileSync(path.join(out, id.replace(/\./g, '_') + '.json'), JSON.stringify(configs[id]));
+    const generator = loadFromFirmware('IFConfigGenerator');
+    const generated = [];
+    const errors = {};
+    Object.keys(manifest.proxies || {}).forEach((id) => {
+        try {
+            const one = {proxies:{}, providers:{}};
+            one.proxies[id] = manifest.proxies[id];
+            const configs = generator.generate(db, one);
+            Object.keys(configs).forEach((configId) => {
+                fs.writeFileSync(path.join(out, configId.replace(/\./g, '_') + '.json'), JSON.stringify(configs[configId]));
+                generated.push(configId);
+            });
+        } catch (e) {
+            errors[id] = e.message;
+            process.stderr.write('skipping unsupported telemetry interface ' + id + ': ' + e.message + '\n');
+        }
     });
-    process.stdout.write('generated ' + Object.keys(configs).length + ' telemetry interface configs\n');
+    fs.writeFileSync(path.join(out, 'generation-status.json'), JSON.stringify({generated:generated, errors:errors}, null, 2));
+    if (!generated.length) throw new Error('none of the telemetry interfaces could be generated');
+    process.stdout.write('generated ' + generated.length + ' telemetry interface configs\n');
 }
 
 if (require.main === module) {
