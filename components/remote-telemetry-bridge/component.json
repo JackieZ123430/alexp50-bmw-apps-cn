@@ -1,7 +1,7 @@
 {
   "id": "remote-telemetry-bridge",
   "kind": "tool",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "title": "Remote telemetry bridge",
   "description": "Publishes read-only parked-car telemetry through mgu-uplink to an authenticated HTTPS relay",
   "mguHmi": ["ID7"],

@@ -20,7 +20,7 @@ const INTERVAL_MS = 30000;
 const state = {
     startedAt: new Date().toISOString(), lastSampleAt: null, lastUploadAt: null,
     lastHttpStatus: null, error: null, configured: false, uplink: false,
-    providers: {}, telemetry: {}, awake: true
+    providers: {}, telemetry: {}, awake: true, phase: 'starting'
 };
 let stopping = false;
 const proxies = [];
@@ -126,6 +126,7 @@ function upload(config) {
 async function main() {
     if (!fs.existsSync(ROOT)) fs.mkdirSync(ROOT);
     if (!fs.existsSync(RUN)) fs.mkdirSync(RUN);
+    writeStatus();
     runtimeConfig = readJson(CONFIG, {});
     ensureSomeIp();
     try { fs.chownSync(RUN, UID, UID); } catch (e) {}
@@ -151,6 +152,7 @@ async function main() {
             });
         })
     ]);
+    state.phase = 'running'; writeStatus();
     const tick = () => { if (!stopping) upload(runtimeConfig).catch(() => {}); };
     tick(); setInterval(tick, INTERVAL_MS);
 }
@@ -163,4 +165,4 @@ function stop() {
     setTimeout(() => process.exit(0), 5000);
 }
 process.on('SIGTERM', stop); process.on('SIGINT', stop);
-main().catch((e) => { state.error = e.message; writeStatus(); process.stderr.write('remote telemetry: ' + e.stack + '\n'); process.exit(1); });
+main().catch((e) => { state.phase = 'failed'; state.error = e.message; writeStatus(); process.stderr.write('remote telemetry: ' + e.stack + '\n'); process.exit(1); });
