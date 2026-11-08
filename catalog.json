@@ -20,7 +20,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "ambient_studio_full.png",
@@ -44,7 +44,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "dpf_monitor.png",
@@ -68,7 +68,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2",
+        "mgu-inputgate": "1.0.0",
         "cluster-render": "0.3.10"
       },
       "author": "alexp50",
@@ -93,7 +93,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "green_light_alert.png",
@@ -117,7 +117,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2",
+        "mgu-inputgate": "1.0.0",
         "hotspot-studio-helper": "0.1.0"
       },
       "author": "alexp50",
@@ -142,7 +142,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2",
+        "mgu-inputgate": "1.0.0",
         "front-camera-cluster-helper": "0.2.1"
       },
       "author": "alexp50",
@@ -167,7 +167,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "parking_clearance.png",
@@ -191,7 +191,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "ride_height.png",
@@ -215,7 +215,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "road_trip_computer.png",
@@ -239,7 +239,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "start_stop_insight.png",
@@ -263,7 +263,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "telemetry_studio.png",
@@ -287,7 +287,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "vehicle_health.png",
@@ -311,7 +311,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2",
+        "mgu-inputgate": "1.0.0",
         "vehicle-network-observer": "0.1.2"
       },
       "author": "alexp50",
@@ -336,7 +336,7 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2",
+        "mgu-inputgate": "1.0.0",
         "waze-hud-control": "0.3.0"
       },
       "author": "alexp50",
@@ -361,53 +361,11 @@
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
-        "mgu-inputgate": "1.0.2"
+        "mgu-inputgate": "1.0.0"
       },
       "author": "alexp50",
       "icon": "xdrive_studio.png",
       "iconSha256": "8c00bc6829c56fc0e0938b93ff9a08c2b04581dde91ed72739d579b1643974cb"
-    },
-    {
-      "id": "mgu-inputgate",
-      "kind": "tool",
-      "version": "1.0.2",
-      "title": "Controller gate",
-      "description": "Reinstalls the guarded HMI preload that provides iDrive controller input to full-screen custom apps",
-      "mguHmi": [
-        "ID7"
-      ],
-      "artifact": {
-        "name": "mgu-inputgate@1.0.2.tgz",
-        "size": 5259,
-        "sha256": "a1b86a911934ee5d90faaa8bf2f17c949395165b0851f2393c3579ca6f721fab",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/mgu-inputgate@1.0.2/mgu-inputgate@1.0.2.tgz"
-      },
-      "uninstallable": true,
-      "requires": {
-        "mgu-deploy": "0.6.1",
-        "idrive7-renderd": "2.1.7"
-      }
-    },
-    {
-      "id": "idrive7-renderd",
-      "kind": "tool",
-      "version": "2.1.7",
-      "title": "GPU renderer",
-      "description": "Full-screen 60 fps renderer used by the AlexP50 iDrive apps",
-      "mguHmi": [
-        "ID7"
-      ],
-      "artifact": {
-        "name": "idrive7-renderd@2.1.7.tgz",
-        "size": 90460,
-        "sha256": "44d50279be92f0c242a2e77fd9cf437089cb4bcdc0e65b373101247331b54f6d",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/idrive7-renderd@2.1.7/idrive7-renderd@2.1.7.tgz"
-      },
-      "uninstallable": true,
-      "requires": {
-        "mgu-deploy": "0.6.1"
-      },
-      "mguProvides": "renderer"
     },
     {
       "id": "hotspot-studio-helper",

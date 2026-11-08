@@ -62,7 +62,7 @@ foreach ($line in ($result[1] -split "`r?`n")) {
 $status.GetEnumerator() | Sort-Object Name | ForEach-Object { Write-Host ("{0}: {1}" -f $_.Name,$_.Value) }
 
 if ($status.gate_version -eq 'missing' -or $status.gate_dropin -ne 'yes') {
-    throw 'mgu-inputgate is not installed completely. Update Controller gate from the alexp50/bmw-apps Store source first.'
+    throw 'mgu-inputgate is not installed completely. Install or update Controller gate from the cauliflowermossgrape/idrive7-apps Store source first.'
 }
 
 if ($status.gate_loaded -ne 'yes') {

@@ -40,7 +40,7 @@ The car has a write-only relay token and the Android app has a separate read-onl
 
 All app dashboards request the full iDrive canvas and use the 60 fps GPU renderer. Unsupported or stale readings are left blank rather than invented.
 
-The iDrive knob, press and directional push are shared by every app through the Controller gate. After installing or updating that tool, restart the head unit once so `mgu-inputgate.so` loads with the HMI. If the touchscreen works but the controller does not, run `tools/Repair-MGU-Controller.ps1`; it checks the preload, boot guard and competing renderer without changing ECU coding.
+The iDrive knob, press and directional push are shared by every app through the Controller gate from the Store's default `cauliflowermossgrape/idrive7-apps` source. After installing or updating that tool, restart the head unit once so `mgu-inputgate.so` loads with the HMI. If the touchscreen works but the controller does not, run `tools/Repair-MGU-Controller.ps1`; it checks the preload, boot guard and competing renderer without changing ECU coding.
 
 ## Build and validate
 

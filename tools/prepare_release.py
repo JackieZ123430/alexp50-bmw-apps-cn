@@ -16,7 +16,11 @@ import urllib.parse
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PACKAGES = os.path.join(ROOT, "packages")
 REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "alexp50/bmw-apps")
-APP_REQUIRES = {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.2"}
+APP_REQUIRES = {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.0"}
+# These global tool IDs belong to cauliflowermossgrape/idrive7-apps, which is
+# a default MGU Store source. Publishing private forks under the same IDs makes
+# the updater correctly reject a cross-source takeover of an installed tool.
+EXTERNAL_COMPONENTS = {"idrive7-renderd", "mgu-inputgate"}
 SPECIAL_REQUIRES = {
     "drive_hud_full": {"cluster-render": "0.3.10"},
     "front_camera_cluster": {"front-camera-cluster-helper": "0.2.1"},
@@ -84,6 +88,8 @@ def main() -> None:
     for path in package_paths:
         manifest = read_package(path)
         component_id = manifest["id"]
+        if component_id in EXTERNAL_COMPONENTS:
+            continue
         current = latest.get(component_id)
         if current is None or version_key(manifest["version"]) > version_key(current[1]["version"]):
             latest[component_id] = (path, manifest)
