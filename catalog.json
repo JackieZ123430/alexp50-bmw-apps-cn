@@ -413,17 +413,17 @@
     {
       "id": "remote-telemetry-bridge",
       "kind": "tool",
-      "version": "0.1.8",
+      "version": "0.1.10",
       "title": "Remote telemetry bridge",
       "description": "Publishes read-only parked-car telemetry through mgu-uplink to an authenticated HTTPS relay",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "remote-telemetry-bridge@0.1.8.tgz",
-        "size": 6720,
-        "sha256": "97858f558f7b06954b658a9ab684196519e0e92c1cc4c0959ee5117dc902379d",
-        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.1.8.tgz"
+        "name": "remote-telemetry-bridge@0.1.10.tgz",
+        "size": 6948,
+        "sha256": "5c7428524d037ebea04afd3425cc5938682147785250b1491a8968bf29a916a0",
+        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.1.10.tgz"
       },
       "uninstallable": true,
       "requires": {

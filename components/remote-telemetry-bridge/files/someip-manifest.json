@@ -10,7 +10,10 @@
       "instances": "1"
     },
     "de.bmw.infrastructure.EnvironmentalInformation": {
-      "attributes": {"ExteriorTemperature": "s"},
+      "attributes": {
+        "ExteriorTemperature": "s",
+        "unfilteredExteriorTemperature": "s"
+      },
       "instances": "1"
     },
     "de.bmw.infotainment.vehicle.CDS": {

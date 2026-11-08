@@ -25,7 +25,8 @@ const state = {
     startedAt: new Date().toISOString(), lastSampleAt: null, lastUploadAt: null,
     lastHttpStatus: null, error: null, configured: false, uplink: false,
     providers: {}, telemetry: {}, awake: true, phase: 'starting', signalUid: null,
-    batteryVoltageSource: null
+    batteryVoltageSource: null, outsideTemperatureSource: null,
+    outsideTemperatureSampledAt: null
 };
 let stopping = false;
 const proxies = [];
@@ -62,8 +63,19 @@ function setTelemetry(name, value) {
     writeStatus();
 }
 
+function setOutsideDegrees(degrees, source, preferred) {
+    if (!finite(degrees) || degrees < -50 || degrees > 80) return;
+    // Once the cluster-filtered signal has arrived, never replace it with a
+    // diagnostic or raw-sensor fallback.
+    if (!preferred && state.outsideTemperatureSource === 'EnvironmentalInformation.ExteriorTemperature') return;
+    setTelemetry('outsideTemperatureC', Math.round(degrees * 10) / 10);
+    state.outsideTemperatureSource = source;
+    state.outsideTemperatureSampledAt = new Date().toISOString();
+    writeStatus();
+}
+
 function ensureSomeIp() {
-    const marker = path.join(SOMEIP_DIR, '.bridge-config-v3');
+    const marker = path.join(SOMEIP_DIR, '.bridge-config-v4');
     if (fs.existsSync(marker)) return;
     if (!fs.existsSync(SOMEIP_DIR)) fs.mkdirSync(SOMEIP_DIR);
     try {
@@ -162,11 +174,11 @@ function watch(someip, iface, field, receive) {
     }).catch((e) => { state.providers[iface] = false; state.error = iface + ': ' + e.message; writeStatus(); return null; });
 }
 
-// DDE DID 43C1 is the IBS-measured 12 V system voltage in millivolts; 5512 is
-// the car's ambient-temperature value at 0.5 C/bit, offset -40 C. The request
-// is read-only UDS 22 over BMW's TASU service, the same transport used by the
-// diagnostic apps on the head unit. ExteriorTemperature remains subscribed as
-// the preferred source; 5512 guarantees an initial parked snapshot.
+// DDE DID 43C1 is the IBS-measured 12 V system voltage in millivolts. DDE DID
+// 50A6 is the environment temperature as uint16 * 0.1 - 273.14 C. The
+// request is read-only UDS 22 over BMW's TASU service, the same transport used
+// by the diagnostic apps on the head unit. BMW's filtered exterior broadcast
+// remains authoritative whenever it is available.
 function watchBatteryVoltage(someip) {
     const iface = 'com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu';
     let cfg;
@@ -190,9 +202,9 @@ function watchBatteryVoltage(someip) {
                         setTelemetry('batteryVoltage', Math.round(voltage * 100) / 100);
                         state.batteryVoltageSource = 'DDE 43C1 · IBS measured';
                     }
-                } else if (did === 0x5512 && i < uds.length) {
-                    const outside = uds[i++] * 0.5 - 40;
-                    if (outside >= -50 && outside <= 80) setTelemetry('outsideTemperatureC', Math.round(outside * 10) / 10);
+                } else if (did === 0x50A6 && i + 1 < uds.length) {
+                    const outside = ((uds[i] << 8) | uds[i + 1]) * 0.1 - 273.14; i += 2;
+                    setOutsideDegrees(outside, 'DDE 50A6 · environment temperature', false);
                 } else break;
             }
         }}).catch(() => {});
@@ -200,7 +212,7 @@ function watchBatteryVoltage(someip) {
             if (!available) return;
             nativeTick(() => proxy.callMethod('sendTasuRequest', {
                 sourceAddress:0xF2, targetAddress:0x12, serviceID:0x22, subroutineID:0,
-                udsDataLength:4, udsData:Buffer.from([0x43, 0xC1, 0x55, 0x12]), deadlockTime:0
+                udsDataLength:4, udsData:Buffer.from([0x43, 0xC1, 0x50, 0xA6]), deadlockTime:0
             }, 5000)).catch((e) => { state.error = 'battery voltage: ' + e.message; writeStatus(); });
         };
         request(); setInterval(request, INTERVAL_MS);
@@ -251,6 +263,12 @@ async function main() {
     allowUplinkUid(signalUid);
     try { fs.chownSync(RUN, signalUid, signalUid); } catch (e) {}
     const someip = loadSomeIp();
+    const setOutside = (value, source, filtered) => {
+        const raw = value && (filtered ? value.temperatureExterior : value.unfilteredTemperatureExterior);
+        const degrees = temp(raw);
+        if (degrees === null) return;
+        setOutsideDegrees(degrees, 'EnvironmentalInformation.' + source, filtered);
+    };
     // BMW's SOME/IP ACL is keyed to an installed OAP application's uid. Use
     // Vehicle Health's signal grant, and grant that same uid outbound access
     // through mgu-uplink for the authenticated relay only.
@@ -262,7 +280,9 @@ async function main() {
         watch(someip, 'de.bmw.infotainment.climate.Climate2', 'statusTemperatureInside',
             (v) => setTelemetry('insideTemperatureC', temp(v && v.temperatureInside))),
         watch(someip, 'de.bmw.infrastructure.EnvironmentalInformation', 'ExteriorTemperature',
-            (v) => setTelemetry('outsideTemperatureC', temp(v && v.temperatureExterior))),
+            (v) => setOutside(v, 'ExteriorTemperature', true)),
+        watch(someip, 'de.bmw.infrastructure.EnvironmentalInformation', 'unfilteredExteriorTemperature',
+            (v) => setOutside(v, 'unfilteredExteriorTemperature', false)),
         watch(someip, 'de.bmw.infotainment.vehicle.CDS', 'statusBattery2',
             (v) => setTelemetry('batteryChargePercent', finite(v && v.conditionBatteryChargingCondition) ? v.conditionBatteryChargingCondition : null)),
         watch(someip, 'de.bmw.infotainment.vehicle.Vehicle2', 'statusCarSpeed2',
