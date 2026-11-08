@@ -7,28 +7,30 @@ $worker = Join-Path (Split-Path $PSScriptRoot -Parent) 'cloud\telemetry-worker'
 $config = Join-Path $worker 'wrangler.toml'
 if (-not (Test-Path -LiteralPath $config -PathType Leaf)) { throw "Missing $config" }
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw 'Node.js is required on this PC.' }
-if (-not (Get-Command npm -ErrorAction SilentlyContinue)) { throw 'npm is required on this PC.' }
+$npm = (Get-Command npm.cmd -ErrorAction SilentlyContinue).Source
+$npx = (Get-Command npx.cmd -ErrorAction SilentlyContinue).Source
+if (-not $npm -or -not $npx) { throw 'npm and npx are required on this PC.' }
 
 Push-Location $worker
 try {
-    npm install
+    & $npm install
     if ($LASTEXITCODE -ne 0) { throw 'npm install failed.' }
 
     $toml = Get-Content -LiteralPath $config -Raw
     if ($toml -notmatch '(?m)^\s*binding\s*=\s*"TELEMETRY"') {
         Write-Host 'Creating the private Cloudflare KV namespace...'
-        npx wrangler kv namespace create TELEMETRY --binding TELEMETRY --update-config
+        & $npx wrangler kv namespace create TELEMETRY --binding TELEMETRY --update-config
         if ($LASTEXITCODE -ne 0) { throw 'Cloudflare KV creation failed.' }
     }
 
     $writeToken = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
     $readToken = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
-    $writeToken | npx wrangler secret put CAR_WRITE_TOKEN
+    $writeToken | & $npx wrangler secret put CAR_WRITE_TOKEN
     if ($LASTEXITCODE -ne 0) { throw 'Uploading the car write token failed.' }
-    $readToken | npx wrangler secret put APP_READ_TOKEN
+    $readToken | & $npx wrangler secret put APP_READ_TOKEN
     if ($LASTEXITCODE -ne 0) { throw 'Uploading the Android read token failed.' }
 
-    $deploy = (& npx wrangler deploy 2>&1 | Tee-Object -Variable deployOutput | Out-String)
+    $deploy = (& $npx wrangler deploy 2>&1 | Tee-Object -Variable deployOutput | Out-String)
     if ($LASTEXITCODE -ne 0) { throw "Cloudflare deployment failed.`n$deploy" }
     Write-Host $deploy
     $match = [regex]::Match($deploy, 'https://[A-Za-z0-9.-]+\.workers\.dev')
