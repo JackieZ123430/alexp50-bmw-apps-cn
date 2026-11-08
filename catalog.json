@@ -272,17 +272,17 @@
     {
       "id": "vehicle_health",
       "kind": "app",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "title": "Vehicle Health Center",
       "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "vehicle_health@0.1.5.tgz",
-        "size": 1096765,
-        "sha256": "cc02728c013dbf094df008bfac876e7e0e11885a12108ed9000583f0f0b50c40",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.5/vehicle_health@0.1.5.tgz"
+        "name": "vehicle_health@0.1.6.tgz",
+        "size": 1096866,
+        "sha256": "eed9e187ecbf0d38407cf001b978c66c886f423d85f51d62bc1812c5423e2b39",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.6/vehicle_health@0.1.6.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -413,17 +413,17 @@
     {
       "id": "remote-telemetry-bridge",
       "kind": "tool",
-      "version": "0.1.11",
+      "version": "0.2.0",
       "title": "Remote telemetry bridge",
-      "description": "Publishes read-only parked-car telemetry through mgu-uplink to an authenticated HTTPS relay",
+      "description": "Publishes parked-car telemetry and executes short-lived authenticated climate commands through mgu-uplink",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "remote-telemetry-bridge@0.1.11.tgz",
-        "size": 7097,
-        "sha256": "f6ff3bc10d94a0ec7014f1aede54f9e3ffb80b01f2e2a6f4de49aaef09fd30a5",
-        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.1.11.tgz"
+        "name": "remote-telemetry-bridge@0.2.0.tgz",
+        "size": 8727,
+        "sha256": "e3c84616d8bd877b0d561e3b93ad0163457f3064fa9d7455bb0e6479218173b5",
+        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.2.0.tgz"
       },
       "uninstallable": true,
       "requires": {
