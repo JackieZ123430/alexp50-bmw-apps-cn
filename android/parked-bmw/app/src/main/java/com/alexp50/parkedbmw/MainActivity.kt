@@ -168,7 +168,15 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
     if(code !in 200..299) throw IllegalStateException("Relay HTTP $code")
     val root=JSONObject(body);val t=root.getJSONObject("telemetry")
     fun number(name:String)=if(t.has(name)&&!t.isNull(name))t.getDouble(name) else null
-    val tyre=if(t.has("tyrePressureBar")){val x=t.getJSONObject("tyrePressureBar");fun n(k:String)=if(x.has(k)&&!x.isNull(k))x.getDouble(k) else null;Tyres(n("frontLeft"),n("frontRight"),n("rearLeft"),n("rearRight"))}else null
+    val tyre = if (t.has("tyrePressureBar")) {
+        val x = t.getJSONObject("tyrePressureBar")
+        fun tyreNumber(name: String): Double? =
+            if (x.has(name) && !x.isNull(name)) x.getDouble(name) else null
+        Tyres(
+            tyreNumber("frontLeft"), tyreNumber("frontRight"),
+            tyreNumber("rearLeft"), tyreNumber("rearRight")
+        )
+    } else null
     Snapshot(Instant.parse(root.getString("serverReceivedAt")),root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},root.optBoolean("awake",false),number("insideTemperatureC"),number("outsideTemperatureC"),number("batteryChargePercent"),number("speedKmh"),tyre)
 }
 private fun value(v:Double?,digits:Int)=v?.let{String.format("%.${digits}f",it)}?:"--"
