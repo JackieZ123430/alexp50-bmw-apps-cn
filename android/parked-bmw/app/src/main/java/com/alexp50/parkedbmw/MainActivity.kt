@@ -267,7 +267,7 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
 }
 
 private suspend fun sendCommand(endpoint:String, token:String, carId:String, command:JSONObject):CommandResult = withContext(Dispatchers.IO) {
-    if (token.isBlank()) throw@withContext IllegalStateException("Add the climate command token in Setup")
+    if (token.isBlank()) throw IllegalStateException("Add the climate command token in Setup")
     val base = endpoint.trimEnd('/') + "/v1/cars/" + URLEncoder.encode(carId, "UTF-8") + "/commands"
     fun request(target:String, method:String, body:String? = null):Pair<Int,String> {
         val connection = URL(target).openConnection() as HttpURLConnection
@@ -279,7 +279,7 @@ private suspend fun sendCommand(endpoint:String, token:String, carId:String, com
         return code to text
     }
     val (queuedCode, queuedText)=request(base,"POST",command.toString())
-    if(queuedCode !in 200..299) throw@withContext IllegalStateException("Command relay HTTP $queuedCode")
+    if(queuedCode !in 200..299) throw IllegalStateException("Command relay HTTP $queuedCode")
     val queued=JSONObject(queuedText);val id=queued.getString("id")
     repeat(8) {
         Thread.sleep(2500)
