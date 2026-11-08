@@ -2,7 +2,7 @@
   "id": "green_light_alert",
   "title": "Green Light Alert",
   "description": "Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "vendor": "alexp50",
   "loggingId": "OAB4",
   "iconGlyph": "●)))",
@@ -17,22 +17,18 @@
       "displayForesight": "s"
     },
     "de.bmw.dass.settingsdriverassistancefunctions.SettingsDriverAssistanceFunctions": {
+      "displayStatusUrbanCruiseControl": "s",
       "settingDriveOffReminder": "sw",
-      "settingTrafficlightDriveOff": "sw"
+      "settingTrafficlightDriveOff": "sw",
+      "settingTrafficlightBraking": "sw",
+      "settingStopSignBraking": "sw",
+      "settingUrbanCruiseControlMode": "sw"
     },
     "de.bmw.infotainment.vehicle.Vehicle2": {
       "statusCarSpeed2": "rs"
     },
-    "de.bmw.infotainment.GPSData": {
-      "GPSPositionCAN": "rsw"
-    },
-    "de.bmw.infotainment.navigation.positioning.Positioning": {
-      "_instances": "Main_Instance",
-      "currentLocation": "rs",
-      "demoModeActive": "rsw",
-      "_methods": [
-        "setCurrentLocation"
-      ]
+    "de.bmw.infotainment.navigation.externalize.adasng.CCP": {
+      "countryCode": "rs"
     },
     "de.bmw.infotainment.fasus.FASuS": {
       "statusIDriveFASExtended": "rs"
