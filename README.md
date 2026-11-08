@@ -32,6 +32,12 @@ The release catalog includes the shared GPU renderer and controller gate. Waze H
 | Waze HUD | `waze_hud` | Controls CarPlay map placement and perspective in the HUD. |
 | xDrive Studio | `xdrive_studio` | Read-only xDrive torque distribution, wheel slip and chassis dynamics. |
 
+## Parked BMW for Android
+
+`android/parked-bmw` is a separate Android dashboard for the read-only `remote-telemetry-bridge` MGU tool. While the car is awake, it uploads cabin temperature, outside temperature, 12 V charge condition, speed and tyre pressures through the installed LTE uplink. When the car sleeps, the phone shows the retained final snapshot and its age instead of labelling stale data as live.
+
+The car has a write-only relay token and the Android app has a separate read-only token. Version 0.1 does not collect vehicle location. The GitHub workflow publishes an installable APK in the `parked-bmw-android@0.1.0` release.
+
 All app dashboards request the full iDrive canvas and use the 60 fps GPU renderer. Unsupported or stale readings are left blank rather than invented.
 
 The iDrive knob, press and directional push are shared by every app through the Controller gate. After installing or updating that tool, restart the head unit once so `mgu-inputgate.so` loads with the HMI. If the touchscreen works but the controller does not, run `tools/Repair-MGU-Controller.ps1`; it checks the preload, boot guard and competing renderer without changing ECU coding.

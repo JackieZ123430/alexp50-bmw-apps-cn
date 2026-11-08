@@ -1,0 +1,28 @@
+{
+  "id": "remote-telemetry-bridge",
+  "kind": "tool",
+  "version": "0.1.0",
+  "title": "Remote telemetry bridge",
+  "description": "Publishes read-only parked-car telemetry through mgu-uplink to an authenticated HTTPS relay",
+  "mguHmi": ["ID7"],
+  "requires": {"mgu-deploy": "0.7.11", "mgu-uplink": "0.7.3"},
+  "uninstallable": true,
+  "keepRunning": true,
+  "internet": true,
+  "uids": [65534],
+  "crashNames": ["node"],
+  "files": [
+    {"path": "bridge.js", "from": "files/bridge.js", "mode": "0755"},
+    {"path": "generate-someip.js", "from": "files/generate-someip.js", "mode": "0644"},
+    {"path": "someip-manifest.json", "from": "files/someip-manifest.json", "mode": "0644"},
+    {"path": "check.js", "from": "files/check.js", "mode": "0644"}
+  ],
+  "units": [
+    {"name": "remote-telemetry-bridge.service", "from": "units/remote-telemetry-bridge.service"}
+  ],
+  "enable": [
+    {"unit": "remote-telemetry-bridge.service", "target": "multi-user.target"}
+  ],
+  "restart": ["remote-telemetry-bridge.service"],
+  "check": ["check.js"]
+}

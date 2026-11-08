@@ -47,3 +47,8 @@ kit/tools/.font-cache/
 /kit/renderd/core
 /apps/zf8hp/data/
 egs-snapshot*.json
+
+# Parked BMW local cloud credentials and build products
+cloud/telemetry-worker/parked-bmw-connection.json
+android/parked-bmw/.gradle/
+android/parked-bmw/**/build/

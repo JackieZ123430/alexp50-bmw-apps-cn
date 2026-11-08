@@ -24,5 +24,6 @@
 * **Controller gate** `1.0.0` — Provides iDrive controller input to the full-screen custom apps
 * **Controller gate** `1.0.1` — Provides iDrive controller input to full-screen custom apps, with a guarded HMI preload and repair diagnostics
 * **Controller gate** `1.0.2` — Reinstalls the guarded HMI preload that provides iDrive controller input to full-screen custom apps
+* **Remote telemetry bridge** `0.1.0` — Publishes read-only parked-car telemetry through mgu-uplink to an authenticated HTTPS relay
 * **Vehicle network observer** `0.1.2` — Creates the passive network inventory consumed by the Vehicle Network app
 * **Waze HUD controller** `0.3.0` — Applies and persists the Waze HUD geometry selected in the Waze HUD app

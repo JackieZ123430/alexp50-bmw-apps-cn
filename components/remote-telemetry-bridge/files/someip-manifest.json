@@ -1,0 +1,25 @@
+{
+  "proxies": {
+    "de.bmw.infotainment.climate.Climate2": {
+      "attributes": {"statusTemperatureInside": "rs"},
+      "instances": "1"
+    },
+    "de.bmw.infrastructure.EnvironmentalInformation": {
+      "attributes": {"ExteriorTemperature": "rs"},
+      "instances": "1"
+    },
+    "de.bmw.infotainment.vehicle.CDS": {
+      "attributes": {"statusBattery2": "rs"},
+      "instances": "1"
+    },
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "attributes": {"statusCarSpeed2": "rs"},
+      "instances": "1"
+    },
+    "de.bmw.infotainment.vehicle.TPMS": {
+      "attributes": {"statusTyrePressure": "rs"},
+      "instances": "1"
+    }
+  },
+  "providers": {}
+}

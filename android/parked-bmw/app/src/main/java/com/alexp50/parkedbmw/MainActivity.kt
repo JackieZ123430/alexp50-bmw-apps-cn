@@ -1,0 +1,178 @@
+package com.alexp50.parkedbmw
+
+import android.content.Context
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+data class Tyres(val fl: Double?, val fr: Double?, val rl: Double?, val rr: Double?)
+data class Snapshot(
+    val received: Instant, val sampled: Instant?, val awake: Boolean,
+    val inside: Double?, val outside: Double?, val battery: Double?, val speed: Double?, val tyres: Tyres?
+)
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent { ParkedBmwApp(this) }
+    }
+}
+
+private val Bg = Color(0xFF071018)
+private val Panel = Color(0xFF10212D)
+private val Cyan = Color(0xFF35D6D0)
+private val Blue = Color(0xFF4AAFFF)
+private val Green = Color(0xFF32E875)
+private val Amber = Color(0xFFFFB52E)
+private val Red = Color(0xFFFF3658)
+
+@Composable
+fun ParkedBmwApp(context: Context) {
+    val prefs = remember { context.getSharedPreferences("connection", Context.MODE_PRIVATE) }
+    var endpoint by remember { mutableStateOf(prefs.getString("endpoint", "") ?: "") }
+    var token by remember { mutableStateOf(prefs.getString("token", "") ?: "") }
+    var carId by remember { mutableStateOf(prefs.getString("carId", "my-g12") ?: "my-g12") }
+    var editing by remember { mutableStateOf(endpoint.isBlank() || token.isBlank()) }
+    var snapshot by remember { mutableStateOf<Snapshot?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var refreshing by remember { mutableStateOf(false) }
+    var refreshKey by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(endpoint, token, carId, refreshKey) {
+        if (endpoint.isBlank() || token.isBlank() || carId.isBlank()) return@LaunchedEffect
+        do {
+            refreshing = true
+            try { snapshot = fetchSnapshot(endpoint, token, carId); error = null }
+            catch (e: Exception) { error = e.message ?: "Connection failed" }
+            refreshing = false
+            delay(30_000)
+        } while (true)
+    }
+
+    MaterialTheme(colorScheme = darkColorScheme(background=Bg, surface=Panel, primary=Cyan, secondary=Blue)) {
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF0B1B27), Bg)))) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement=Arrangement.spacedBy(14.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("PARKED BMW", color=Color.White, fontSize=28.sp, fontWeight=FontWeight.Black)
+                        Text("Remote telemetry · read only", color=Cyan, fontSize=13.sp)
+                    }
+                    TextButton(onClick={ editing = !editing }) { Text(if (editing) "CLOSE" else "SETUP") }
+                }
+                if (editing) ConnectionCard(endpoint, token, carId,
+                    onEndpoint={endpoint=it}, onToken={token=it}, onCar={carId=it}, onSave={
+                        prefs.edit().putString("endpoint",endpoint.trimEnd('/')).putString("token",token).putString("carId",carId).apply()
+                        editing=false; refreshKey++
+                    })
+                FreshnessCard(snapshot, error, refreshing) { refreshKey++ }
+                HeroTemperature(snapshot?.inside)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                    MetricCard("OUTSIDE", temp(snapshot?.outside), "°C", Blue, Modifier.weight(1f))
+                    MetricCard("12 V CHARGE", value(snapshot?.battery,0), "%", batteryColor(snapshot?.battery), Modifier.weight(1f))
+                }
+                TyreCard(snapshot?.tyres)
+                Text("The MGU and LTE modem switch off when the car sleeps. Values remain visible with their timestamp and are never presented as live after updates stop.", color=Color(0xFF8EA5B5), fontSize=13.sp)
+            }
+        }
+    }
+}
+
+@Composable private fun ConnectionCard(endpoint:String, token:String, carId:String, onEndpoint:(String)->Unit, onToken:(String)->Unit, onCar:(String)->Unit, onSave:()->Unit) {
+    Card(colors=CardDefaults.cardColors(containerColor=Panel), shape=RoundedCornerShape(18.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            Text("CONNECTION", fontWeight=FontWeight.Bold, color=Cyan)
+            OutlinedTextField(endpoint,onEndpoint,label={Text("Relay HTTPS URL")},singleLine=true,modifier=Modifier.fillMaxWidth())
+            OutlinedTextField(carId,onCar,label={Text("Car ID")},singleLine=true,modifier=Modifier.fillMaxWidth())
+            OutlinedTextField(token,onToken,label={Text("Read token")},visualTransformation=PasswordVisualTransformation(),singleLine=true,modifier=Modifier.fillMaxWidth())
+            Button(onClick=onSave,enabled=endpoint.startsWith("https://")&&token.length>=16&&carId.isNotBlank(),modifier=Modifier.fillMaxWidth()){Text("SAVE AND CONNECT")}
+        }
+    }
+}
+
+@Composable private fun FreshnessCard(s:Snapshot?, error:String?, loading:Boolean, refresh:()->Unit) {
+    val age=s?.let{Duration.between(it.received,Instant.now()).seconds.coerceAtLeast(0)}
+    val live=age!=null&&age<90&&s.awake
+    val color=if(live) Green else if(s!=null) Amber else Red
+    Card(colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(18.dp)) {
+        Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
+            Box(Modifier.size(10.dp).background(color, RoundedCornerShape(5.dp)))
+            Column(Modifier.padding(start=12.dp).weight(1f)) {
+                Text(if(live) "CAR ONLINE" else if(s!=null) "LAST PARKED SNAPSHOT" else "NO DATA",color=color,fontWeight=FontWeight.Bold)
+                Text(error ?: s?.let{"Updated ${ageText(age!!)} ago · ${clock(it.received)}"} ?: "Configure the relay connection",color=Color(0xFFAFC1CC),fontSize=13.sp)
+            }
+            TextButton(onClick=refresh,enabled=!loading){Text(if(loading)"…" else "REFRESH")}
+        }
+    }
+}
+
+@Composable private fun HeroTemperature(inside:Double?) {
+    val color=when { inside==null->Color(0xFF718895); inside>=45->Red; inside>=35->Amber; else->Cyan }
+    Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF102B3A)),shape=RoundedCornerShape(24.dp)) {
+        Column(Modifier.fillMaxWidth().padding(22.dp)) {
+            Text("CABIN TEMPERATURE",color=Color(0xFFAFC1CC),fontSize=13.sp,fontWeight=FontWeight.Bold)
+            Row(verticalAlignment=Alignment.Bottom) {
+                Text(temp(inside),color=color,fontSize=76.sp,fontWeight=FontWeight.Black)
+                Text(" °C",color=color,fontSize=28.sp,modifier=Modifier.padding(bottom=12.dp))
+            }
+            Text(when {inside==null->"Waiting for the car";inside>=45->"Very hot cabin";inside>=35->"Warm cabin";else->"Cabin snapshot"},color=color)
+        }
+    }
+}
+
+@Composable private fun MetricCard(title:String, number:String, unit:String, color:Color, modifier:Modifier=Modifier) {
+    Card(modifier,colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(18.dp)) {
+        Column(Modifier.padding(16.dp)) {Text(title,color=Color(0xFFAFC1CC),fontSize=12.sp,fontWeight=FontWeight.Bold);Row(verticalAlignment=Alignment.Bottom){Text(number,color=color,fontSize=32.sp,fontWeight=FontWeight.Bold);Text(" $unit",color=color,fontSize=15.sp,modifier=Modifier.padding(bottom=4.dp))}}
+    }
+}
+
+@Composable private fun TyreCard(t:Tyres?) {
+    Card(colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(18.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            Text("TYRE PRESSURES",color=Color(0xFFAFC1CC),fontSize=12.sp,fontWeight=FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Tyre("FL",t?.fl);Tyre("FR",t?.fr);Tyre("RL",t?.rl);Tyre("RR",t?.rr)}
+        }
+    }
+}
+@Composable private fun Tyre(label:String, v:Double?){Column(horizontalAlignment=Alignment.CenterHorizontally){Text(label,color=Color(0xFF7E96A5),fontSize=12.sp);Text(if(v==null)"--" else String.format("%.1f",v),color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Bold);Text("bar",color=Color(0xFF7E96A5),fontSize=11.sp)}}
+
+private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):Snapshot = withContext(Dispatchers.IO) {
+    val connection=(URL(endpoint.trimEnd('/')+"/v1/cars/"+carId+"/telemetry").openConnection() as HttpURLConnection)
+    connection.connectTimeout=12_000;connection.readTimeout=12_000;connection.setRequestProperty("Authorization","Bearer $token");connection.setRequestProperty("Accept","application/json")
+    val code=connection.responseCode
+    val body=(if(code in 200..299)connection.inputStream else connection.errorStream)?.bufferedReader()?.use{it.readText()} ?: ""
+    if(code !in 200..299) throw IllegalStateException("Relay HTTP $code")
+    val root=JSONObject(body);val t=root.getJSONObject("telemetry")
+    fun number(name:String)=if(t.has(name)&&!t.isNull(name))t.getDouble(name) else null
+    val tyre=if(t.has("tyrePressureBar")){val x=t.getJSONObject("tyrePressureBar");fun n(k:String)=if(x.has(k)&&!x.isNull(k))x.getDouble(k) else null;Tyres(n("frontLeft"),n("frontRight"),n("rearLeft"),n("rearRight"))}else null
+    Snapshot(Instant.parse(root.getString("serverReceivedAt")),root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},root.optBoolean("awake",false),number("insideTemperatureC"),number("outsideTemperatureC"),number("batteryChargePercent"),number("speedKmh"),tyre)
+}
+private fun value(v:Double?,digits:Int)=v?.let{String.format("%.${digits}f",it)}?:"--"
+private fun temp(v:Double?)=value(v,1)
+private fun batteryColor(v:Double?)=when{v==null->Color(0xFF718895);v<35->Red;v<55->Amber;else->Green}
+private fun ageText(s:Long)=when{ s<60->"${s}s";s<3600->"${s/60}m";s<86400->"${s/3600}h";else->"${s/86400}d" }
+private fun clock(i:Instant)=DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(i)

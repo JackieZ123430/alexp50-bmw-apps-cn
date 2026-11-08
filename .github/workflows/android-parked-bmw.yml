@@ -1,0 +1,45 @@
+name: Build Parked BMW Android app
+
+on:
+  push:
+    paths:
+      - "android/parked-bmw/**"
+      - ".github/workflows/android-parked-bmw.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Build debug APK
+        run: gradle -p android/parked-bmw :app:assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Parked-BMW-0.1.0-debug
+          path: android/parked-bmw/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish installable APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp android/parked-bmw/app/build/outputs/apk/debug/app-debug.apk Parked-BMW-0.1.0-debug.apk
+          if gh release view 'parked-bmw-android@0.1.0' >/dev/null 2>&1; then
+            gh release upload 'parked-bmw-android@0.1.0' Parked-BMW-0.1.0-debug.apk --clobber
+          else
+            gh release create 'parked-bmw-android@0.1.0' Parked-BMW-0.1.0-debug.apk \
+              --title 'Parked BMW for Android 0.1.0' \
+              --notes 'Read-only remote cabin and parked-car telemetry dashboard. Install the APK manually on Android.' \
+              --latest=false
+          fi
