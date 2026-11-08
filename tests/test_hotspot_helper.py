@@ -68,7 +68,7 @@ class HotspotHelperTests(unittest.TestCase):
 
         self.assertEqual(calls[0][0], ["nft", "delete", "table", "ip", "hotspot_studio"])
         self.assertEqual(calls[1][0], ["nft", "-f", "-"])
-        self.assertTrue(calls[1][1].startswith("table ip hotspot_studio {"))
+        self.assertTrue(calls[1][1].startswith("add table ip hotspot_studio\ntable ip hotspot_studio {"))
         self.assertNotIn("delete table", calls[1][1])
 
 

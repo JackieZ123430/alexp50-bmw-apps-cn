@@ -6,7 +6,7 @@
 * **Drive HUD** `0.1.6` — Full-screen HUD controls: turn arrows, Sport gear/RPM/shift lights and engine warm-up
 * **Night Vision Cluster** `0.2.1` — Full-screen control for BMW Night Vision and parking-camera projection in the instrument cluster
 * **Green Light Alert** `0.2.3` — Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback
-* **Hotspot Studio** `0.1.1` — Shares the Huawei LTE uplink through BMW's hotspot and opens a timed single-client ENET gateway on request
+* **Hotspot Studio** `0.1.2` — Shares the Huawei LTE uplink through BMW's hotspot and opens a timed single-client ENET gateway on request
 * **Parking & Clearance** `0.1.8` — Read-only PDC distances, steering path and suspension stance for close parking
 * **Ride Height Studio** `0.6.0` — Full-screen VDP presets plus direct front/rear air-spring fill and vent control
 * **Road Trip Computer** `1.0.0` — Full-screen trip history with fuel use, fuel price, cost, range, outside temperature and GPS elevation
@@ -19,7 +19,7 @@
 
 ## Required tools
 * **Night Vision cluster helper** `0.2.1` — Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster
-* **Hotspot Studio helper** `0.1.1` — Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway
+* **Hotspot Studio helper** `0.1.2` — Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway
 * **Remote telemetry bridge** `0.1.3` — Publishes read-only parked-car telemetry through mgu-uplink to an authenticated HTTPS relay
 * **Vehicle network observer** `0.1.2` — Creates the passive network inventory consumed by the Vehicle Network app
 * **Waze HUD controller** `0.3.0` — Applies and persists the Waze HUD geometry selected in the Waze HUD app

@@ -1,7 +1,7 @@
 {
   "id": "hotspot-studio-helper",
   "kind": "tool",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "title": "Hotspot Studio helper",
   "description": "Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway",
   "mguHmi": ["ID7"],

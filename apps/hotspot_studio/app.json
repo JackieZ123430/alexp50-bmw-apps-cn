@@ -2,7 +2,7 @@
   "id": "hotspot_studio",
   "title": "Hotspot Studio",
   "description": "Shares the Huawei LTE uplink through BMW's hotspot and opens a timed single-client ENET gateway on request",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "vendor": "alexp50",
   "loggingId": "OAB7",
   "iconGlyph": "NET",

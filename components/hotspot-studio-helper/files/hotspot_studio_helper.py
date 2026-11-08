@@ -182,7 +182,8 @@ def own_ruleset(hotspot, uplink, network, vehicle, zgw, client=None, dns=None):
         prerouting_chain = ('\tchain prerouting {\n'
                             '\t\ttype nat hook prerouting priority -100; policy accept;\n' +
                             '\n'.join(prerouting) + '\n\t}\n')
-    return f'''table ip {NFT_TABLE} {{
+    return f'''add table ip {NFT_TABLE}
+table ip {NFT_TABLE} {{
 {prerouting_chain}\
 \tchain guard {{
 \t\ttype filter hook forward priority -20; policy accept;
