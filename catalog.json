@@ -370,48 +370,6 @@
     {
       "id": "mgu-inputgate",
       "kind": "tool",
-      "version": "1.0.0",
-      "title": "Controller gate",
-      "description": "Provides iDrive controller input to the full-screen custom apps",
-      "mguHmi": [
-        "ID7"
-      ],
-      "artifact": {
-        "name": "mgu-inputgate@1.0.0.tgz",
-        "size": 5237,
-        "sha256": "9b7272671604b0ee1e216834ac38651889883b9759a28f93a72e4c7e2678fb40",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/mgu-inputgate@1.0.0/mgu-inputgate@1.0.0.tgz"
-      },
-      "uninstallable": true,
-      "requires": {
-        "mgu-deploy": "0.6.1",
-        "idrive7-renderd": "2.1.7"
-      }
-    },
-    {
-      "id": "mgu-inputgate",
-      "kind": "tool",
-      "version": "1.0.1",
-      "title": "Controller gate",
-      "description": "Provides iDrive controller input to full-screen custom apps, with a guarded HMI preload and repair diagnostics",
-      "mguHmi": [
-        "ID7"
-      ],
-      "artifact": {
-        "name": "mgu-inputgate@1.0.1.tgz",
-        "size": 5275,
-        "sha256": "3ebfe62da5c78bf74853dd9aef2ed5b35917930699122d3209c030789d03f7d3",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/mgu-inputgate@1.0.1/mgu-inputgate@1.0.1.tgz"
-      },
-      "uninstallable": true,
-      "requires": {
-        "mgu-deploy": "0.6.1",
-        "idrive7-renderd": "2.1.7"
-      }
-    },
-    {
-      "id": "mgu-inputgate",
-      "kind": "tool",
       "version": "1.0.2",
       "title": "Controller gate",
       "description": "Reinstalls the guarded HMI preload that provides iDrive controller input to full-screen custom apps",

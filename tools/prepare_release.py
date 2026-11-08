@@ -66,18 +66,35 @@ def next_tag() -> str:
     return f"v{major}.{minor}.{patch + 1}"
 
 
+def version_key(value: str) -> tuple:
+    """Order the simple semantic versions used by MGU packages."""
+    main, separator, prerelease = value.partition("-")
+    numbers = tuple(int(part) if part.isdigit() else 0 for part in main.split("."))
+    return numbers, 1 if not separator else 0, prerelease
+
+
 def main() -> None:
-    paths = sorted(glob.glob(os.path.join(PACKAGES, "*.tgz")))
-    if not paths:
+    package_paths = sorted(glob.glob(os.path.join(PACKAGES, "*.tgz")))
+    if not package_paths:
         raise SystemExit("No .tgz packages found in packages/")
+
+    # Old package releases stay in packages/ so their GitHub assets remain
+    # reproducible. The Store catalog must contain exactly one entry per ID.
+    latest = {}
+    for path in package_paths:
+        manifest = read_package(path)
+        component_id = manifest["id"]
+        current = latest.get(component_id)
+        if current is None or version_key(manifest["version"]) > version_key(current[1]["version"]):
+            latest[component_id] = (path, manifest)
+    selected = sorted(latest.values(), key=lambda item: item[1]["id"])
 
     components = []
     apps_meta = {}
     app_notes = []
     tool_notes = []
 
-    for path in paths:
-        manifest = read_package(path)
+    for path, manifest in selected:
         component_id = manifest["id"]
         kind = manifest.get("kind", "app")
         app_source = os.path.join(ROOT, "apps", component_id, "app.json")
