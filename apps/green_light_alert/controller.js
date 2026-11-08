@@ -6,6 +6,8 @@ const VEHICLE='de.bmw.infotainment.vehicle.Vehicle2';
 const FASUS='de.bmw.infotainment.fasus.FASuS';
 const RAWLIGHT='de.bmw.environmentalmodel.TrafficLightRecognitionFrontCameraLegacy';
 const GONG='de.bmw.infotainment.gp.gongplayer.IGPCommand';
+const GPS='de.bmw.infotainment.GPSData';
+const BERLIN_POSITION={statusGPSLongitudeCAN:2195741482,statusGPSLatitudeCAN:2336555677};
 
 const EVENTS={
     0:'No traffic-light display', 10:'Light · no prediction', 11:'Light · uncertain',
@@ -38,9 +40,12 @@ class Controller{
         this.ctx=ctx;this.changed=changed||(()=>{});this.setting=null;this.speed=null;this.foresight=null;
         this.settings={driveOffReminder:null,trafficlightDriveOff:null};
         this.settingConn=null;this.foresightConn=null;this.vehicleConn=null;this.fasusConn=null;this.rawConn=null;this.gongConn=null;
+        this.gpsConn=null;this.gpsPosition=null;
         this.fasStatus=null;this.rawLight=null;this.rawLights=new Map();this.rawRedCode=1;this.rawGreenCode=3;
         this.notice='Searching for the raw KAFAS traffic-light camera provider';
         this.busy=false;this.history=[];this.armedAt=0;this.lastAlertAt=0;this.closed=false;this.gongHandle=80;
+        this.regionTest={state:'IDLE',startedAt:0,endsAt:0,original:null,before:null,during:null,result:'Not run'};
+        this.regionPromise=null;
     }
     configureRaw(red,green){
         const r=Number(red),g=Number(green);
@@ -63,6 +68,11 @@ class Controller{
         this.changed();
     }
     receiveSpeed(v){const n=v&&v.speedVehicleCentreOfGravity;if(finite(n)&&n<65535)this.speed=n*0.015625;this.changed();}
+    receiveGpsPosition(v){
+        if(!v||!finite(v.statusGPSLongitudeCAN)||!finite(v.statusGPSLatitudeCAN))return;
+        this.gpsPosition={statusGPSLongitudeCAN:v.statusGPSLongitudeCAN,statusGPSLatitudeCAN:v.statusGPSLatitudeCAN,at:Date.now()};
+        this.changed();
+    }
     receiveFasStatus(v){
         if(!v)return;
         const pick=(name)=>enumNumber(v[name]);
@@ -151,6 +161,7 @@ class Controller{
                 if(this.ctx.log&&this.ctx.log.info)this.ctx.log.info('OEM settings watch: available='+c.available+(c.error?', error='+c.error:''));
             }),
             this.ctx.signals.watch(VEHICLE,'1',{statusCarSpeed2:(v)=>this.receiveSpeed(v)},this.ctx.log,{pollMs:1000}).then((c)=>{this.vehicleConn=c;})
+            ,this.ctx.signals.watch(GPS,'1',{GPSPositionCAN:(v)=>this.receiveGpsPosition(v)},this.ctx.log,{pollMs:1000}).then((c)=>{this.gpsConn=c;})
             ,this.ctx.signals.watch(FASUS,'1',{statusIDriveFASExtended:(v)=>this.receiveFasStatus(v)},this.ctx.log,{pollMs:1000}).then((c)=>{this.fasusConn=c;})
         ]);
         this.changed();
@@ -182,10 +193,70 @@ class Controller{
         this.record('OEM REQUEST',this.notice);
         this.changed();
     }
+    async setGpsPosition(value){
+        const c=this.gpsConn;
+        if(!c||!c.proxy||!c.available)throw new Error('BMW GPSData provider is not connected');
+        await this.ctx.signals.set(c.proxy,'GPSPositionCAN',value,3000);
+    }
+    async restoreRegionTest(){
+        const t=this.regionTest;
+        if(!t.original)return;
+        for(let i=0;i<3;i++){
+            try{await this.setGpsPosition(t.original);}catch(e){if(i===2)throw e;}
+            await new Promise((resolve)=>setTimeout(resolve,180));
+        }
+    }
+    async startGermanyTest(){
+        if(this.regionTest.state==='RUNNING')throw new Error('Germany simulation is already running');
+        if(!finite(this.speed))throw new Error('Wait for a valid vehicle-speed signal');
+        if(this.speed>0.5)throw new Error('Start the Germany test only while stationary');
+        if(!this.gpsPosition)throw new Error('Wait for the original GPS position');
+        if(!this.gpsConn||!this.gpsConn.available)throw new Error('BMW GPSData provider is unavailable');
+        const original={statusGPSLongitudeCAN:this.gpsPosition.statusGPSLongitudeCAN,statusGPSLatitudeCAN:this.gpsPosition.statusGPSLatitudeCAN};
+        this.regionTest={state:'RUNNING',startedAt:Date.now(),endsAt:0,original,
+            before:this.fasStatus&&this.fasStatus.functionUCC,during:null,result:'Injecting Berlin GPS position'};
+        await this.setGpsPosition(BERLIN_POSITION);
+        this.record('GERMANY TEST','Germany context ON; original GPS saved');this.changed();
+        this.regionPromise=this.germanyLoop();
+        return 'Germany context ON';
+    }
+    async germanyLoop(){
+        try{
+            while(!this.closed&&this.regionTest.state==='RUNNING'){
+                await this.setGpsPosition(BERLIN_POSITION);
+                const regional=this.fasStatus&&this.fasStatus.functionUCC;
+                if(regional!==null&&regional!==undefined)this.regionTest.during=regional;
+                this.changed();
+                await new Promise((resolve)=>setTimeout(resolve,750));
+            }
+        }catch(e){
+            this.regionTest.result='ERROR: '+e.message;this.regionTest.state='ERROR';this.record('GERMANY TEST',this.regionTest.result);
+            try{await this.restoreRegionTest();}catch(e){this.regionTest.result+='; restore failed: '+e.message;}
+            this.changed();
+        }
+    }
+    async stopGermanyTest(){
+        if(this.regionTest.state!=='RUNNING'&&this.regionTest.state!=='ERROR')return 'Germany context is not active';
+        if(this.regionTest.state==='RUNNING'){
+            this.regionTest.state='STOPPING';
+            if(this.regionPromise)await this.regionPromise;
+        }
+        const changed=this.regionTest.before!==0&&this.regionTest.during===0;
+        this.regionTest.result=changed?'PASS: BMW UCC changed to available in Germany context':
+            'NO CHANGE: BMW UCC stayed '+String(this.regionTest.during)+'; GPS alone is not its regional input';
+        try{await this.restoreRegionTest();}catch(e){this.regionTest.result+='; restore failed: '+e.message;}
+        this.regionTest.state='COMPLETE';this.regionTest.endsAt=Date.now();this.record('GERMANY TEST',this.regionTest.result);this.changed();
+        return this.regionTest.result;
+    }
+    async toggleGermanyTest(){return this.regionTest.state==='RUNNING'?this.stopGermanyTest():this.startGermanyTest();}
     close(){
         this.closed=true;
-        [this.settingConn,this.foresightConn,this.vehicleConn,this.fasusConn,this.rawConn,this.gongConn].forEach((c)=>{if(c&&c.shutdown)Promise.resolve(c.shutdown()).catch(()=>{});else{const p=c&&c.proxy;if(p&&p.shutdown)Promise.resolve(p.shutdown()).catch(()=>{});}});
+        const shutdown=()=>[this.settingConn,this.foresightConn,this.vehicleConn,this.fasusConn,this.rawConn,this.gongConn,this.gpsConn].forEach((c)=>{if(c&&c.shutdown)Promise.resolve(c.shutdown()).catch(()=>{});else{const p=c&&c.proxy;if(p&&p.shutdown)Promise.resolve(p.shutdown()).catch(()=>{});}});
+        if(this.regionTest.state==='RUNNING'){
+            this.regionTest.state='STOPPING';
+            Promise.resolve(this.regionPromise).catch(()=>{}).then(()=>this.restoreRegionTest()).catch(()=>{}).finally(shutdown);
+        }else shutdown();
     }
 }
 
-module.exports={Controller,EVENTS,RED,GREEN,enumNumber};
+module.exports={Controller,EVENTS,RED,GREEN,enumNumber,BERLIN_POSITION};

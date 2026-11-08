@@ -3,7 +3,7 @@
 const mgu=require('./kit/mgu');
 const G=require('./kit/gauges');
 const {Controller,EVENTS}=require('./controller');
-const W=1600,H=520,PAGES=['Status','Events','Details'];
+const W=1600,H=520,PAGES=['Status','Events','Details','Germany test'];
 const GREEN='#32e875',RED='#ff3658',AMBER='#ffb52e',CYAN='#35d6d0',BLUE='#4aafff';
 const fmt=(n,d)=>typeof n==='number'&&Number.isFinite(n)?n.toFixed(d==null?0:d):'--';
 const when=(n)=>n?new Date(n).toLocaleTimeString():'--';
@@ -59,15 +59,30 @@ mgu.run({async start(ctx){
         G.table(cv,t,798,112,754,[{label:'',w:380},{label:'',w:374,align:'right'}],rows2,{rowH:52,size:22});
         cv.text(C.rawLight?'Source: TrafficLightRecognitionFrontCameraLegacy':'Fallback: BMW TrafficSignDisplayControl.DisplayForesight',798,490,18,t.dim);
     }
+    function germanyPage(cv,t){
+        const rt=C.regionTest;
+        G.panel(cv,t,24,54,980,458,'Temporary Germany traffic-light test');
+        cv.text(rt.state==='RUNNING'?'BERLIN CONTEXT ACTIVE':rt.state,54,142,52,rt.state==='RUNNING'?AMBER:rt.result.indexOf('PASS:')===0?GREEN:t.text,{font:'bold'});
+        cv.text(rt.state==='RUNNING'?'ON UNTIL YOU TURN IT OFF':rt.result,54,192,24,rt.state==='RUNNING'?AMBER:t.text);
+        cv.text('Switch Germany ON while stationary, then perform the road test.',54,258,22,t.dim);
+        cv.text('Press Run selected action again to restore the saved real position.',54,298,22,t.dim);
+        cv.text('This tests BMW\'s own UCC regional decision; it does not recode an ECU.',54,338,22,t.dim);
+        cv.text(rt.state==='RUNNING'?'Run selected action: TURN OFF + RESTORE':'Run selected action: TURN GERMANY ON',54,446,24,rt.state==='RUNNING'?AMBER:BLUE,{font:'bold'});
+        G.panel(cv,t,1024,54,552,458,'Live decision');
+        const before=rt.before===null?'--':uccRegion(rt.before),during=rt.during===null?'--':uccRegion(rt.during);
+        const rows=[['Vehicle speed',fmt(C.speed,1)+' km/h'],['GPS provider',C.gpsConn&&C.gpsConn.available?'AVAILABLE':'WAITING'],['Before',before],['During',during],['Original saved',rt.original?'YES':'NO']];
+        G.table(cv,t,1048,112,504,[{label:'',w:250},{label:'',w:254,align:'right'}],rows,{rowH:58,size:21});
+    }
     async function render(){
         if(useDemo()&&!C.setting)demo();const t=ctx.theme(),cv=ctx.canvas(W,H).clear(t.bg);
-        [statusPage,eventsPage,detailsPage][page](cv,t);
+        [statusPage,eventsPage,detailsPage,germanyPage][page](cv,t);
         const ns=C.nativeState();G.frame(cv,t,PAGES,page,[{text:ns.label,color:ns.color==='green'?GREEN:ns.color==='amber'?AMBER:t.dim},{text:'KAFAS',color:CYAN}]);
         if(Date.now()-C.lastAlertAt<3500){cv.fillRect(0,0,W,H,'#08351caa');cv.text('GREEN LIGHT',W/2,H/2+20,86,GREEN,{align:'center',font:'bold'});}
         if(notice){cv.roundRect(430,416,740,70,18,'#171f29ee');cv.text(notice,800,460,23,t.text,{align:'center'});}
         await ui.image('MAIN_GFX',cv);
     }
     ui.onClick('BTN_PAGE',()=>{page=(page+1)%PAGES.length;});
-    ui.onClick('BTN_ACTION',async()=>{notice='';try{await C.toggle();}catch(e){notice=e.message;setTimeout(()=>{notice='';},4500);}});
+    ui.onClick('BTN_ACTION',async()=>{notice='';try{notice=page===3?await C.toggleGermanyTest():(await C.toggle(),C.notice);}catch(e){notice=e.message;}setTimeout(()=>{notice='';},6500);});
+    if(ctx.app&&ctx.app.on)ctx.app.on('shutdown',()=>C.close());
     ctx.onTab((i)=>{page=Math.max(0,Math.min(PAGES.length-1,i));});ctx.loop('MAIN',60,render);
 }});

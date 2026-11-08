@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('assert');
 const path=require('path');
-const {Controller,enumNumber}=require(path.resolve(__dirname,'..','..','apps','green_light_alert','controller'));
+const {Controller,enumNumber,BERLIN_POSITION}=require(path.resolve(__dirname,'..','..','apps','green_light_alert','controller'));
 
 assert.strictEqual(enumNumber('AMPEL_ROT'),12);
 assert.strictEqual(enumNumber('AMPEL_GRUEN'),15);
@@ -48,5 +48,17 @@ assert.strictEqual(c3.nativeState().label,'RAW KAFAS LIVE');
     assert.strictEqual(writes[0][1].value,2);
     assert.ok(c.notice.indexOf('settingDriveOffReminder accepted')===0);
     assert.strictEqual(c.nativeState().label,'OEM ACTIVE');
-    console.log('Green Light Alert transition filter and KAFAS provider-state checks passed.');
+    const c4=new Controller(ctx,()=>{});c4.speed=0;c4.gpsPosition={statusGPSLongitudeCAN:2100000000,statusGPSLatitudeCAN:2300000000};c4.gpsConn={proxy:{},available:true};
+    c4.fasStatus={functionUCC:1};
+    await c4.startGermanyTest();
+    c4.fasStatus={functionUCC:0};
+    await new Promise((resolve)=>setTimeout(resolve,800));
+    const result=await c4.stopGermanyTest();
+    assert.ok(result.indexOf('PASS:')===0);
+    const gpsWrites=writes.filter((x)=>x[0]==='GPSPositionCAN');
+    assert.deepStrictEqual(gpsWrites[0][1],BERLIN_POSITION);
+    assert.deepStrictEqual(gpsWrites[gpsWrites.length-1][1],{statusGPSLongitudeCAN:2100000000,statusGPSLatitudeCAN:2300000000});
+    const moving=new Controller(ctx,()=>{});moving.speed=2;moving.gpsPosition=c4.gpsPosition;moving.gpsConn={proxy:{},available:true};
+    await assert.rejects(()=>moving.startGermanyTest(),/only while stationary/);
+    console.log('Green Light Alert transition filter, provider-state and reversible Germany-context checks passed.');
 })().catch((e)=>{console.error(e);process.exit(1);});
