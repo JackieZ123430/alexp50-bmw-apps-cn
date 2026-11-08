@@ -272,17 +272,17 @@
     {
       "id": "vehicle_health",
       "kind": "app",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "title": "Vehicle Health Center",
       "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "vehicle_health@0.1.4.tgz",
-        "size": 1099483,
-        "sha256": "f65c2a54ee1f47fb0b80d683d7d97d8f6ba91bc781b033edbb17942892735fb4",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.4/vehicle_health@0.1.4.tgz"
+        "name": "vehicle_health@0.1.5.tgz",
+        "size": 1096765,
+        "sha256": "cc02728c013dbf094df008bfac876e7e0e11885a12108ed9000583f0f0b50c40",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.5/vehicle_health@0.1.5.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -413,17 +413,17 @@
     {
       "id": "remote-telemetry-bridge",
       "kind": "tool",
-      "version": "0.1.3",
+      "version": "0.1.8",
       "title": "Remote telemetry bridge",
       "description": "Publishes read-only parked-car telemetry through mgu-uplink to an authenticated HTTPS relay",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "remote-telemetry-bridge@0.1.3.tgz",
-        "size": 5011,
-        "sha256": "4a82a39b705d3ceb816a73392bf2e8b65593af2bd2561cd0da2e255fed4ff8e6",
-        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.1.3.tgz"
+        "name": "remote-telemetry-bridge@0.1.8.tgz",
+        "size": 6720,
+        "sha256": "97858f558f7b06954b658a9ab684196519e0e92c1cc4c0959ee5117dc902379d",
+        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.1.8.tgz"
       },
       "uninstallable": true,
       "requires": {

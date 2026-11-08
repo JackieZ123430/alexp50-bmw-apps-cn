@@ -42,8 +42,11 @@ function Invoke-Car([string]$Command) {
 
 $tempConfig = Join-Path ([IO.Path]::GetTempPath()) ("parked-bmw-" + [guid]::NewGuid().ToString('N') + '.json')
 try {
-    [ordered]@{endpoint=$connection.endpoint;carId=$connection.carId;writeToken=$connection.writeToken} |
-        ConvertTo-Json -Compress | Set-Content -LiteralPath $tempConfig -Encoding utf8
+    $carConfigJson = [ordered]@{endpoint=$connection.endpoint;carId=$connection.carId;writeToken=$connection.writeToken} |
+        ConvertTo-Json -Compress
+    # Windows PowerShell 5.1's -Encoding utf8 adds a BOM. Node 8's JSON.parse
+    # does not discard it, so write the MGU config as explicit BOM-free UTF-8.
+    [IO.File]::WriteAllText($tempConfig, $carConfigJson, [Text.UTF8Encoding]::new($false))
     Write-Host "Connecting to MGU $HostAddress..."
     Invoke-Car 'test -x /var/opt/mgu-deploy/mgu-deploy.sh && test -s /run/mgu-uplink/lease.json'
     & $scp @options $artifactPath "${target}:/tmp/$artifactName"
@@ -52,7 +55,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Bridge configuration upload failed.' }
     Invoke-Car "sh /var/opt/mgu-deploy/mgu-deploy.sh check --artifact '/tmp/$artifactName'"
     Invoke-Car "sh /var/opt/mgu-deploy/mgu-deploy.sh install --artifact '/tmp/$artifactName' --yes"
-    Invoke-Car "mkdir -p /var/opt/remote-telemetry-bridge && install -m 0600 -o root -g root /tmp/remote-telemetry-config.json /var/opt/remote-telemetry-bridge/config.json && systemctl restart remote-telemetry-bridge.service"
+    # This MGU image has BusyBox cp/chmod/chown but no GNU/BSD `install`.
+    Invoke-Car "mkdir -p /var/opt/remote-telemetry-bridge && cp /tmp/remote-telemetry-config.json /var/opt/remote-telemetry-bridge/config.json && chown root:root /var/opt/remote-telemetry-bridge/config.json && chmod 0600 /var/opt/remote-telemetry-bridge/config.json && systemctl restart remote-telemetry-bridge.service"
     Start-Sleep -Seconds 4
     Invoke-Car 'systemctl is-active --quiet remote-telemetry-bridge.service && cat /run/remote-telemetry-bridge/status.json'
     Write-Host 'Parked BMW telemetry bridge installed and configured.' -ForegroundColor Green

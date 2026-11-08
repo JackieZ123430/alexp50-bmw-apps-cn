@@ -32,18 +32,18 @@ jobs:
         run: gradle -p android/parked-bmw :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: Parked-BMW-0.1.0-debug
+          name: Parked-BMW-0.1.1-debug
           path: android/parked-bmw/app/build/outputs/apk/debug/app-debug.apk
       - name: Publish installable APK
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp android/parked-bmw/app/build/outputs/apk/debug/app-debug.apk Parked-BMW-0.1.0-debug.apk
-          if gh release view 'parked-bmw-android@0.1.0' >/dev/null 2>&1; then
-            gh release upload 'parked-bmw-android@0.1.0' Parked-BMW-0.1.0-debug.apk --clobber
+          cp android/parked-bmw/app/build/outputs/apk/debug/app-debug.apk Parked-BMW-0.1.1-debug.apk
+          if gh release view 'parked-bmw-android@0.1.1' >/dev/null 2>&1; then
+            gh release upload 'parked-bmw-android@0.1.1' Parked-BMW-0.1.1-debug.apk --clobber
           else
-            gh release create 'parked-bmw-android@0.1.0' Parked-BMW-0.1.0-debug.apk \
-              --title 'Parked BMW for Android 0.1.0' \
-              --notes 'Read-only remote cabin and parked-car telemetry dashboard. Install the APK manually on Android.' \
+            gh release create 'parked-bmw-android@0.1.1' Parked-BMW-0.1.1-debug.apk \
+              --title 'Parked BMW for Android 0.1.1' \
+              --notes 'Read-only remote cabin and parked-car telemetry dashboard with measured 12 V battery voltage. Install the APK manually on Android.' \
               --latest=false
           fi

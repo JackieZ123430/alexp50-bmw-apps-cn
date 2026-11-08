@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter
 data class Tyres(val fl: Double?, val fr: Double?, val rl: Double?, val rr: Double?)
 data class Snapshot(
     val received: Instant, val sampled: Instant?, val awake: Boolean,
-    val inside: Double?, val outside: Double?, val battery: Double?, val speed: Double?, val tyres: Tyres?
+    val inside: Double?, val outside: Double?, val battery: Double?, val voltage: Double?, val speed: Double?, val tyres: Tyres?
 )
 
 class MainActivity : ComponentActivity() {
@@ -94,6 +94,10 @@ fun ParkedBmwApp(context: Context) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                     MetricCard("OUTSIDE", temp(snapshot?.outside), "°C", Blue, Modifier.weight(1f))
                     MetricCard("12 V CHARGE", value(snapshot?.battery,0), "%", batteryColor(snapshot?.battery), Modifier.weight(1f))
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                    MetricCard("BATTERY VOLTAGE", value(snapshot?.voltage,2), "V", voltageColor(snapshot?.voltage), Modifier.weight(1f))
+                    MetricCard("VEHICLE SPEED", value(snapshot?.speed,1), "km/h", Cyan, Modifier.weight(1f))
                 }
                 TyreCard(snapshot?.tyres)
                 Text("The MGU and LTE modem switch off when the car sleeps. Values remain visible with their timestamp and are never presented as live after updates stop.", color=Color(0xFF8EA5B5), fontSize=13.sp)
@@ -177,10 +181,11 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
             tyreNumber("rearLeft"), tyreNumber("rearRight")
         )
     } else null
-    Snapshot(Instant.parse(root.getString("serverReceivedAt")),root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},root.optBoolean("awake",false),number("insideTemperatureC"),number("outsideTemperatureC"),number("batteryChargePercent"),number("speedKmh"),tyre)
+    Snapshot(Instant.parse(root.getString("serverReceivedAt")),root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},root.optBoolean("awake",false),number("insideTemperatureC"),number("outsideTemperatureC"),number("batteryChargePercent"),number("batteryVoltage"),number("speedKmh"),tyre)
 }
 private fun value(v:Double?,digits:Int)=v?.let{String.format("%.${digits}f",it)}?:"--"
 private fun temp(v:Double?)=value(v,1)
 private fun batteryColor(v:Double?)=when{v==null->Color(0xFF718895);v<35->Red;v<55->Amber;else->Green}
+private fun voltageColor(v:Double?)=when{v==null->Color(0xFF718895);v<11.8->Red;v<12.2->Amber;else->Green}
 private fun ageText(s:Long)=when{ s<60->"${s}s";s<3600->"${s/60}m";s<86400->"${s/3600}h";else->"${s/86400}d" }
 private fun clock(i:Instant)=DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(i)

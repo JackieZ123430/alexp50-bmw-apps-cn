@@ -9,7 +9,7 @@ class KV {
 const env = {TELEMETRY: new KV(), CAR_WRITE_TOKEN: "write-secret", APP_READ_TOKEN: "read-secret"};
 const ctx = {waitUntil: (p) => p};
 const payload = {schema:1, sampledAt:new Date().toISOString(), awake:true,
-  telemetry:{insideTemperatureC:21.5,outsideTemperatureC:7,batteryChargePercent:82,speedKmh:0,
+  telemetry:{insideTemperatureC:21.5,outsideTemperatureC:7,batteryChargePercent:82,batteryVoltage:12.64,speedKmh:0,
     tyrePressureBar:{frontLeft:2.5,frontRight:2.5,rearLeft:2.7,rearRight:2.7}}};
 
 let response = await worker.fetch(new Request("https://example.test/v1/cars/g12/telemetry", {
@@ -22,6 +22,7 @@ response = await worker.fetch(new Request("https://example.test/v1/cars/g12/tele
 assert.equal(response.status, 200);
 const latest = await response.json();
 assert.equal(latest.telemetry.insideTemperatureC, 21.5);
+assert.equal(latest.telemetry.batteryVoltage, 12.64);
 assert.equal(latest.carId, "g12");
 response = await worker.fetch(new Request("https://example.test/v1/cars/g12/telemetry"), env, ctx);
 assert.equal(response.status, 401);

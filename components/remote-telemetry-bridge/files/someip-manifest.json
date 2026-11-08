@@ -1,11 +1,16 @@
 {
   "proxies": {
+    "com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu": {
+      "methods": ["sendTasuRequest"],
+      "broadcasts": ["sendTasuResponse"],
+      "instances": "SystemFunctionsInternalTasuInst1"
+    },
     "de.bmw.infotainment.climate.Climate2": {
       "attributes": {"statusTemperatureInside": "rs"},
       "instances": "1"
     },
     "de.bmw.infrastructure.EnvironmentalInformation": {
-      "attributes": {"ExteriorTemperature": "rs"},
+      "attributes": {"ExteriorTemperature": "s"},
       "instances": "1"
     },
     "de.bmw.infotainment.vehicle.CDS": {

@@ -2,7 +2,7 @@
   "id": "vehicle_health",
   "title": "Vehicle Health Center",
   "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "vendor": "alexp50",
   "loggingId": "OAAB",
   "iconGlyph": "health",
@@ -20,6 +20,9 @@
       "statusEngineTemperature": "rs",
       "statusEngineStatus": "rs",
       "statusBattery2": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate2": {
+      "statusTemperatureInside": "rs"
     },
     "de.bmw.infotainment.vehicle.Vehicle2": {
       "statusOilDipstick2": "rs",

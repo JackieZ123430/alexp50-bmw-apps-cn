@@ -26,9 +26,10 @@ function validSnapshot(body) {
   const t = body.telemetry;
   const numberOrNull = (v) => v == null || (typeof v === "number" && Number.isFinite(v));
   if (!numberOrNull(t.insideTemperatureC) || !numberOrNull(t.outsideTemperatureC) ||
-      !numberOrNull(t.batteryChargePercent) || !numberOrNull(t.speedKmh)) return false;
+      !numberOrNull(t.batteryChargePercent) || !numberOrNull(t.batteryVoltage) || !numberOrNull(t.speedKmh)) return false;
   if (t.insideTemperatureC != null && (t.insideTemperatureC < -50 || t.insideTemperatureC > 100)) return false;
   if (t.batteryChargePercent != null && (t.batteryChargePercent < 0 || t.batteryChargePercent > 150)) return false;
+  if (t.batteryVoltage != null && (t.batteryVoltage < 6 || t.batteryVoltage > 18)) return false;
   return true;
 }
 

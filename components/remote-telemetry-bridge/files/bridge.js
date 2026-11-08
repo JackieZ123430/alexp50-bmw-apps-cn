@@ -15,13 +15,17 @@ const RUN = '/run/remote-telemetry-bridge';
 const STATUS = path.join(RUN, 'status.json');
 const LAST_STATUS = path.join(ROOT, 'last-status.json');
 const LEASE = '/run/mgu-uplink/lease.json';
-const UID = 65534;
+const FALLBACK_UID = 65534;
+const SIGNAL_APP = 'vehicle_health';
+const OAP_UIDS = '/var/opt/public/oap/oap_12201/security/uids.txt';
+const UPLINK_UID_FILE = '/var/opt/mgu-uplink/uids.d/remote-telemetry-bridge';
 const INTERVAL_MS = 30000;
 
 const state = {
     startedAt: new Date().toISOString(), lastSampleAt: null, lastUploadAt: null,
     lastHttpStatus: null, error: null, configured: false, uplink: false,
-    providers: {}, telemetry: {}, awake: true, phase: 'starting'
+    providers: {}, telemetry: {}, awake: true, phase: 'starting', signalUid: null,
+    batteryVoltageSource: null
 };
 let stopping = false;
 const proxies = [];
@@ -43,6 +47,13 @@ function finite(v) { return typeof v === 'number' && isFinite(v); }
 function temp(raw) { return finite(raw) && raw !== 255 ? Math.round((raw * 0.5 - 40) * 10) / 10 : null; }
 function speed(raw) { return finite(raw) && raw !== 65535 ? Math.round(raw * 0.015625 * 10) / 10 : null; }
 function pressure(raw) { return finite(raw) && raw < 65532 ? Math.round(raw) / 10 : null; }
+function bytes(value) {
+    if (!value) return [];
+    if (Buffer.isBuffer(value) || value instanceof Uint8Array || Array.isArray(value)) return Array.prototype.slice.call(value);
+    if (value.data) return bytes(value.data);
+    if (typeof value === 'object' && typeof value.length === 'number') return Array.prototype.slice.call(value);
+    return [];
+}
 
 function setTelemetry(name, value) {
     if (value === null || value === undefined) return;
@@ -52,7 +63,7 @@ function setTelemetry(name, value) {
 }
 
 function ensureSomeIp() {
-    const marker = path.join(SOMEIP_DIR, '.bridge-config-v2');
+    const marker = path.join(SOMEIP_DIR, '.bridge-config-v3');
     if (fs.existsSync(marker)) return;
     if (!fs.existsSync(SOMEIP_DIR)) fs.mkdirSync(SOMEIP_DIR);
     try {
@@ -69,6 +80,38 @@ function configureDns() {
     const servers = Array.isArray(lease.dns) ? lease.dns.filter((x) => typeof x === 'string') : [];
     if (servers.length) dns.setServers(servers);
     state.uplink = !!lease.interface;
+}
+
+function resolveSignalUid() {
+    try {
+        const lines = fs.readFileSync(OAP_UIDS, 'utf8').split(/\r?\n/);
+        for (const line of lines) {
+            const match = /^(\d+)=(.+)$/.exec(line.trim());
+            if (match && match[2] === SIGNAL_APP) return Number(match[1]);
+        }
+    } catch (e) {}
+    return FALLBACK_UID;
+}
+
+function allowUplinkUid(uid) {
+    try {
+        fs.writeFileSync(UPLINK_UID_FILE, String(FALLBACK_UID) + '\n' + String(uid) + '\n');
+    } catch (e) {
+        state.error = 'cannot register uplink uid: ' + e.message;
+    }
+}
+
+// https.request uses the OS resolver (dns.lookup), which on this MGU is the
+// vehicle dnsmasq instance. When ENET and the Wi-Fi uplink share a subnet,
+// that resolver can send its upstream query over the vehicle route. Resolve
+// inside this uid-routed process instead; mgu-uplink then carries both DNS
+// and HTTPS through the selected Internet adapter.
+function uplinkLookup(hostname, options, callback) {
+    dns.resolve4(hostname, (error, addresses) => {
+        if (error) return callback(error);
+        if (!addresses || !addresses.length) return callback(new Error('DNS returned no IPv4 address for ' + hostname));
+        callback(null, addresses[0], 4);
+    });
 }
 
 function loadSomeIp() {
@@ -119,6 +162,52 @@ function watch(someip, iface, field, receive) {
     }).catch((e) => { state.providers[iface] = false; state.error = iface + ': ' + e.message; writeStatus(); return null; });
 }
 
+// DDE DID 43C1 is the IBS-measured 12 V system voltage in millivolts; 5512 is
+// the car's ambient-temperature value at 0.5 C/bit, offset -40 C. The request
+// is read-only UDS 22 over BMW's TASU service, the same transport used by the
+// diagnostic apps on the head unit. ExteriorTemperature remains subscribed as
+// the preferred source; 5512 guarantees an initial parked snapshot.
+function watchBatteryVoltage(someip) {
+    const iface = 'com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu';
+    let cfg;
+    try { cfg = JSON.parse(fs.readFileSync(configFile(iface), 'utf8')); }
+    catch (e) { state.providers.batteryVoltage = false; state.error = 'battery voltage: no TASU configuration'; writeStatus(); return Promise.resolve(null); }
+    return nativeTick(() => someip.buildProxy(cfg, 'SystemFunctionsInternalTasuInst1').then((proxy) => proxy.init().then(() => proxy))).then((proxy) => {
+        proxies.push(proxy);
+        let available = !!(proxy.isAvailable && proxy.isAvailable());
+        state.providers.batteryVoltage = available;
+        try { proxy.subscribeToAvailability((value) => { available = !!value; state.providers.batteryVoltage = available; writeStatus(); }); } catch (e) {}
+        proxy.subscribe({name:'sendTasuResponse', onReceive:(value) => {
+            const frame = bytes(value && (value.udsResponse !== undefined ? value.udsResponse : value));
+            if (frame.length < 13 || frame[6] !== 0x12) return;
+            const uds = frame.slice(9);
+            if (uds[0] !== 0x62) return;
+            for (let i = 1; i + 1 < uds.length;) {
+                const did = (uds[i] << 8) | uds[i + 1]; i += 2;
+                if (did === 0x43C1 && i + 1 < uds.length) {
+                    const voltage = ((uds[i] << 8) | uds[i + 1]) * 0.001; i += 2;
+                    if (voltage >= 6 && voltage <= 18) {
+                        setTelemetry('batteryVoltage', Math.round(voltage * 100) / 100);
+                        state.batteryVoltageSource = 'DDE 43C1 · IBS measured';
+                    }
+                } else if (did === 0x5512 && i < uds.length) {
+                    const outside = uds[i++] * 0.5 - 40;
+                    if (outside >= -50 && outside <= 80) setTelemetry('outsideTemperatureC', Math.round(outside * 10) / 10);
+                } else break;
+            }
+        }}).catch(() => {});
+        const request = () => {
+            if (!available) return;
+            nativeTick(() => proxy.callMethod('sendTasuRequest', {
+                sourceAddress:0xF2, targetAddress:0x12, serviceID:0x22, subroutineID:0,
+                udsDataLength:4, udsData:Buffer.from([0x43, 0xC1, 0x55, 0x12]), deadlockTime:0
+            }, 5000)).catch((e) => { state.error = 'battery voltage: ' + e.message; writeStatus(); });
+        };
+        request(); setInterval(request, INTERVAL_MS);
+        return proxy;
+    }).catch((e) => { state.providers.batteryVoltage = false; state.error = 'battery voltage: ' + e.message; writeStatus(); return null; });
+}
+
 function upload(config) {
     configureDns();
     if (!config.endpoint || !config.writeToken || !config.carId) {
@@ -135,7 +224,7 @@ function upload(config) {
     return new Promise((resolve) => {
         const req = https.request({
             protocol:'https:', hostname:target.hostname, port:target.port || 443,
-            path:target.path, method:'POST', timeout:12000,
+            path:target.path, method:'POST', timeout:12000, lookup:uplinkLookup,
             headers:{'Authorization':'Bearer ' + config.writeToken, 'Content-Type':'application/json',
                 'Content-Length':payload.length, 'User-Agent':'BMW-MGU-Remote-Telemetry/0.1'}
         }, (res) => {
@@ -157,10 +246,16 @@ async function main() {
     writeStatus();
     runtimeConfig = readJson(CONFIG, {});
     ensureSomeIp();
-    try { fs.chownSync(RUN, UID, UID); } catch (e) {}
+    const signalUid = resolveSignalUid();
+    state.signalUid = signalUid;
+    allowUplinkUid(signalUid);
+    try { fs.chownSync(RUN, signalUid, signalUid); } catch (e) {}
     const someip = loadSomeIp();
+    // BMW's SOME/IP ACL is keyed to an installed OAP application's uid. Use
+    // Vehicle Health's signal grant, and grant that same uid outbound access
+    // through mgu-uplink for the authenticated relay only.
     if (process.getuid && process.getuid() === 0) {
-        try { process.setgid(UID); process.setuid(UID); } catch (e) { throw new Error('cannot drop privileges: ' + e.message); }
+        try { process.setgid(signalUid); process.setuid(signalUid); } catch (e) { throw new Error('cannot drop privileges: ' + e.message); }
     }
     writeStatus();
     await Promise.all([
@@ -178,7 +273,8 @@ async function main() {
                 frontLeft:pressure(v.actualValuePressureTyreFLH), frontRight:pressure(v.actualValuePressureTyreFRH),
                 rearLeft:pressure(v.actualValuePressureTyreRLH), rearRight:pressure(v.actualValuePressureTyreRRH)
             });
-        })
+        }),
+        watchBatteryVoltage(someip)
     ]);
     state.phase = 'running';
     if (Object.keys(state.providers).length) state.error = null;

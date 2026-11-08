@@ -30,8 +30,18 @@ try {
     $readToken | & $npx wrangler secret put APP_READ_TOKEN
     if ($LASTEXITCODE -ne 0) { throw 'Uploading the Android read token failed.' }
 
-    $deploy = (& $npx wrangler deploy 2>&1 | Tee-Object -Variable deployOutput | Out-String)
-    if ($LASTEXITCODE -ne 0) { throw "Cloudflare deployment failed.`n$deploy" }
+    # Wrangler prints successful-deployment warnings to stderr. Under Windows
+    # PowerShell plus ErrorActionPreference=Stop those warnings otherwise abort
+    # this script before we can inspect Wrangler's actual exit code.
+    $savedErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $deploy = (& $npx wrangler deploy 2>&1 | Tee-Object -Variable deployOutput | Out-String)
+        $deployExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $savedErrorActionPreference
+    }
+    if ($deployExitCode -ne 0) { throw "Cloudflare deployment failed.`n$deploy" }
     Write-Host $deploy
     $match = [regex]::Match($deploy, 'https://[A-Za-z0-9.-]+\.workers\.dev')
     if (-not $match.Success) { throw 'Relay deployed, but its workers.dev URL was not found in Wrangler output.' }
