@@ -346,17 +346,17 @@
     {
       "id": "xdrive_studio",
       "kind": "app",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "title": "xDrive Studio",
       "description": "Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "xdrive_studio@0.1.4.tgz",
-        "size": 1226676,
-        "sha256": "2427930e3f1500bb995035c4257de19e70d27b708b2e57e1a2d461a7e40b3cfc",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/xdrive_studio@0.1.4/xdrive_studio@0.1.4.tgz"
+        "name": "xdrive_studio@0.1.5.tgz",
+        "size": 1229885,
+        "sha256": "8edd739daba2ffc0476ca2b7c4517b7c0d6fe4dbcd35773dae6e888ed0e11143",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/xdrive_studio@0.1.5/xdrive_studio@0.1.5.tgz"
       },
       "uninstallable": true,
       "requires": {

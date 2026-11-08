@@ -207,8 +207,8 @@ mgu.run({ async start(ctx) {
     async function render() {
         const t = ctx.theme(), d = data(), cv = ctx.canvas(W, H).clear(t.bg);
         [splitPage, slipPage, dynamicsPage, statusPage][page](cv, t, d);
-        G.header(cv, t, 0, 0, W, 44, 'xDrive Studio', PAGES, page,
-            [{ text: d.demo ? 'DEMO' : (d.source ? 'LIVE' : 'WAITING'), color: d.demo ? BLUE : d.source ? GREEN : AMBER }], true, true);
+        G.frame(cv, t, PAGES, page,
+            [{ text: d.demo ? 'DEMO' : (d.source ? 'LIVE' : 'WAITING'), color: d.demo ? BLUE : d.source ? GREEN : AMBER }]);
         await ui.image('MAIN_GFX', cv);
     }
     ui.onClick('BTN_PAGE', () => { page = (page + 1) % PAGES.length; });

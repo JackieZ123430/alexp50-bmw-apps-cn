@@ -15,7 +15,7 @@
 * **Vehicle Health Center** `0.1.4` — Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults
 * **Vehicle Network** `0.1.3` — Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup
 * **Waze HUD** `0.3.0` — Full-screen control for projecting the CarPlay navigation map into the head-up display
-* **xDrive Studio** `0.1.4` — Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics
+* **xDrive Studio** `0.1.5` — Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics
 
 ## Required tools
 * **Night Vision cluster helper** `0.2.1` — Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster
