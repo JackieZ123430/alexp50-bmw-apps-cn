@@ -1,6 +1,7 @@
 import importlib.util
 import pathlib
 import unittest
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -42,6 +43,33 @@ class HotspotHelperTests(unittest.TestCase):
                                    "eth0", "192.168.68.113")
         self.assertNotIn("192.168.68.113 accept", rules)
         self.assertIn('oifname != "vethuplink" drop', rules)
+
+    def test_replaces_old_nft_table_before_loading_new_rules(self):
+        gateway = helper.Gateway.__new__(helper.Gateway)
+        gateway.internet_enabled = True
+        gateway.coding = None
+        gateway.zgw = "192.168.68.113"
+        gateway.set_forward = lambda value: None
+        gateway.inject_accepts = lambda discovered, client: None
+        discovered = {
+            "uplink": "vethuplink",
+            "lease": {"ip": "192.168.8.100", "dns": ["192.168.8.1"]},
+            "hotspot": {"name": "wlan0", "network": "192.168.53.0/24"},
+            "vehicle": "eth0",
+        }
+        calls = []
+
+        def record(args, stdin=None, timeout=4):
+            calls.append((args, stdin))
+            return 0, ""
+
+        with mock.patch.object(helper, "command", side_effect=record):
+            gateway.apply(discovered)
+
+        self.assertEqual(calls[0][0], ["nft", "delete", "table", "ip", "hotspot_studio"])
+        self.assertEqual(calls[1][0], ["nft", "-f", "-"])
+        self.assertTrue(calls[1][1].startswith("table ip hotspot_studio {"))
+        self.assertNotIn("delete table", calls[1][1])
 
 
 if __name__ == "__main__":

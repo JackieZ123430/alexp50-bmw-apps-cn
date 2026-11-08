@@ -9,6 +9,7 @@ const ParkGuard = require('./guard');
 const W = 1600, H = 520;
 const PAGES = ['Internet', 'Clients', 'Coding', 'Details'];
 const C = { green:'#34d987', cyan:'#27d8ff', blue:'#4c8dff', amber:'#ffb52e', red:'#ff4b55' };
+const clean = (v) => String(v || '').replace(/\s+/g, ' ').trim();
 const short = (v, n) => { const s = String(v || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
 
 mgu.run({ async start(ctx) {
@@ -85,7 +86,7 @@ mgu.run({ async start(ctx) {
         field(cv, t, 1068, 143, 500, 'Sharing mode', mode().toUpperCase(), modeColor(), clients().length + ' connected client' + (clients().length === 1 ? '' : 's'));
         button(cv, 32, 326, 752, 75, 'Start Internet sharing', () => request({action:'internet',enabled:true}, 'Internet sharing enabled'), C.green, mode() !== 'off');
         button(cv, 816, 326, 752, 75, 'Stop all sharing', () => request({action:'off'}, 'All sharing stopped'), C.red, mode() === 'off');
-        cv.text(state && state.error ? state.error : 'Sharing is restored automatically after reboot once enabled.', 34, 453, 22,
+        cv.text(state && state.error ? short(clean(state.error), 116) : 'Sharing is restored automatically after reboot once enabled.', 34, 453, 22,
             state && state.error ? C.red : t.dim, { font:state && state.error ? 'bold' : undefined });
     }
     function clientsPage(cv, t) {
@@ -150,7 +151,7 @@ mgu.run({ async start(ctx) {
         const t = ctx.theme(), cv = ctx.canvas(W,H).clear(t.bg); hits = [];
         [internetPage, clientsPage, codingPage, detailsPage][page](cv,t);
         G.frame(cv,t,PAGES,page,[{text:mode().toUpperCase(),color:modeColor()},{text:'60 FPS',color:C.cyan}]);
-        if (notice) cv.text(short(notice, 116), 1565, 505, 17, notice.indexOf('enabled') >= 0 || notice === 'Done' ? C.green : C.amber, {align:'right'});
+        if (notice) cv.text(short(clean(notice), 116), 1565, 505, 17, notice.indexOf('enabled') >= 0 || notice === 'Done' ? C.green : C.amber, {align:'right'});
         await ctx.ui.image('MAIN_GFX',cv);
     }
     function nextClient() { const list=clients(); if(list.length) selected=(selected+1)%list.length; }

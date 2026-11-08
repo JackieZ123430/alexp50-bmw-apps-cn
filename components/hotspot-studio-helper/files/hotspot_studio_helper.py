@@ -182,9 +182,7 @@ def own_ruleset(hotspot, uplink, network, vehicle, zgw, client=None, dns=None):
         prerouting_chain = ('\tchain prerouting {\n'
                             '\t\ttype nat hook prerouting priority -100; policy accept;\n' +
                             '\n'.join(prerouting) + '\n\t}\n')
-    return f'''add table ip {NFT_TABLE}
-delete table ip {NFT_TABLE}
-table ip {NFT_TABLE} {{
+    return f'''table ip {NFT_TABLE} {{
 {prerouting_chain}\
 \tchain guard {{
 \t\ttype filter hook forward priority -20; policy accept;
@@ -344,6 +342,10 @@ class Gateway:
         self.set_forward("1")
         network = d["hotspot"]["network"]
         dns = next(iter(d["lease"].get("dns") or []), None)
+        # The MGU's older nft cannot reliably create, delete and then redefine
+        # the same table in one atomic batch. Remove the previous generation
+        # first, then load one self-contained replacement ruleset.
+        command(["nft", "delete", "table", "ip", NFT_TABLE])
         code, out = command(["nft", "-f", "-"], own_ruleset(
             d["hotspot"]["name"], d["uplink"], network, d["vehicle"], self.zgw, client, dns))
         if code != 0:
