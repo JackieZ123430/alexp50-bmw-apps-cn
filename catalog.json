@@ -78,17 +78,17 @@
     {
       "id": "green_light_alert",
       "kind": "app",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "title": "Green Light Alert",
       "description": "Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "green_light_alert@0.2.2.tgz",
-        "size": 1101601,
-        "sha256": "6bf933287d7eb2289b8cf42e58fae82007383770a0e2f2bcfd2f4c4508e0577a",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/green_light_alert@0.2.2/green_light_alert@0.2.2.tgz"
+        "name": "green_light_alert@0.2.3.tgz",
+        "size": 1101694,
+        "sha256": "fcfb88c19a6f270f559869741a115478fd1c4926e8ab9de2d908be158e66f861",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/green_light_alert@0.2.3/green_light_alert@0.2.3.tgz"
       },
       "uninstallable": true,
       "requires": {

@@ -21,6 +21,13 @@ const RED=new Set([12,13]);
 const GREEN=new Set([15,16,17,18]);
 const finite=(n)=>typeof n==='number'&&Number.isFinite(n);
 
+function germanyResult(before,during){
+    if(before===0)return 'ALREADY AVAILABLE: BMW UCC was available before Germany context; no regional bypass was needed';
+    if(during===0)return 'PASS: BMW UCC changed to available in Germany context';
+    if(during===null||during===undefined)return 'INCONCLUSIVE: BMW FAS published no UCC sample during Germany context';
+    return 'NO CHANGE: BMW UCC stayed '+String(during)+'; Navigation and GPS are not its regional input';
+}
+
 function enumNumber(v){
     if(finite(v))return v;
     if(v&&finite(v.value))return v.value;
@@ -310,9 +317,7 @@ class Controller{
             this.regionTest.state='STOPPING';
             if(this.regionPromise)await this.regionPromise;
         }
-        const changed=this.regionTest.before!==0&&this.regionTest.during===0;
-        this.regionTest.result=changed?'PASS: BMW UCC changed to available in Germany context':
-            'NO CHANGE: BMW UCC stayed '+String(this.regionTest.during)+'; GPS alone is not its regional input';
+        this.regionTest.result=germanyResult(this.regionTest.before,this.regionTest.during);
         try{await this.stopNavigationGermany();}catch(e){this.regionTest.result+='; Navigation demo OFF failed: '+e.message;}
         try{await this.restoreRegionTest();}catch(e){this.regionTest.result+='; CAN restore failed: '+e.message;}
         this.regionTest.state='COMPLETE';this.regionTest.endsAt=Date.now();this.record('GERMANY TEST',this.regionTest.result);this.changed();
@@ -329,4 +334,4 @@ class Controller{
     }
 }
 
-module.exports={Controller,EVENTS,RED,GREEN,enumNumber,BERLIN_POSITION,BERLIN_NAVIGATION};
+module.exports={Controller,EVENTS,RED,GREEN,enumNumber,germanyResult,BERLIN_POSITION,BERLIN_NAVIGATION};

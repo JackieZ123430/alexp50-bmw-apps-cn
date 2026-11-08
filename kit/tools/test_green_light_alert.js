@@ -1,11 +1,14 @@
 'use strict';
 const assert=require('assert');
 const path=require('path');
-const {Controller,enumNumber,BERLIN_POSITION,BERLIN_NAVIGATION}=require(path.resolve(__dirname,'..','..','apps','green_light_alert','controller'));
+const {Controller,enumNumber,germanyResult,BERLIN_POSITION,BERLIN_NAVIGATION}=require(path.resolve(__dirname,'..','..','apps','green_light_alert','controller'));
 
 assert.strictEqual(enumNumber('AMPEL_ROT'),12);
 assert.strictEqual(enumNumber('AMPEL_GRUEN'),15);
 assert.strictEqual(enumNumber({value:2}),2);
+assert.ok(germanyResult(0,null).indexOf('ALREADY AVAILABLE:')===0,'an already available regional gate must not be reported as no change');
+assert.ok(germanyResult(1,0).indexOf('PASS:')===0);
+assert.ok(germanyResult(1,null).indexOf('INCONCLUSIVE:')===0,'a missing during-test sample must not be reported as a regional refusal');
 
 const writes=[],calls=[];
 const ctx={preview:false,log:{warn:()=>{},info:()=>{}},signals:{set:async(_p,n,v)=>writes.push([n,v]),call:async(_p,n,v)=>{calls.push([n,v]);return {SetLocationDescriptorError:0};}}};
