@@ -61,6 +61,14 @@ function configureDns() {
     state.uplink = !!lease.interface;
 }
 
+function loadSomeIp() {
+    try { return require('someip'); } catch (globalError) {
+        try { return require('/usr/lib/someip.node'); } catch (directError) {
+            throw new Error('SOME/IP native module unavailable: ' + globalError.message + '; ' + directError.message);
+        }
+    }
+}
+
 function configFile(iface) { return path.join(SOMEIP_DIR, iface.replace(/\./g, '_') + '.json'); }
 function watch(someip, iface, field, receive) {
     const cfg = JSON.parse(fs.readFileSync(configFile(iface), 'utf8'));
@@ -121,7 +129,7 @@ async function main() {
     runtimeConfig = readJson(CONFIG, {});
     ensureSomeIp();
     try { fs.chownSync(RUN, UID, UID); } catch (e) {}
-    const someip = require('/usr/lib/someip.node');
+    const someip = loadSomeIp();
     if (process.getuid && process.getuid() === 0) {
         try { process.setgid(UID); process.setuid(UID); } catch (e) { throw new Error('cannot drop privileges: ' + e.message); }
     }

@@ -2,6 +2,8 @@
 
 Read-only MGU service for the Parked BMW Android app. While the MGU is awake it reads cabin temperature, exterior temperature, BMW's 12 V charge-condition percentage, speed and tyre pressures over SOME/IP, then publishes an authenticated HTTPS snapshot every 30 seconds through `mgu-uplink`.
 
+Version 0.1.1 loads the firmware's globally registered `someip` Node binding, with the direct native-library path retained only as a compatibility fallback.
+
 The bridge intentionally omits vehicle location. It drops from root to uid 65534 before it opens vehicle or internet sockets. The Store grants that uid outbound uplink access only for this component.
 
 Persistent configuration is `/var/opt/remote-telemetry-bridge/config.json`:
