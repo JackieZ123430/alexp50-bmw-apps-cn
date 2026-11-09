@@ -9,7 +9,7 @@ class KV {
 const env = {TELEMETRY: new KV(), CAR_WRITE_TOKEN: "write-secret", APP_READ_TOKEN: "read-secret", APP_COMMAND_TOKEN: "command-secret"};
 const ctx = {waitUntil: (p) => p};
 const payload = {schema:1, sampledAt:new Date().toISOString(), awake:true,
-  telemetry:{insideTemperatureC:21.5,outsideTemperatureC:7,batteryChargePercent:82,batteryVoltage:12.64,speedKmh:0,
+  telemetry:{insideTemperatureC:21.5,insideTemperatureSampledAt:new Date().toISOString(),insideTemperatureSource:"IHKA D8D7 undamped cabin sensor",outsideTemperatureC:7,batteryChargePercent:82,batteryVoltage:12.64,speedKmh:0,
     tyrePressureBar:{frontLeft:2.5,frontRight:2.5,rearLeft:2.7,rearRight:2.7}},
   climate:{on:true,frontDefrost:false,rearDefrost:false,fanDriver:3,driverHeat:0}};
 
@@ -26,6 +26,11 @@ assert.equal(latest.telemetry.batteryVoltage, 12.64);
 assert.equal(latest.climate.fanDriver, 3);
 assert.equal(latest.carId, "g12");
 assert.equal((await call("/v1/cars/g12/telemetry")).status, 401);
+const invalidBattery = structuredClone(payload);
+invalidBattery.telemetry.batteryChargePercent = 255;
+assert.equal((await call("/v1/cars/g12/telemetry", {
+  method:"POST", headers:{authorization:"Bearer write-secret", "content-type":"application/json"}, body:JSON.stringify(invalidBattery)
+})).status, 422);
 
 response = await call("/v1/cars/g12/commands", {method:"POST", headers:{authorization:"Bearer command-secret", "content-type":"application/json"}, body:JSON.stringify({type:"seat_heat", seat:"driver", level:3})});
 assert.equal(response.status, 202);

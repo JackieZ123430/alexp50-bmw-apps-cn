@@ -36,6 +36,7 @@ import java.time.format.DateTimeFormatter
 data class Tyres(val fl: Double?, val fr: Double?, val rl: Double?, val rr: Double?)
 data class ClimateState(
     val on: Boolean?, val frontDefrost: Boolean?, val rearDefrost: Boolean?,
+    val preconditioning: Boolean?, val preconditioningMode: String?, val operatingMode: String?, val engineRunning: Boolean?,
     val driverTarget: Double?, val passengerTarget: Double?,
     val fanDriver: Int?, val fanPassenger: Int?, val fanRear: Int?,
     val autoDriver: Boolean?, val autoPassenger: Boolean?, val autoRearLeft: Boolean?, val autoRearRight: Boolean?,
@@ -45,7 +46,8 @@ data class ClimateState(
 )
 data class Snapshot(
     val received: Instant, val sampled: Instant?, val awake: Boolean,
-    val inside: Double?, val outside: Double?, val battery: Double?, val voltage: Double?, val speed: Double?,
+    val inside: Double?, val insideSampled: Instant?, val insideSource: String?,
+    val outside: Double?, val battery: Double?, val voltage: Double?, val speed: Double?,
     val tyres: Tyres?, val climate: ClimateState?
 )
 data class CommandResult(val id: String, val status: String, val result: String?)
@@ -108,7 +110,7 @@ fun ParkedBmwApp(context: Context) {
                         editing=false; refreshKey++
                     })
                 FreshnessCard(snapshot, error, refreshing) { refreshKey++ }
-                HeroTemperature(snapshot?.inside)
+                HeroTemperature(snapshot)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                     MetricCard("OUTSIDE", temp(snapshot?.outside), "°C", Blue, Modifier.weight(1f))
                     MetricCard("12 V CHARGE", value(snapshot?.battery,0), "%", batteryColor(snapshot?.battery), Modifier.weight(1f))
@@ -135,7 +137,7 @@ fun ParkedBmwApp(context: Context) {
                         } catch (e: Exception) { commandState = e.message ?: "Command failed" }
                     }
                 }
-                Text("The MGU and LTE modem switch off when the car sleeps. Values remain visible with their timestamp and are never presented as live after updates stop.", color=Color(0xFF8EA5B5), fontSize=13.sp)
+                Text("The MGU and LTE modem switch off when the car sleeps. Webasto can continue independently, but live controls require the MGU to be awake. Stale cabin readings are never presented as current.", color=Color(0xFF8EA5B5), fontSize=13.sp)
             }
         }
     }
@@ -164,7 +166,11 @@ private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.bet
     Card(colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(18.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) { Text("REMOTE CLIMATE", color=Cyan, fontWeight=FontWeight.Bold); Text(state, color=Color(0xFFAFC1CC), fontSize=12.sp) }
+                Column(Modifier.weight(1f)) {
+                    Text("REMOTE CLIMATE", color=Cyan, fontWeight=FontWeight.Bold)
+                    Text(climateMode(climate), color=if(climate?.preconditioning == true) Amber else Color(0xFFAFC1CC), fontSize=12.sp, fontWeight=FontWeight.SemiBold)
+                    Text(state, color=Color(0xFFAFC1CC), fontSize=12.sp)
+                }
                 Text(if(enabled) "CAR ONLINE" else "OFFLINE", color=if(enabled) Green else Amber, fontSize=11.sp, fontWeight=FontWeight.Bold)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -278,16 +284,23 @@ private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.bet
     }
 }
 
-@Composable private fun HeroTemperature(inside:Double?) {
-    val color=when { inside==null->Color(0xFF718895); inside>=45->Red; inside>=35->Amber; else->Cyan }
+@Composable private fun HeroTemperature(snapshot:Snapshot?) {
+    val inside=snapshot?.inside
+    val sampleAge=snapshot?.insideSampled?.let { Duration.between(it, Instant.now()).seconds.coerceAtLeast(0) }
+    val current=isLive(snapshot) && sampleAge != null && sampleAge < 90
+    val color=when { !current || inside==null->Color(0xFF718895); inside>=45->Red; inside>=35->Amber; else->Cyan }
     Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF102B3A)),shape=RoundedCornerShape(24.dp)) {
         Column(Modifier.fillMaxWidth().padding(22.dp)) {
             Text("CABIN TEMPERATURE",color=Color(0xFFAFC1CC),fontSize=13.sp,fontWeight=FontWeight.Bold)
             Row(verticalAlignment=Alignment.Bottom) {
-                Text(temp(inside),color=color,fontSize=76.sp,fontWeight=FontWeight.Black)
+                Text(if(current) temp(inside) else "--",color=color,fontSize=76.sp,fontWeight=FontWeight.Black)
                 Text(" °C",color=color,fontSize=28.sp,modifier=Modifier.padding(bottom=12.dp))
             }
-            Text(when {inside==null->"Waiting for the car";inside>=45->"Very hot cabin";inside>=35->"Warm cabin";else->"Cabin snapshot"},color=color)
+            Text(when {
+                current && inside != null -> "${snapshot?.insideSource ?: "IHKA cabin sensor"} · measured ${ageText(sampleAge!!)} ago"
+                inside != null && snapshot?.insideSampled != null -> "Last measured ${temp(inside)} °C at ${clock(snapshot.insideSampled)} · car data is stale"
+                else -> "Waiting for a confirmed IHKA cabin-temperature sample"
+            },color=color)
         }
     }
 }
@@ -332,6 +345,7 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
         fun level(name:String):Int? = num(name)?.toInt()
         ClimateState(
             bool("on"), bool("frontDefrost"), bool("rearDefrost"),
+            bool("preconditioning"), string("preconditioningMode"), string("operatingMode"), bool("engineRunning"),
             num("driverTargetC"), num("passengerTargetC"),
             level("fanDriver"), level("fanPassenger"), level("fanRear"),
             bool("autoDriver"), bool("autoPassenger"), bool("autoRearLeft"), bool("autoRearRight"),
@@ -343,7 +357,10 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
     Snapshot(
         Instant.parse(root.getString("serverReceivedAt")),
         root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},
-        root.optBoolean("awake",false), number("insideTemperatureC"), number("outsideTemperatureC"),
+        root.optBoolean("awake",false), number("insideTemperatureC"),
+        t.optString("insideTemperatureSampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},
+        t.optString("insideTemperatureSource").takeIf{it.isNotBlank()&&it!="null"},
+        number("outsideTemperatureC"),
         number("batteryChargePercent"), number("batteryVoltage"), number("speedKmh"), tyre, climate
     )
 }
@@ -372,6 +389,12 @@ private suspend fun sendCommand(endpoint:String, token:String, carId:String, com
 }
 private fun value(v:Double?,digits:Int)=v?.let{String.format("%.${digits}f",it)}?:"--"
 private fun temp(v:Double?)=value(v,1)
+private fun climateMode(c:ClimateState?):String = when {
+    c?.preconditioning == true -> "PRECONDITIONING · ${c.preconditioningMode?.uppercase() ?: "ACTIVE"}"
+    c?.engineRunning == true -> "ENGINE RUNNING · CABIN CLIMATE"
+    c?.operatingMode == "parked" -> "PARKED · AUXILIARY CLIMATE READY"
+    else -> "BMW IHKA STATE"
+}
 private fun batteryColor(v:Double?)=when{v==null->Color(0xFF718895);v<35->Red;v<55->Amber;else->Green}
 private fun voltageColor(v:Double?)=when{v==null->Color(0xFF718895);v<11.8->Red;v<12.2->Amber;else->Green}
 private fun ageText(s:Long)=when{ s<60->"${s}s";s<3600->"${s/60}m";s<86400->"${s/3600}h";else->"${s/86400}d" }

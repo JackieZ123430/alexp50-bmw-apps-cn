@@ -32,6 +32,8 @@ const state = {
     lastHttpStatus: null, error: null, configured: false, uplink: false,
     providers: {}, telemetry: retained.telemetry || {}, climate: retained.climate || {}, awake: true, phase: 'starting', signalUid: null,
     batteryVoltageSource: retained.batteryVoltageSource || null,
+    insideTemperatureSource: retained.insideTemperatureSource || null,
+    insideTemperatureSampledAt: retained.insideTemperatureSampledAt || null,
     outsideTemperatureSource: retained.outsideTemperatureSource || null,
     outsideTemperatureSampledAt: retained.outsideTemperatureSampledAt || null
 };
@@ -80,6 +82,29 @@ function blowerLevel(raw) {
     // O18 reports the nine manual blower stages as calibrated airflow values
     // 3, 6, ... 27 rather than returning the STUFE enum that was requested.
     return Math.max(1, Math.min(9, Math.round(value / 3)));
+}
+function targetTemperature(raw) {
+    return finite(raw) && raw >= 32 && raw <= 56 ? raw / 2 : undefined;
+}
+function enumState(raw, on, off) {
+    if (raw === on) return true;
+    if (raw === off) return false;
+    return undefined;
+}
+function setInsideDegrees(value, source) {
+    if (!finite(value) || value < -40 || value > 80) return;
+    const sampledAt = new Date().toISOString();
+    const degrees = Math.round(value * 10) / 10;
+    const changed = state.telemetry.insideTemperatureC !== degrees ||
+        state.telemetry.insideTemperatureSampledAt !== sampledAt ||
+        state.telemetry.insideTemperatureSource !== source;
+    state.telemetry.insideTemperatureC = degrees;
+    state.telemetry.insideTemperatureSampledAt = sampledAt;
+    state.telemetry.insideTemperatureSource = source;
+    state.insideTemperatureSource = source;
+    state.insideTemperatureSampledAt = sampledAt;
+    state.lastSampleAt = sampledAt;
+    if (changed) { writeStatus(); scheduleUpload(); }
 }
 function bytes(value) {
     if (!value) return [];
@@ -243,13 +268,12 @@ function watchClimate(someip) {
     catch (e) { state.providers[iface] = false; state.error = iface + ': no generated interface configuration'; writeStatus(); return Promise.resolve(null); }
     return nativeTick(() => someip.buildProxy(cfg, '1').then((proxy) => proxy.init().then(() => proxy))).then((proxy) => {
         proxies.push(proxy); climateProxy = proxy; state.providers[iface] = false;
-        // O18 Climate2 reports the cabin sensor on an offset scale: 60 means
-        // 10 C. This matches the authoritative IHKA D8D7 diagnostic value.
+        // The firmware catalog declares this member only as an unscaled UInt8.
+        // Do not guess a conversion here. IHKA D8D7 below is the documented,
+        // signed undamped cabin sensor and is the only numeric cabin source.
         const receive = (value) => {
             const raw = value && value.temperatureInside;
-            if (!finite(raw) || raw === 255) return;
-            const degrees = raw - 50;
-            if (degrees >= -40 && degrees <= 80) setTelemetry('insideTemperatureC', Math.round(degrees * 10) / 10);
+            if (finite(raw) && raw !== 255) state.climate.temperatureInsideRaw = raw;
         };
         const remember = (name) => (value) => {
             if (!state.climate) state.climate = {};
@@ -257,8 +281,8 @@ function watchClimate(someip) {
             state.climate.sampledAt = new Date().toISOString();
             writeStatus();
             if (name === 'frontFunctions' && value) updateClimate({
-                on:value.statusAC === 'KLIMAANLAGE_EIN',
-                frontDefrost:value.statusDefrost === 'DEFROST_EIN',
+                on:enumState(value.statusAC, 'KLIMAANLAGE_EIN', 'KLIMAANLAGE_AUS'),
+                frontDefrost:enumState(value.statusDefrost, 'DEFROST_EIN', 'DEFROST_AUS'),
                 recirculation:{
                     AUC_AUSSCHALTEN__S__UMLUFT_S_AUC_AUS:'fresh',
                     AUC_EINSCHALTEN__S__AUC_EIN:'auto',
@@ -266,14 +290,36 @@ function watchClimate(someip) {
                 }[value.statusAUCFront]
             });
             if (name === 'driver' && value) updateClimate({
-                driverTargetC:finite(value.temperatureTargetDRIHKA) ? value.temperatureTargetDRIHKA / 2 : undefined,
+                driverTargetC:targetTemperature(value.temperatureTargetDRIHKA),
                 fanDriver:blowerLevel(value.statusBlowerSettingDR),
-                autoDriver:value.statusBlowerAutomaticDR === 'GEBLAESEAUTOMATIK_EIN'
+                autoDriver:enumState(value.statusBlowerAutomaticDR, 'GEBLAESEAUTOMATIK_EIN', 'GEBLAESEAUTOMATIK_AUS')
             });
             if (name === 'passenger' && value) updateClimate({
-                passengerTargetC:finite(value.temperatureTargetPSIHKA) ? value.temperatureTargetPSIHKA / 2 : undefined,
+                passengerTargetC:targetTemperature(value.temperatureTargetPSIHKA),
                 fanPassenger:blowerLevel(value.statusBlowerSettingPS),
-                autoPassenger:value.statusBlowerAutomaticPS === 'GEBLAESEAUTOMATIK_EIN'
+                autoPassenger:enumState(value.statusBlowerAutomaticPS, 'GEBLAESEAUTOMATIK_EIN', 'GEBLAESEAUTOMATIK_AUS')
+            });
+            if (name === 'park' && value) {
+                const heating = value.statusParkHeater === 'STANDHEIZUNG_EIN';
+                const ventilation = value.statusIndependentVentilate === 'STANDLUEFTEN_EIN';
+                const airConditioning = value.statusParkAirConditioning === 'STANDKLIMATISIERUNG_EIN';
+                const auto = value.statusParkFunctionAutoMode === 'AUTO_MINUS_MODUS_EIN';
+                const active = heating || ventilation || airConditioning || auto || value.statusBlower === 'GEBLAESE_EIN';
+                const known = [
+                    value.statusParkHeater, value.statusIndependentVentilate,
+                    value.statusParkAirConditioning, value.statusParkFunctionAutoMode,
+                    value.statusBlower
+                ].some((item) => typeof item === 'string' && item !== 'SIGNAL_UNGUELTIG' && item.indexOf('NICHT_VERFUEGBAR') < 0);
+                if (!known) return;
+                updateClimate({
+                    preconditioning:active,
+                    preconditioningMode:heating ? 'heating' : ventilation ? 'ventilation' : airConditioning ? 'airConditioning' : auto ? 'auto' : 'off',
+                    operatingMode:active ? 'preconditioning' : (state.climate.engineRunning ? 'driving' : 'parked'),
+                    on:active ? true : (state.climate.engineRunning === false ? false : undefined)
+                });
+            }
+            if (name === 'preconditioning' && value) updateClimate({
+                preconditioningCompressorReleased:finite(value.releasePreconditioningParkAirConditioning) ? value.releasePreconditioningParkAirConditioning : undefined
             });
         };
         proxy.subscribeToAvailability((available) => {
@@ -284,6 +330,7 @@ function watchClimate(someip) {
                 proxy.getValue('statusAirConditionDRStatus', 3000).then(remember('driver')).catch(() => {});
                 proxy.getValue('statusAirConditionPSStatus', 3000).then(remember('passenger')).catch(() => {});
                 proxy.getValue('statusAirConditionParkFunctions', 3000).then(remember('park')).catch(() => {});
+                proxy.getValue('statusPreconditioningParkAirConditioning', 3000).then(remember('preconditioning')).catch(() => {});
             }
             writeStatus();
         });
@@ -292,7 +339,8 @@ function watchClimate(someip) {
             ['statusACFrontFunctions','frontFunctions'],
             ['statusAirConditionDRStatus','driver'],
             ['statusAirConditionPSStatus','passenger'],
-            ['statusAirConditionParkFunctions','park']
+            ['statusAirConditionParkFunctions','park'],
+            ['statusPreconditioningParkAirConditioning','preconditioning']
         ]) {
             try { proxy.subscribe({name:pair[0], onReceive:remember(pair[1])}).catch(() => {}); } catch (e) {}
         }
@@ -339,13 +387,13 @@ function watchSeatClimate(someip, openedProxy) {
         };
         const receiveAux = (field) => (value) => {
             if (!value) return;
-            if (field === 'statusACFront') updateClimate({sync:value.statusSync === 'SYNC_AN'});
+            if (field === 'statusACFront') updateClimate({sync:enumState(value.statusSync, 'SYNC_AN', 'SYNC_AUS')});
             if (field === 'statusACFond2') {
                 const rearAuto = value.statusModeAirConditioning2Tier === 'EIN';
                 updateClimate({
                     autoRearLeft:rearAuto, autoRearRight:rearAuto,
-                    rearLeftTargetC:finite(value.statusTemperatureTarget2TierDR) ? value.statusTemperatureTarget2TierDR / 2 : undefined,
-                    rearRightTargetC:finite(value.statusTemperatureTarget2TierPS) ? value.statusTemperatureTarget2TierPS / 2 : undefined,
+                    rearLeftTargetC:targetTemperature(value.statusTemperatureTarget2TierDR),
+                    rearRightTargetC:targetTemperature(value.statusTemperatureTarget2TierPS),
                     fanRear:blowerLevel(value.statusBlowerSettingAirConditioning2Tier)
                 });
             }
@@ -377,8 +425,10 @@ function parkClimateValue(on) {
         operationParkHeat:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
         operationIndependentVentilate:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
         operationExtraHeater:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
-        operationParkAirConditioning:on ? 'STANDKLIMATISIERUNG_EIN' : 'STANDKLIMATISIERUNG_AUS',
-        operationParkFunctionAutoMode:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
+        operationParkAirConditioning:'KEINE_AKTION__S__NICHT_VERFUEGBAR',
+        // Auto mode lets IHKA select Webasto heat or parked ventilation from
+        // ambient/cabin temperature instead of forcing the electric A/C path.
+        operationParkFunctionAutoMode:on ? 'AUTO_MINUS_MODUS_EIN' : 'AUTO_MINUS_MODUS_AUS',
         operationRemoteStart:'KEINE_AKTION_NICHT_VERFUEGBAR'
     };
 }
@@ -528,19 +578,27 @@ function seatDirectValue(command) {
 
 async function executeCommand(command) {
     const seatCommand = command.type === 'seat_heat' || command.type === 'seat_vent';
-    const legacyClimateCommand = seatCommand || command.type === 'set_sync' || command.type === 'set_recirculation' ||
+    const legacyClimateCommand = command.type === 'set_sync' || command.type === 'set_recirculation' ||
         (command.type === 'set_auto' && (command.zone === 'rearLeft' || command.zone === 'rearRight'));
-    if (legacyClimateCommand) {
+    if (seatCommand) {
+        if (!climateProxy || !state.providers['de.bmw.infotainment.climate.Climate2'] ||
+            !seatClimateProxy || !state.providers['de.bmw.infotainment.climate.Climate']) {
+            throw new Error('BMW seat-climate command or status provider is unavailable');
+        }
+    } else if (legacyClimateCommand) {
         if (!seatClimateProxy || !state.providers['de.bmw.infotainment.climate.Climate']) throw new Error('BMW seat-climate provider is unavailable');
     } else if (!climateProxy || !state.providers['de.bmw.infotainment.climate.Climate2']) throw new Error('BMW Climate2 provider is unavailable');
     if (command.type === 'set_recirculation' && (!climateProxy || !state.providers['de.bmw.infotainment.climate.Climate2'])) {
         throw new Error('BMW Climate2 status provider is unavailable');
     }
     let field, value, description, targetProxy = climateProxy;
-    if (command.type === 'climate_on' || command.type === 'climate_off' || command.type === 'defrost_on' || command.type === 'defrost_off' || command.type === 'set_temperature' || command.type === 'set_fan' || (command.type === 'set_auto' && (command.zone === 'driver' || command.zone === 'frontPassenger'))) {
+    if ((command.type === 'climate_on' || command.type === 'climate_off') &&
+        (state.climate.engineRunning === false || state.climate.preconditioning === true)) {
+        field = 'airConditionParkFunctions'; value = parkClimateValue(command.type === 'climate_on'); description = 'parked climate ' + (command.type === 'climate_on' ? 'on' : 'off');
+    } else if (command.type === 'climate_on' || command.type === 'climate_off' || command.type === 'defrost_on' || command.type === 'defrost_off' || command.type === 'set_temperature' || command.type === 'set_fan' || (command.type === 'set_auto' && (command.zone === 'driver' || command.zone === 'frontPassenger'))) {
         field = 'operationAirConditioningFront'; value = frontClimateValue(command); description = command.type.replace(/_/g, ' ');
     } else if (command.type === 'seat_heat' || command.type === 'seat_vent') {
-        field = 'operationStratificationSeatHeating'; value = seatDirectValue(command); targetProxy = seatClimateProxy;
+        field = 'operationStratificationSeatHeating'; value = seatClimateValue(command); targetProxy = climateProxy;
         description = command.type.replace(/_/g, ' ') + ' ' + command.seat + ' level ' + command.level;
     } else if (command.type === 'set_sync' || command.type === 'set_recirculation') {
         field = 'acSpecialFunction'; value = specialClimateValue(command); targetProxy = seatClimateProxy;
@@ -573,7 +631,7 @@ async function executeCommand(command) {
         }
         throw new Error('IHKA did not confirm rear-window heating ' + (wanted ? 'on' : 'off'));
     } else throw new Error('Unsupported command type');
-    if (command.type === 'set_fan' && state.climate.on !== true) {
+    if (command.type === 'set_fan' && state.climate.on !== true && state.climate.preconditioning !== true) {
         // O18 ignores a manual blower stage when it is bundled with the
         // transition from off to on. Start the front climate first, wait for
         // its authoritative status, then issue the manual stage below.
@@ -586,6 +644,14 @@ async function executeCommand(command) {
     }
     await nativeTick(() => targetProxy.setValue(field, value, 6000));
     if (command.type === 'climate_on' || command.type === 'climate_off') {
+        if (field === 'airConditionParkFunctions') {
+            const on = command.type === 'climate_on';
+            const wanted = on ? 'AUTO_MINUS_MODUS_EIN' : 'AUTO_MINUS_MODUS_AUS';
+            const confirmed = await waitClimate('statusAirConditionParkFunctions', (v) =>
+                v && v.statusParkFunctionAutoMode === wanted, 10000);
+            updateClimate({preconditioning:on, preconditioningMode:on ? 'auto' : 'off', operatingMode:on ? 'preconditioning' : 'parked', on});
+            return description + ' confirmed: ' + confirmed.statusParkFunctionAutoMode;
+        }
         const wanted = command.type === 'climate_on' ? 'KLIMAANLAGE_EIN' : 'KLIMAANLAGE_AUS';
         const confirmed = await waitClimate('statusACFrontFunctions', (v) => v && v.statusAC === wanted);
         return description + ' confirmed: ' + confirmed.statusAC;
@@ -652,7 +718,7 @@ async function executeCommand(command) {
             statusSeatClimateDR:'statusSeatClimateDR',statusSeatClimatePS:'statusSeatClimatePS',
             statusSeatClimateDRR:'statusSeatClimateDRR',statusSeatClimatePSR:'statusSeatClimatePSR'
         }[field];
-        const until = Date.now() + 8000;
+        const until = Date.now() + 12000;
         while (Date.now() < until) {
             try {
                 const current = await nativeTick(() => seatClimateProxy.getValue(field, 3000));
@@ -741,7 +807,7 @@ function watchBatteryVoltage(someip) {
                 const data = uds.slice(3);
                 if (did === 0xD8D7 && data.length >= 11) {
                     const raw = data[10];
-                    if (raw !== 0x80) setTelemetry('insideTemperatureC', raw > 127 ? raw - 256 : raw);
+                    if (raw !== 0x80) setInsideDegrees(raw > 127 ? raw - 256 : raw, 'IHKA D8D7 undamped cabin sensor');
                 } else if (did === 0xD8DB && data.length >= 28) {
                     updateClimate({
                         // Climate/Climate2 provide the authoritative live
@@ -871,7 +937,17 @@ async function main() {
         watch(someip, 'de.bmw.infrastructure.EnvironmentalInformation', 'unfilteredExteriorTemperature',
             (v) => setOutside(v, 'unfilteredExteriorTemperature', false)),
         watch(someip, 'de.bmw.infotainment.vehicle.CDS', 'statusBattery2',
-            (v) => setTelemetry('batteryChargePercent', finite(v && v.conditionBatteryChargingCondition) ? v.conditionBatteryChargingCondition : null)),
+            (v) => {
+                const value = v && v.conditionBatteryChargingCondition;
+                if (finite(value) && value >= 0 && value <= 100) setTelemetry('batteryChargePercent', value);
+            }),
+        watch(someip, 'de.bmw.infotainment.vehicle.CDS', 'statusEngineStatus', (v) => {
+            const running = enumState(v && v.statusEngineRunDrive, 'MOTOR_LAEUFT', 'MOTOR_AUS');
+            updateClimate({
+                engineRunning:running,
+                operatingMode:running === true ? 'driving' : state.climate.preconditioning ? 'preconditioning' : running === false ? 'parked' : undefined
+            });
+        }),
         watch(someip, 'de.bmw.infotainment.vehicle.Vehicle2', 'statusCarSpeed2',
             (v) => setTelemetry('speedKmh', speed(v && v.speedVehicleCentreOfGravity))),
         watch(someip, 'de.bmw.infotainment.vehicle.TPMS', 'statusTyrePressure', (v) => {

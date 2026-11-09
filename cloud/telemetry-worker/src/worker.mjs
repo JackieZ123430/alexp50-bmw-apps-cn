@@ -28,7 +28,9 @@ function validSnapshot(body) {
   if (!numberOrNull(t.insideTemperatureC) || !numberOrNull(t.outsideTemperatureC) ||
       !numberOrNull(t.batteryChargePercent) || !numberOrNull(t.batteryVoltage) || !numberOrNull(t.speedKmh)) return false;
   if (t.insideTemperatureC != null && (t.insideTemperatureC < -50 || t.insideTemperatureC > 100)) return false;
-  if (t.batteryChargePercent != null && (t.batteryChargePercent < 0 || t.batteryChargePercent > 150)) return false;
+  if (t.batteryChargePercent != null && (t.batteryChargePercent < 0 || t.batteryChargePercent > 100)) return false;
+  if (t.insideTemperatureSampledAt != null && Number.isNaN(Date.parse(t.insideTemperatureSampledAt))) return false;
+  if (t.insideTemperatureSource != null && typeof t.insideTemperatureSource !== "string") return false;
   if (t.batteryVoltage != null && (t.batteryVoltage < 6 || t.batteryVoltage > 18)) return false;
   if (body.climate != null && (typeof body.climate !== "object" || Array.isArray(body.climate))) return false;
   return true;

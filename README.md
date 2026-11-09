@@ -34,7 +34,7 @@ The release catalog includes the shared GPU renderer and controller gate. Waze H
 
 ## Parked BMW for Android
 
-`android/parked-bmw` is a separate Android dashboard for the `remote-telemetry-bridge` MGU tool. While the car is awake, it uploads cabin temperature, outside temperature, IBS-measured 12 V battery voltage, charge condition, speed, tyre pressures and authoritative IHKA climate state through the installed LTE uplink. Authenticated commands control climate, temperature, blower, defrost and four-seat heating/ventilation, then wait for BMW state confirmation. When the car sleeps, the phone shows the retained final snapshot and its age instead of labelling stale data as live.
+`android/parked-bmw` is a separate Android dashboard for the `remote-telemetry-bridge` MGU tool. While the car is awake, it uploads timestamped cabin temperature, outside temperature, IBS-measured 12 V battery voltage, charge condition, speed, tyre pressures and authoritative IHKA climate state through the installed LTE uplink. Authenticated commands control normal or parked climate, temperature, blower, defrost and four-seat heating/ventilation, then wait for BMW state confirmation. When the car sleeps, the phone shows the retained final snapshot and its age instead of labelling stale data as live. Webasto continues independently after the MGU shuts down; controlling it during full sleep requires an always-powered external gateway or BMW's OEM backend.
 
 The car has a write/execute relay token and the Android app has separate read and command tokens. The app does not collect vehicle location. The GitHub workflow publishes a signed installable APK release.
 

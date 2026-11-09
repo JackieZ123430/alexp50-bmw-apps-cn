@@ -15,6 +15,7 @@
         "statusAirConditionDRStatus": "rs",
         "statusAirConditionPSStatus": "rs",
         "statusAirConditionParkFunctions": "rs",
+        "statusPreconditioningParkAirConditioning": "rs",
         "statusTemperatureInside": "rs"
       },
       "instances": "1"
@@ -46,7 +47,7 @@
       "instances": "1"
     },
     "de.bmw.infotainment.vehicle.CDS": {
-      "attributes": {"statusBattery2": "rs"},
+      "attributes": {"statusBattery2": "rs", "statusEngineStatus": "rs"},
       "instances": "1"
     },
     "de.bmw.infotainment.vehicle.Vehicle2": {
