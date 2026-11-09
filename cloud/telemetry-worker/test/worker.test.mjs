@@ -10,7 +10,8 @@ const env = {TELEMETRY: new KV(), CAR_WRITE_TOKEN: "write-secret", APP_READ_TOKE
 const ctx = {waitUntil: (p) => p};
 const payload = {schema:1, sampledAt:new Date().toISOString(), awake:true,
   telemetry:{insideTemperatureC:21.5,outsideTemperatureC:7,batteryChargePercent:82,batteryVoltage:12.64,speedKmh:0,
-    tyrePressureBar:{frontLeft:2.5,frontRight:2.5,rearLeft:2.7,rearRight:2.7}}};
+    tyrePressureBar:{frontLeft:2.5,frontRight:2.5,rearLeft:2.7,rearRight:2.7}},
+  climate:{on:true,frontDefrost:false,rearDefrost:false,fanDriver:3,driverHeat:0}};
 
 const call = (path, init = {}) => worker.fetch(new Request(`https://example.test${path}`, init), env, ctx);
 let response = await call("/v1/cars/g12/telemetry", {
@@ -22,6 +23,7 @@ assert.equal(response.status, 200);
 const latest = await response.json();
 assert.equal(latest.telemetry.insideTemperatureC, 21.5);
 assert.equal(latest.telemetry.batteryVoltage, 12.64);
+assert.equal(latest.climate.fanDriver, 3);
 assert.equal(latest.carId, "g12");
 assert.equal((await call("/v1/cars/g12/telemetry")).status, 401);
 
@@ -31,6 +33,7 @@ const queued = await response.json();
 assert.equal(queued.status, "queued");
 assert.equal(queued.level, 3);
 assert.equal((await call("/v1/cars/g12/commands", {method:"POST", headers:{authorization:"Bearer command-secret", "content-type":"application/json"}, body:JSON.stringify({type:"seat_heat", seat:"roof", level:9})})).status, 422);
+assert.equal((await call("/v1/cars/g12/commands", {method:"POST", headers:{authorization:"Bearer command-secret", "content-type":"application/json"}, body:JSON.stringify({type:"rear_defrost_on"})})).status, 409);
 response = await call("/v1/cars/g12/commands", {headers:{authorization:"Bearer write-secret"}});
 assert.equal(response.status, 200);
 const delivered = await response.json();

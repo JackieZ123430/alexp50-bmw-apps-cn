@@ -30,11 +30,15 @@ function validSnapshot(body) {
   if (t.insideTemperatureC != null && (t.insideTemperatureC < -50 || t.insideTemperatureC > 100)) return false;
   if (t.batteryChargePercent != null && (t.batteryChargePercent < 0 || t.batteryChargePercent > 150)) return false;
   if (t.batteryVoltage != null && (t.batteryVoltage < 6 || t.batteryVoltage > 18)) return false;
+  if (body.climate != null && (typeof body.climate !== "object" || Array.isArray(body.climate))) return false;
   return true;
 }
 
 const seats = new Set(["driver", "frontPassenger", "rearLeft", "rearRight"]);
-const simpleCommands = new Set(["climate_on", "climate_off", "defrost_on", "defrost_off"]);
+const simpleCommands = new Set([
+  "climate_on", "climate_off", "defrost_on", "defrost_off",
+  "rear_defrost_on", "rear_defrost_off"
+]);
 function normalizeCommand(body) {
   if (!body || typeof body !== "object" || Array.isArray(body) || typeof body.type !== "string") return null;
   const type = body.type;

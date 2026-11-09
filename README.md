@@ -34,9 +34,9 @@ The release catalog includes the shared GPU renderer and controller gate. Waze H
 
 ## Parked BMW for Android
 
-`android/parked-bmw` is a separate Android dashboard for the read-only `remote-telemetry-bridge` MGU tool. While the car is awake, it uploads cabin temperature, outside temperature, IBS-measured 12 V battery voltage, charge condition, speed and tyre pressures through the installed LTE uplink. When the car sleeps, the phone shows the retained final snapshot and its age instead of labelling stale data as live.
+`android/parked-bmw` is a separate Android dashboard for the `remote-telemetry-bridge` MGU tool. While the car is awake, it uploads cabin temperature, outside temperature, IBS-measured 12 V battery voltage, charge condition, speed, tyre pressures and authoritative IHKA climate state through the installed LTE uplink. Authenticated commands control climate, temperature, blower, defrost and four-seat heating/ventilation, then wait for BMW state confirmation. When the car sleeps, the phone shows the retained final snapshot and its age instead of labelling stale data as live.
 
-The car has a write-only relay token and the Android app has a separate read-only token. Version 0.1 does not collect vehicle location. The GitHub workflow publishes an installable APK in the `parked-bmw-android@0.1.0` release.
+The car has a write/execute relay token and the Android app has separate read and command tokens. The app does not collect vehicle location. The GitHub workflow publishes a signed installable APK release.
 
 All app dashboards request the full iDrive canvas and use the 60 fps GPU renderer. Unsupported or stale readings are left blank rather than invented.
 

@@ -20,6 +20,6 @@
 ## Required tools
 * **Night Vision cluster helper** `0.2.1` — Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster
 * **Hotspot Studio helper** `0.1.2` — Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway
-* **Remote telemetry bridge** `0.2.4` — Publishes parked-car telemetry and executes short-lived authenticated climate commands through mgu-uplink
+* **Remote telemetry bridge** `0.2.6` — Publishes parked-car telemetry and executes short-lived authenticated climate commands through mgu-uplink
 * **Vehicle network observer** `0.1.2` — Creates the passive network inventory consumed by the Vehicle Network app
 * **Waze HUD controller** `0.3.0` — Applies and persists the Waze HUD geometry selected in the Waze HUD app

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -33,15 +34,24 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 data class Tyres(val fl: Double?, val fr: Double?, val rl: Double?, val rr: Double?)
+data class ClimateState(
+    val on: Boolean?, val frontDefrost: Boolean?, val rearDefrost: Boolean?,
+    val driverTarget: Double?, val passengerTarget: Double?,
+    val fanDriver: Int?, val fanPassenger: Int?, val fanRear: Int?,
+    val driverHeat: Int?, val passengerHeat: Int?, val rearLeftHeat: Int?, val rearRightHeat: Int?,
+    val driverVent: Int?, val passengerVent: Int?, val rearLeftVent: Int?, val rearRightVent: Int?
+)
 data class Snapshot(
     val received: Instant, val sampled: Instant?, val awake: Boolean,
-    val inside: Double?, val outside: Double?, val battery: Double?, val voltage: Double?, val speed: Double?, val tyres: Tyres?
+    val inside: Double?, val outside: Double?, val battery: Double?, val voltage: Double?, val speed: Double?,
+    val tyres: Tyres?, val climate: ClimateState?
 )
 data class CommandResult(val id: String, val status: String, val result: String?)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
         setContent { ParkedBmwApp(this) }
     }
 }
@@ -76,7 +86,7 @@ fun ParkedBmwApp(context: Context) {
             try { snapshot = fetchSnapshot(endpoint, token, carId); error = null }
             catch (e: Exception) { error = e.message ?: "Connection failed" }
             refreshing = false
-            delay(30_000)
+            delay(5_000)
         } while (true)
     }
 
@@ -86,7 +96,7 @@ fun ParkedBmwApp(context: Context) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("PARKED BMW", color=Color.White, fontSize=28.sp, fontWeight=FontWeight.Black)
-                        Text("Remote telemetry · read only", color=Cyan, fontSize=13.sp)
+                        Text("Remote telemetry and climate control", color=Cyan, fontSize=13.sp)
                     }
                     TextButton(onClick={ editing = !editing }) { Text(if (editing) "CLOSE" else "SETUP") }
                 }
@@ -106,7 +116,7 @@ fun ParkedBmwApp(context: Context) {
                     MetricCard("VEHICLE SPEED", value(snapshot?.speed,1), "km/h", Cyan, Modifier.weight(1f))
                 }
                 TyreCard(snapshot?.tyres)
-                ClimateControls(enabled=isLive(snapshot) && commandToken.isNotBlank(), state=commandState) { command ->
+                ClimateControls(enabled=isLive(snapshot) && commandToken.isNotBlank(), state=commandState, climate=snapshot?.climate) { command ->
                     scope.launch {
                         commandState = "Sending…"
                         try {
@@ -115,6 +125,10 @@ fun ParkedBmwApp(context: Context) {
                                 "accepted" -> result.result ?: "Accepted by the car"
                                 "rejected", "error", "expired" -> result.result ?: result.status
                                 else -> "Queued for the car"
+                            }
+                            if (result.status == "accepted") {
+                                delay(1_200)
+                                refreshKey++
                             }
                         } catch (e: Exception) { commandState = e.message ?: "Command failed" }
                     }
@@ -140,9 +154,11 @@ fun ParkedBmwApp(context: Context) {
 
 private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.between(s.received, Instant.now()).seconds in 0..89
 
-@Composable private fun ClimateControls(enabled:Boolean, state:String, send:(JSONObject)->Unit) {
-    var temperature by remember { mutableDoubleStateOf(21.0) }
-    var fan by remember { mutableIntStateOf(3) }
+@Composable private fun ClimateControls(enabled:Boolean, state:String, climate:ClimateState?, send:(JSONObject)->Unit) {
+    var temperature by remember { mutableDoubleStateOf(climate?.driverTarget ?: 21.0) }
+    var fan by remember { mutableIntStateOf(climate?.fanDriver ?: 3) }
+    LaunchedEffect(climate?.driverTarget) { climate?.driverTarget?.let { temperature = it } }
+    LaunchedEffect(climate?.fanDriver) { climate?.fanDriver?.let { fan = it.coerceIn(1, 9) } }
     Card(colors=CardDefaults.cardColors(containerColor=Panel),shape=RoundedCornerShape(18.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically) {
@@ -150,12 +166,16 @@ private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.bet
                 Text(if(enabled) "CAR ONLINE" else "OFFLINE", color=if(enabled) Green else Amber, fontSize=11.sp, fontWeight=FontWeight.Bold)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Button(onClick={send(JSONObject().put("type","climate_on"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("CLIMATE ON")}
-                OutlinedButton(onClick={send(JSONObject().put("type","climate_off"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("OFF")}
+                StateButton("CLIMATE ON", climate?.on == true, enabled, Modifier.weight(1f)) { send(JSONObject().put("type","climate_on")) }
+                StateButton("OFF", climate?.on == false, enabled, Modifier.weight(1f)) { send(JSONObject().put("type","climate_off")) }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Button(onClick={send(JSONObject().put("type","defrost_on"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("DEFROST")}
-                OutlinedButton(onClick={send(JSONObject().put("type","defrost_off"))}, enabled=enabled, modifier=Modifier.weight(1f)){Text("DEFROST OFF")}
+                StateButton("FRONT DEFROST", climate?.frontDefrost == true, enabled, Modifier.weight(1f)) {
+                    send(JSONObject().put("type", if (climate?.frontDefrost == true) "defrost_off" else "defrost_on"))
+                }
+                StateButton("REAR DEFROST", climate?.rearDefrost == true, enabled, Modifier.weight(1f)) {
+                    send(JSONObject().put("type", if (climate?.rearDefrost == true) "rear_defrost_off" else "rear_defrost_on"))
+                }
             }
             ControlStepper("TARGET", String.format("%.1f °C", temperature), enabled,
                 decrease={temperature=(temperature-0.5).coerceAtLeast(16.0)}, increase={temperature=(temperature+0.5).coerceAtMost(28.0)},
@@ -164,13 +184,18 @@ private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.bet
                 decrease={fan=(fan-1).coerceAtLeast(1)}, increase={fan=(fan+1).coerceAtMost(9)},
                 apply={send(JSONObject().put("type","set_fan").put("level",fan))})
             Text("SEATS", color=Color(0xFFAFC1CC), fontSize=12.sp, fontWeight=FontWeight.Bold)
-            SeatControl("Driver", "driver", enabled, send)
-            SeatControl("Front passenger", "frontPassenger", enabled, send)
-            SeatControl("Rear left", "rearLeft", enabled, send)
-            SeatControl("Rear right", "rearRight", enabled, send)
-            Text("Commands expire after two minutes. The app shows the car's actual acceptance result.", color=Color(0xFF7E96A5), fontSize=11.sp)
+            SeatControl("Driver", "driver", climate?.driverHeat, climate?.driverVent, enabled, send)
+            SeatControl("Front passenger", "frontPassenger", climate?.passengerHeat, climate?.passengerVent, enabled, send)
+            SeatControl("Rear left", "rearLeft", climate?.rearLeftHeat, climate?.rearLeftVent, enabled, send)
+            SeatControl("Rear right", "rearRight", climate?.rearRightHeat, climate?.rearRightVent, enabled, send)
+            Text("Selected controls are confirmed states reported by BMW IHKA. Physical changes in the car sync back automatically.", color=Color(0xFF7E96A5), fontSize=11.sp)
         }
     }
+}
+
+@Composable private fun StateButton(text:String, selected:Boolean, enabled:Boolean, modifier:Modifier=Modifier, click:()->Unit) {
+    if (selected) Button(click, enabled=enabled, modifier=modifier) { Text(text) }
+    else OutlinedButton(click, enabled=enabled, modifier=modifier) { Text(text) }
 }
 
 @Composable private fun ControlStepper(label:String, value:String, enabled:Boolean, decrease:()->Unit, increase:()->Unit, apply:()->Unit) {
@@ -182,22 +207,25 @@ private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.bet
     }
 }
 
-@Composable private fun SeatControl(label:String, seat:String, enabled:Boolean, send:(JSONObject)->Unit) {
+@Composable private fun SeatControl(label:String, seat:String, heat:Int?, vent:Int?, enabled:Boolean, send:(JSONObject)->Unit) {
     Column(Modifier.fillMaxWidth(), verticalArrangement=Arrangement.spacedBy(5.dp)) {
         Text(label, color=Color.White, fontWeight=FontWeight.SemiBold, fontSize=13.sp)
         Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(5.dp)) {
             Text("HEAT", color=Red, fontSize=10.sp, modifier=Modifier.width(36.dp).align(Alignment.CenterVertically))
-            (0..3).forEach { level -> SmallLevelButton(if(level==0) "OFF" else "$level", enabled) { send(JSONObject().put("type","seat_heat").put("seat",seat).put("level",level)) } }
+            (0..3).forEach { level -> SmallLevelButton(if(level==0) "OFF" else "$level", heat==level, enabled) { send(JSONObject().put("type","seat_heat").put("seat",seat).put("level",level)) } }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(5.dp)) {
             Text("VENT", color=Blue, fontSize=10.sp, modifier=Modifier.width(36.dp).align(Alignment.CenterVertically))
-            (0..3).forEach { level -> SmallLevelButton(if(level==0) "OFF" else "$level", enabled) { send(JSONObject().put("type","seat_vent").put("seat",seat).put("level",level)) } }
+            (0..3).forEach { level -> SmallLevelButton(if(level==0) "OFF" else "$level", vent==level, enabled) { send(JSONObject().put("type","seat_vent").put("seat",seat).put("level",level)) } }
         }
     }
 }
 
-@Composable private fun SmallLevelButton(text:String, enabled:Boolean, click:()->Unit) {
-    OutlinedButton(click, enabled=enabled, modifier=Modifier.height(34.dp), contentPadding=PaddingValues(horizontal=12.dp, vertical=0.dp)){Text(text, fontSize=11.sp)}
+@Composable private fun SmallLevelButton(text:String, selected:Boolean, enabled:Boolean, click:()->Unit) {
+    val modifier=Modifier.height(34.dp)
+    val padding=PaddingValues(horizontal=12.dp, vertical=0.dp)
+    if(selected) Button(click, enabled=enabled, modifier=modifier, contentPadding=padding){Text(text, fontSize=11.sp)}
+    else OutlinedButton(click, enabled=enabled, modifier=modifier, contentPadding=padding){Text(text, fontSize=11.sp)}
 }
 
 @Composable private fun FreshnessCard(s:Snapshot?, error:String?, loading:Boolean, refresh:()->Unit) {
@@ -263,7 +291,24 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
             tyreNumber("rearLeft"), tyreNumber("rearRight")
         )
     } else null
-    Snapshot(Instant.parse(root.getString("serverReceivedAt")),root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},root.optBoolean("awake",false),number("insideTemperatureC"),number("outsideTemperatureC"),number("batteryChargePercent"),number("batteryVoltage"),number("speedKmh"),tyre)
+    val climate = root.optJSONObject("climate")?.let { c ->
+        fun bool(name:String):Boolean? = if(c.has(name) && !c.isNull(name)) c.getBoolean(name) else null
+        fun num(name:String):Double? = if(c.has(name) && !c.isNull(name)) c.getDouble(name) else null
+        fun level(name:String):Int? = num(name)?.toInt()
+        ClimateState(
+            bool("on"), bool("frontDefrost"), bool("rearDefrost"),
+            num("driverTargetC"), num("passengerTargetC"),
+            level("fanDriver"), level("fanPassenger"), level("fanRear"),
+            level("driverHeat"), level("passengerHeat"), level("rearLeftHeat"), level("rearRightHeat"),
+            level("driverVent"), level("passengerVent"), level("rearLeftVent"), level("rearRightVent")
+        )
+    }
+    Snapshot(
+        Instant.parse(root.getString("serverReceivedAt")),
+        root.optString("sampledAt").takeIf{it.isNotBlank()&&it!="null"}?.let{Instant.parse(it)},
+        root.optBoolean("awake",false), number("insideTemperatureC"), number("outsideTemperatureC"),
+        number("batteryChargePercent"), number("batteryVoltage"), number("speedKmh"), tyre, climate
+    )
 }
 
 private suspend fun sendCommand(endpoint:String, token:String, carId:String, command:JSONObject):CommandResult = withContext(Dispatchers.IO) {

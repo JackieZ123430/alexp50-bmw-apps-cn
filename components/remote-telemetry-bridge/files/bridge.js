@@ -20,14 +20,17 @@ const FALLBACK_UID = 65534;
 const SIGNAL_APP = 'vehicle_health';
 const OAP_UIDS = '/var/opt/public/oap/oap_12201/security/uids.txt';
 const UPLINK_UID_FILE = '/var/opt/mgu-uplink/uids.d/remote-telemetry-bridge';
-const INTERVAL_MS = 30000;
+// A five-minute heartbeat stays within Cloudflare KV's free write quota.
+// State changes are uploaded immediately through scheduleUpload().
+const INTERVAL_MS = 300000;
+const DIAGNOSTIC_INTERVAL_MS = 30000;
 const COMMAND_INTERVAL_MS = 5000;
 
 const retained = readJson(RETAINED, {});
 const state = {
     startedAt: new Date().toISOString(), lastSampleAt: retained.sampledAt || null, lastUploadAt: null,
     lastHttpStatus: null, error: null, configured: false, uplink: false,
-    providers: {}, telemetry: retained.telemetry || {}, awake: true, phase: 'starting', signalUid: null,
+    providers: {}, telemetry: retained.telemetry || {}, climate: retained.climate || {}, awake: true, phase: 'starting', signalUid: null,
     batteryVoltageSource: retained.batteryVoltageSource || null,
     outsideTemperatureSource: retained.outsideTemperatureSource || null,
     outsideTemperatureSampledAt: retained.outsideTemperatureSampledAt || null
@@ -37,6 +40,10 @@ const proxies = [];
 let runtimeConfig = {};
 let climateProxy = null;
 let commandBusy = false;
+let uploadTimer = null;
+let requestIhkaStatus = () => {};
+let diagnosticProxy = null;
+let ihkaStatusBusy = false;
 
 function readJson(file, fallback) {
     try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return fallback; }
@@ -54,7 +61,7 @@ function writeStatus() {
     if (finite(state.telemetry.outsideTemperatureC)) slow.outsideTemperatureC = state.telemetry.outsideTemperatureC;
     if (Object.keys(slow).length) {
         try { atomicJson(RETAINED, {
-            sampledAt: state.lastSampleAt, telemetry: slow,
+            sampledAt: state.lastSampleAt, telemetry: slow, climate: state.climate,
             batteryVoltageSource: state.batteryVoltageSource,
             outsideTemperatureSource: state.outsideTemperatureSource,
             outsideTemperatureSampledAt: state.outsideTemperatureSampledAt
@@ -75,9 +82,34 @@ function bytes(value) {
 
 function setTelemetry(name, value) {
     if (value === null || value === undefined) return;
+    if (JSON.stringify(state.telemetry[name]) === JSON.stringify(value)) return;
     state.telemetry[name] = value;
     state.lastSampleAt = new Date().toISOString();
     writeStatus();
+    scheduleUpload();
+}
+
+function scheduleUpload() {
+    if (uploadTimer || !runtimeConfig.endpoint) return;
+    uploadTimer = setTimeout(() => {
+        uploadTimer = null;
+        if (!stopping) upload(runtimeConfig).catch(() => {});
+    }, 800);
+}
+
+function updateClimate(patch) {
+    let changed = false;
+    for (const name of Object.keys(patch)) {
+        if (patch[name] !== undefined && state.climate[name] !== patch[name]) {
+            state.climate[name] = patch[name];
+            changed = true;
+        }
+    }
+    if (!changed) return;
+    state.climate.sampledAt = new Date().toISOString();
+    state.lastSampleAt = state.climate.sampledAt;
+    writeStatus();
+    scheduleUpload();
 }
 
 function setOutsideDegrees(degrees, source, preferred) {
@@ -202,12 +234,25 @@ function watchClimate(someip) {
     catch (e) { state.providers[iface] = false; state.error = iface + ': no generated interface configuration'; writeStatus(); return Promise.resolve(null); }
     return nativeTick(() => someip.buildProxy(cfg, '1').then((proxy) => proxy.init().then(() => proxy))).then((proxy) => {
         proxies.push(proxy); climateProxy = proxy; state.providers[iface] = false;
-        const receive = (value) => setTelemetry('insideTemperatureC', temp(value && value.temperatureInside));
+        // statusTemperatureInside uses an IHKA-internal encoding on this
+        // firmware. The authoritative cabin temperature comes from IHKA DID
+        // D8D7 below, so do not apply the exterior-temperature formula here.
+        const receive = () => {};
         const remember = (name) => (value) => {
             if (!state.climate) state.climate = {};
             state.climate[name] = value;
             state.climate.sampledAt = new Date().toISOString();
             writeStatus();
+            if (name === 'frontFunctions' && value) updateClimate({
+                on:value.statusAC === 'KLIMAANLAGE_EIN',
+                frontDefrost:value.statusDefrost === 'DEFROST_EIN'
+            });
+            if (name === 'driver' && value) updateClimate({
+                driverTargetC:finite(value.temperatureTargetDRIHKA) ? value.temperatureTargetDRIHKA / 2 : undefined
+            });
+            if (name === 'passenger' && value) updateClimate({
+                passengerTargetC:finite(value.temperatureTargetPSIHKA) ? value.temperatureTargetPSIHKA / 2 : undefined
+            });
         };
         proxy.subscribeToAvailability((available) => {
             state.providers[iface] = !!available;
@@ -311,6 +356,30 @@ async function executeCommand(command) {
         field = 'operationAirConditioningFront'; value = frontClimateValue(command); description = command.type.replace(/_/g, ' ');
     } else if (command.type === 'seat_heat' || command.type === 'seat_vent') {
         field = 'operationStratificationSeatHeating'; value = seatClimateValue(command); description = command.type.replace(/_/g, ' ') + ' ' + command.seat + ' level ' + command.level;
+    } else if (command.type === 'rear_defrost_on' || command.type === 'rear_defrost_off') {
+        if (!diagnosticProxy) throw new Error('BMW IHKA diagnostic provider is unavailable');
+        const wanted = command.type === 'rear_defrost_on';
+        requestIhkaStatus();
+        for (let i = 0; i < 12 && state.climate.rearDefrost === undefined; i++) await sleep(250);
+        if (state.climate.rearDefrost === wanted) return 'rear defrost already ' + (wanted ? 'on' : 'off');
+        // BMW IHKA routine A126 simulates the physical climate-panel button.
+        // Button 0x02 is HHS (Heckscheibenheizung / rear-window heating).
+        // Send a short press and release, then verify the authoritative D8DB
+        // function-status byte rather than assuming the toggle succeeded.
+        for (const pressed of [1, 0]) {
+            await nativeTick(() => diagnosticProxy.callMethod('sendTasuRequest', {
+                sourceAddress:0xF2, targetAddress:0x78, serviceID:0x31, subroutineID:0x01,
+                udsDataLength:4, udsData:Buffer.from([0xA1, 0x26, 0x02, pressed]), deadlockTime:0
+            }, 5000));
+            await sleep(pressed ? 250 : 100);
+        }
+        const until = Date.now() + 10000;
+        while (Date.now() < until) {
+            requestIhkaStatus();
+            if (state.climate.rearDefrost === wanted) return 'rear defrost confirmed ' + (wanted ? 'on' : 'off');
+            await sleep(400);
+        }
+        throw new Error('IHKA did not confirm rear-window heating ' + (wanted ? 'on' : 'off'));
     } else throw new Error('Unsupported command type');
     await nativeTick(() => climateProxy.setValue(field, value, 6000));
     if (command.type === 'climate_on' || command.type === 'climate_off') {
@@ -329,10 +398,30 @@ async function executeCommand(command) {
         return description + ' confirmed: ' + (confirmed.temperatureTargetDRIHKA / 2).toFixed(1) + ' C';
     }
     if (command.type === 'set_fan') {
-        const confirmed = await waitClimate('statusAirConditionDRStatus', (v) => v && Number(v.statusBlowerSettingDR) > 0);
-        return description + ' sent; blower readback ' + confirmed.statusBlowerSettingDR;
+        requestIhkaStatus();
+        const until = Date.now() + 7000;
+        while (Date.now() < until) {
+            if (Number(state.climate.fanDriver) === command.level) return description + ' confirmed: level ' + command.level;
+            await sleep(350);
+        }
+        throw new Error('IHKA did not confirm blower level ' + command.level);
     }
-    return description + ' sent to BMW Climate2; this firmware exposes no seat-state readback';
+    if (command.type === 'seat_heat' || command.type === 'seat_vent') {
+        requestIhkaStatus();
+        const key = {
+            driver:{seat_heat:'driverHeat',seat_vent:'driverVent'},
+            frontPassenger:{seat_heat:'passengerHeat',seat_vent:'passengerVent'},
+            rearLeft:{seat_heat:'rearLeftHeat',seat_vent:'rearLeftVent'},
+            rearRight:{seat_heat:'rearRightHeat',seat_vent:'rearRightVent'}
+        }[command.seat][command.type];
+        const until = Date.now() + 7000;
+        while (Date.now() < until) {
+            if (Number(state.climate[key]) === command.level) return description + ' confirmed';
+            await sleep(350);
+        }
+        throw new Error('IHKA did not confirm ' + description);
+    }
+    return description + ' confirmed';
 }
 
 function relayRequest(config, method, pathName, body) {
@@ -386,14 +475,38 @@ function watchBatteryVoltage(someip) {
     catch (e) { state.providers.batteryVoltage = false; state.error = 'battery voltage: no TASU configuration'; writeStatus(); return Promise.resolve(null); }
     return nativeTick(() => someip.buildProxy(cfg, 'SystemFunctionsInternalTasuInst1').then((proxy) => proxy.init().then(() => proxy))).then((proxy) => {
         proxies.push(proxy);
+        diagnosticProxy = proxy;
         let available = !!(proxy.isAvailable && proxy.isAvailable());
         state.providers.batteryVoltage = available;
         try { proxy.subscribeToAvailability((value) => { available = !!value; state.providers.batteryVoltage = available; writeStatus(); }); } catch (e) {}
         proxy.subscribe({name:'sendTasuResponse', onReceive:(value) => {
             const frame = bytes(value && (value.udsResponse !== undefined ? value.udsResponse : value));
-            if (frame.length < 13 || frame[6] !== 0x12) return;
+            if (frame.length < 13) return;
+            const targetAddress = frame[6];
             const uds = frame.slice(9);
             if (uds[0] !== 0x62) return;
+            if (targetAddress === 0x78) {
+                const did = (uds[1] << 8) | uds[2];
+                const data = uds.slice(3);
+                if (did === 0xD8D7 && data.length >= 11) {
+                    const raw = data[10];
+                    if (raw !== 0x80) setTelemetry('insideTemperatureC', raw > 127 ? raw - 256 : raw);
+                } else if (did === 0xD8DB && data.length >= 28) {
+                    const validLevel = (v) => v <= 9 ? v : null;
+                    updateClimate({
+                        on:data[15] === 0,
+                        rearDefrost:data[5] === 1 || data[5] === 2,
+                        frontDefrost:data[7] === 1,
+                        fanDriver:validLevel(data[16]), fanPassenger:validLevel(data[17]), fanRear:validLevel(data[27]),
+                        driverHeat:validLevel(data[19]), passengerHeat:validLevel(data[20]),
+                        driverVent:validLevel(data[21]), passengerVent:validLevel(data[22]),
+                        rearLeftHeat:validLevel(data[23]), rearRightHeat:validLevel(data[24]),
+                        rearLeftVent:validLevel(data[25]), rearRightVent:validLevel(data[26])
+                    });
+                }
+                return;
+            }
+            if (targetAddress !== 0x12) return;
             for (let i = 1; i + 1 < uds.length;) {
                 const did = (uds[i] << 8) | uds[i + 1]; i += 2;
                 if (did === 0x43C1 && i + 1 < uds.length) {
@@ -415,7 +528,26 @@ function watchBatteryVoltage(someip) {
                 udsDataLength:4, udsData:Buffer.from([0x43, 0xC1, 0x50, 0xA6]), deadlockTime:0
             }, 5000)).catch((e) => { state.error = 'battery voltage: ' + e.message; writeStatus(); });
         };
-        request(); setInterval(request, INTERVAL_MS);
+        requestIhkaStatus = async () => {
+            if (!available || ihkaStatusBusy) return;
+            ihkaStatusBusy = true;
+            try {
+                for (const did of [[0xD8, 0xD7], [0xD8, 0xDB]]) {
+                    await nativeTick(() => proxy.callMethod('sendTasuRequest', {
+                        sourceAddress:0xF2, targetAddress:0x78, serviceID:0x22, subroutineID:0,
+                        udsDataLength:2, udsData:Buffer.from(did), deadlockTime:0
+                    }, 5000));
+                    // TASU acknowledges the request before the ECU response is
+                    // broadcast. Avoid presenting the IHKA with two overlapping
+                    // ReadDataByIdentifier requests.
+                    await sleep(250);
+                }
+            } catch (e) {
+                state.error = 'IHKA status: ' + e.message; writeStatus();
+            } finally { ihkaStatusBusy = false; }
+        };
+        request(); setInterval(request, DIAGNOSTIC_INTERVAL_MS);
+        requestIhkaStatus(); setInterval(requestIhkaStatus, 5000);
         return proxy;
     }).catch((e) => { state.providers.batteryVoltage = false; state.error = 'battery voltage: ' + e.message; writeStatus(); return null; });
 }
@@ -431,7 +563,8 @@ function upload(config) {
         state.error = 'endpoint must use HTTPS'; writeStatus(); return Promise.resolve(false);
     }
     const payload = Buffer.from(JSON.stringify({
-        schema:1, sampledAt:state.lastSampleAt, awake:state.awake !== false, telemetry:state.telemetry
+        schema:1, sampledAt:state.lastSampleAt, awake:state.awake !== false,
+        telemetry:state.telemetry, climate:state.climate
     }));
     return new Promise((resolve) => {
         const req = https.request({
