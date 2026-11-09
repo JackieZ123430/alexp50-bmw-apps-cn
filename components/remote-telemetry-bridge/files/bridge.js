@@ -92,7 +92,7 @@ function setOutsideDegrees(degrees, source, preferred) {
 }
 
 function ensureSomeIp() {
-    const marker = path.join(SOMEIP_DIR, '.bridge-config-v5');
+    const marker = path.join(SOMEIP_DIR, '.bridge-config-v6');
     if (fs.existsSync(marker)) return;
     if (!fs.existsSync(SOMEIP_DIR)) fs.mkdirSync(SOMEIP_DIR);
     try {
@@ -106,8 +106,12 @@ function ensureSomeIp() {
 
 function configureDns() {
     const lease = readJson(LEASE, {});
-    const servers = Array.isArray(lease.dns) ? lease.dns.filter((x) => typeof x === 'string') : [];
-    if (servers.length) dns.setServers(servers);
+    const leaseServers = Array.isArray(lease.dns) ? lease.dns.filter((x) => typeof x === 'string' && x) : [];
+    // The Huawei router occasionally refuses a query while its LTE session is
+    // renegotiating. Public resolvers remain reachable through the same
+    // uid-routed mgu-uplink path and keep command polling alive in that window.
+    const servers = Array.from(new Set(['1.1.1.1', '8.8.8.8'].concat(leaseServers)));
+    dns.setServers(servers);
     state.uplink = !!lease.interface;
 }
 
@@ -199,12 +203,32 @@ function watchClimate(someip) {
     return nativeTick(() => someip.buildProxy(cfg, '1').then((proxy) => proxy.init().then(() => proxy))).then((proxy) => {
         proxies.push(proxy); climateProxy = proxy; state.providers[iface] = false;
         const receive = (value) => setTelemetry('insideTemperatureC', temp(value && value.temperatureInside));
+        const remember = (name) => (value) => {
+            if (!state.climate) state.climate = {};
+            state.climate[name] = value;
+            state.climate.sampledAt = new Date().toISOString();
+            writeStatus();
+        };
         proxy.subscribeToAvailability((available) => {
             state.providers[iface] = !!available;
-            if (available) proxy.getValue('statusTemperatureInside', 3000).then(receive).catch(() => {});
+            if (available) {
+                proxy.getValue('statusTemperatureInside', 3000).then(receive).catch(() => {});
+                proxy.getValue('statusACFrontFunctions', 3000).then(remember('frontFunctions')).catch(() => {});
+                proxy.getValue('statusAirConditionDRStatus', 3000).then(remember('driver')).catch(() => {});
+                proxy.getValue('statusAirConditionPSStatus', 3000).then(remember('passenger')).catch(() => {});
+                proxy.getValue('statusAirConditionParkFunctions', 3000).then(remember('park')).catch(() => {});
+            }
             writeStatus();
         });
         try { proxy.subscribe({name:'statusTemperatureInside', onReceive:receive}).catch(() => {}); } catch (e) {}
+        for (const pair of [
+            ['statusACFrontFunctions','frontFunctions'],
+            ['statusAirConditionDRStatus','driver'],
+            ['statusAirConditionPSStatus','passenger'],
+            ['statusAirConditionParkFunctions','park']
+        ]) {
+            try { proxy.subscribe({name:pair[0], onReceive:remember(pair[1])}).catch(() => {}); } catch (e) {}
+        }
         setInterval(() => { if (state.providers[iface]) proxy.getValue('statusTemperatureInside', 3000).then(receive).catch(() => {}); }, 15000);
         return proxy;
     }).catch((e) => { state.providers[iface] = false; state.error = iface + ': ' + e.message; writeStatus(); return null; });
@@ -222,16 +246,20 @@ function parkClimateValue(on) {
 }
 
 function frontClimateValue(command) {
-    const no = 'SIGNAL_UNBEFUELLT';
+    const no = 'KEINE_AUSWAHL';
     const value = {
         operationOnDR:no, operationOnPS:no, operationAircon:no,
         operationModeAirConditioningDR:no, operationModeAirConditioningPS:no,
         operationTemperatureTargetDR:255, operationTemperatureTargetPS:255,
-        operationIntensityDR:no, operationIntensityPS:no, requestAICPIA:no,
+        operationIntensityDR:no, operationIntensityPS:no, requestAICPIA:'KEINE_ANFORDERUNG',
         operationDefrost:no, operationMaximumAirCondition:no,
         operationManualBlowerLevelDR:no, operationManualBlowerLevelPS:no,
         operationAirdistributionProgramDR:no, operationAirdistributionProgramPS:no
     };
+    if (command.type === 'climate_on' || command.type === 'climate_off') {
+        value.operationOnDR = command.type === 'climate_on' ? 'EIN' : 'AUS';
+        value.operationOnPS = value.operationOnDR;
+    }
     if (command.type === 'defrost_on' || command.type === 'defrost_off') value.operationDefrost = command.type === 'defrost_on' ? 'EIN' : 'AUS';
     if (command.type === 'set_temperature') {
         value.operationTemperatureTargetDR = Math.round(command.celsius * 2);
@@ -242,6 +270,21 @@ function frontClimateValue(command) {
         value.operationManualBlowerLevelPS = 'STUFE_' + command.level;
     }
     return value;
+}
+
+function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+
+async function waitClimate(field, check, timeout) {
+    const until = Date.now() + (timeout || 5000);
+    let last = null;
+    while (Date.now() < until) {
+        try {
+            last = await nativeTick(() => climateProxy.getValue(field, 3000));
+            if (check(last)) return last;
+        } catch (e) {}
+        await sleep(350);
+    }
+    throw new Error('BMW Climate2 did not confirm the requested state' + (last ? ': ' + JSON.stringify(last) : ''));
 }
 
 function seatClimateValue(command) {
@@ -264,15 +307,32 @@ function seatClimateValue(command) {
 async function executeCommand(command) {
     if (!climateProxy || !state.providers['de.bmw.infotainment.climate.Climate2']) throw new Error('BMW Climate2 provider is unavailable');
     let field, value, description;
-    if (command.type === 'climate_on' || command.type === 'climate_off') {
-        field = 'airConditionParkFunctions'; value = parkClimateValue(command.type === 'climate_on'); description = command.type === 'climate_on' ? 'Parked climate on' : 'Parked climate off';
-    } else if (command.type === 'defrost_on' || command.type === 'defrost_off' || command.type === 'set_temperature' || command.type === 'set_fan') {
+    if (command.type === 'climate_on' || command.type === 'climate_off' || command.type === 'defrost_on' || command.type === 'defrost_off' || command.type === 'set_temperature' || command.type === 'set_fan') {
         field = 'operationAirConditioningFront'; value = frontClimateValue(command); description = command.type.replace(/_/g, ' ');
     } else if (command.type === 'seat_heat' || command.type === 'seat_vent') {
         field = 'operationStratificationSeatHeating'; value = seatClimateValue(command); description = command.type.replace(/_/g, ' ') + ' ' + command.seat + ' level ' + command.level;
     } else throw new Error('Unsupported command type');
     await nativeTick(() => climateProxy.setValue(field, value, 6000));
-    return description + ' accepted by BMW Climate2';
+    if (command.type === 'climate_on' || command.type === 'climate_off') {
+        const wanted = command.type === 'climate_on' ? 'KLIMAANLAGE_EIN' : 'KLIMAANLAGE_AUS';
+        const confirmed = await waitClimate('statusACFrontFunctions', (v) => v && v.statusAC === wanted);
+        return description + ' confirmed: ' + confirmed.statusAC;
+    }
+    if (command.type === 'defrost_on' || command.type === 'defrost_off') {
+        const wanted = command.type === 'defrost_on' ? 'DEFROST_EIN' : 'DEFROST_AUS';
+        const confirmed = await waitClimate('statusACFrontFunctions', (v) => v && v.statusDefrost === wanted);
+        return description + ' confirmed: ' + confirmed.statusDefrost;
+    }
+    if (command.type === 'set_temperature') {
+        const raw = Math.round(command.celsius * 2);
+        const confirmed = await waitClimate('statusAirConditionDRStatus', (v) => v && v.temperatureTargetDRIHKA === raw);
+        return description + ' confirmed: ' + (confirmed.temperatureTargetDRIHKA / 2).toFixed(1) + ' C';
+    }
+    if (command.type === 'set_fan') {
+        const confirmed = await waitClimate('statusAirConditionDRStatus', (v) => v && Number(v.statusBlowerSettingDR) > 0);
+        return description + ' sent; blower readback ' + confirmed.statusBlowerSettingDR;
+    }
+    return description + ' sent to BMW Climate2; this firmware exposes no seat-state readback';
 }
 
 function relayRequest(config, method, pathName, body) {
@@ -300,6 +360,8 @@ async function pollCommand(config) {
     try {
         configureDns();
         const response = await relayRequest(config, 'GET', '/commands', null);
+        state.commandError = null;
+        writeStatus();
         if (response.status === 204) return;
         if (response.status !== 200 || !response.body || !response.body.id) throw new Error('command relay HTTP ' + response.status);
         const command = response.body;

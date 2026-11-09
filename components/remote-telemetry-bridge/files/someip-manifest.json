@@ -10,6 +10,11 @@
         "airConditionParkFunctions": "w",
         "operationAirConditioningFront": "w",
         "operationStratificationSeatHeating": "w",
+        "statusACFront": "rs",
+        "statusACFrontFunctions": "rs",
+        "statusAirConditionDRStatus": "rs",
+        "statusAirConditionPSStatus": "rs",
+        "statusAirConditionParkFunctions": "rs",
         "statusTemperatureInside": "rs"
       },
       "instances": "1"
