@@ -43,18 +43,18 @@ jobs:
         run: gradle -p android/parked-bmw :app:assembleRelease --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: Parked-BMW-0.3.0
+          name: Parked-BMW-0.4.0
           path: android/parked-bmw/app/build/outputs/apk/release/app-release.apk
       - name: Publish installable APK
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp android/parked-bmw/app/build/outputs/apk/release/app-release.apk Parked-BMW-0.3.0.apk
-          if gh release view 'parked-bmw-android@0.3.0' >/dev/null 2>&1; then
-            gh release upload 'parked-bmw-android@0.3.0' Parked-BMW-0.3.0.apk --clobber
+          cp android/parked-bmw/app/build/outputs/apk/release/app-release.apk Parked-BMW-0.4.0.apk
+          if gh release view 'parked-bmw-android@0.4.0' >/dev/null 2>&1; then
+            gh release upload 'parked-bmw-android@0.4.0' Parked-BMW-0.4.0.apk --clobber
           else
-            gh release create 'parked-bmw-android@0.3.0' Parked-BMW-0.3.0.apk \
-              --title 'Parked BMW for Android 0.3.0' \
-              --notes 'Adds authoritative IHKA climate state, rear-window defrost, corrected cabin temperature, five-second two-way state sync, and system-bar-safe layout.' \
+            gh release create 'parked-bmw-android@0.4.0' Parked-BMW-0.4.0.apk \
+              --title 'Parked BMW for Android 0.4.0' \
+              --notes 'Adds confirmed four-zone AUTO controls, global SYNC, front-cabin fresh/AUC/recirculation control, and more reliable command acknowledgements.' \
               --latest=false
           fi

@@ -38,6 +38,8 @@ data class ClimateState(
     val on: Boolean?, val frontDefrost: Boolean?, val rearDefrost: Boolean?,
     val driverTarget: Double?, val passengerTarget: Double?,
     val fanDriver: Int?, val fanPassenger: Int?, val fanRear: Int?,
+    val autoDriver: Boolean?, val autoPassenger: Boolean?, val autoRearLeft: Boolean?, val autoRearRight: Boolean?,
+    val sync: Boolean?, val recirculation: String?,
     val driverHeat: Int?, val passengerHeat: Int?, val rearLeftHeat: Int?, val rearRightHeat: Int?,
     val driverVent: Int?, val passengerVent: Int?, val rearLeftVent: Int?, val rearRightVent: Int?
 )
@@ -177,6 +179,32 @@ private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.bet
                     send(JSONObject().put("type", if (climate?.rearDefrost == true) "rear_defrost_off" else "rear_defrost_on"))
                 }
             }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                StateButton("SYNC", climate?.sync == true, enabled, Modifier.weight(1f)) {
+                    send(JSONObject().put("type","set_sync").put("enabled", climate?.sync != true))
+                }
+            }
+            Text("AIR INTAKE · SHARED FRONT CABIN", color=Color(0xFFAFC1CC), fontSize=12.sp, fontWeight=FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                StateButton("FRESH", climate?.recirculation == "fresh", enabled, Modifier.weight(1f)) {
+                    send(JSONObject().put("type","set_recirculation").put("mode","fresh"))
+                }
+                StateButton("AUC", climate?.recirculation == "auto", enabled, Modifier.weight(1f)) {
+                    send(JSONObject().put("type","set_recirculation").put("mode","auto"))
+                }
+                StateButton("RECIRC", climate?.recirculation == "recirculate", enabled, Modifier.weight(1f)) {
+                    send(JSONObject().put("type","set_recirculation").put("mode","recirculate"))
+                }
+            }
+            Text("ZONE AUTO", color=Color(0xFFAFC1CC), fontSize=12.sp, fontWeight=FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                ZoneAutoButton("DRIVER", "driver", climate?.autoDriver, enabled, send, Modifier.weight(1f))
+                ZoneAutoButton("FRONT PASS", "frontPassenger", climate?.autoPassenger, enabled, send, Modifier.weight(1f))
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                ZoneAutoButton("REAR LEFT", "rearLeft", climate?.autoRearLeft, enabled, send, Modifier.weight(1f))
+                ZoneAutoButton("REAR RIGHT", "rearRight", climate?.autoRearRight, enabled, send, Modifier.weight(1f))
+            }
             ControlStepper("TARGET", String.format("%.1f °C", temperature), enabled,
                 decrease={temperature=(temperature-0.5).coerceAtLeast(16.0)}, increase={temperature=(temperature+0.5).coerceAtMost(28.0)},
                 apply={send(JSONObject().put("type","set_temperature").put("celsius",temperature))})
@@ -190,6 +218,12 @@ private fun isLive(s: Snapshot?): Boolean = s != null && s.awake && Duration.bet
             SeatControl("Rear right", "rearRight", climate?.rearRightHeat, climate?.rearRightVent, enabled, send)
             Text("Selected controls are confirmed states reported by BMW IHKA. Physical changes in the car sync back automatically.", color=Color(0xFF7E96A5), fontSize=11.sp)
         }
+    }
+}
+
+@Composable private fun ZoneAutoButton(text:String, zone:String, selected:Boolean?, enabled:Boolean, send:(JSONObject)->Unit, modifier:Modifier=Modifier) {
+    StateButton("$text AUTO", selected == true, enabled, modifier) {
+        send(JSONObject().put("type","set_auto").put("zone",zone).put("enabled",selected != true))
     }
 }
 
@@ -294,11 +328,14 @@ private suspend fun fetchSnapshot(endpoint:String, token:String, carId:String):S
     val climate = root.optJSONObject("climate")?.let { c ->
         fun bool(name:String):Boolean? = if(c.has(name) && !c.isNull(name)) c.getBoolean(name) else null
         fun num(name:String):Double? = if(c.has(name) && !c.isNull(name)) c.getDouble(name) else null
+        fun string(name:String):String? = if(c.has(name) && !c.isNull(name)) c.getString(name) else null
         fun level(name:String):Int? = num(name)?.toInt()
         ClimateState(
             bool("on"), bool("frontDefrost"), bool("rearDefrost"),
             num("driverTargetC"), num("passengerTargetC"),
             level("fanDriver"), level("fanPassenger"), level("fanRear"),
+            bool("autoDriver"), bool("autoPassenger"), bool("autoRearLeft"), bool("autoRearRight"),
+            bool("sync"), string("recirculation"),
             level("driverHeat"), level("passengerHeat"), level("rearLeftHeat"), level("rearRightHeat"),
             level("driverVent"), level("passengerVent"), level("rearLeftVent"), level("rearRightVent")
         )
@@ -326,7 +363,7 @@ private suspend fun sendCommand(endpoint:String, token:String, carId:String, com
     val (queuedCode, queuedText)=request(base,"POST",command.toString())
     if(queuedCode !in 200..299) throw IllegalStateException("Command relay HTTP $queuedCode")
     val queued=JSONObject(queuedText);val id=queued.getString("id")
-    repeat(8) {
+    repeat(24) {
         Thread.sleep(2500)
         val (code,text)=request("$base/$id","GET")
         if(code==200){val value=JSONObject(text);val status=value.optString("status","queued");if(status in setOf("accepted","rejected","error","expired")) return@withContext CommandResult(id,status,value.optString("result").takeIf{it.isNotBlank()})}

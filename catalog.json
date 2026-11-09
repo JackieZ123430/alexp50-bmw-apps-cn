@@ -272,17 +272,17 @@
     {
       "id": "vehicle_health",
       "kind": "app",
-      "version": "0.1.6",
+      "version": "0.1.9",
       "title": "Vehicle Health Center",
       "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "vehicle_health@0.1.6.tgz",
-        "size": 1096866,
-        "sha256": "eed9e187ecbf0d38407cf001b978c66c886f423d85f51d62bc1812c5423e2b39",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.6/vehicle_health@0.1.6.tgz"
+        "name": "vehicle_health@0.1.9.tgz",
+        "size": 1096954,
+        "sha256": "fb74d69a2dd90c7b99b7e9ec1b799ac9a47ae5142d7fc2d28fae05b7cccdf9a4",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.9/vehicle_health@0.1.9.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -413,23 +413,23 @@
     {
       "id": "remote-telemetry-bridge",
       "kind": "tool",
-      "version": "0.2.6",
+      "version": "0.2.16",
       "title": "Remote telemetry bridge",
       "description": "Publishes parked-car telemetry and executes short-lived authenticated climate commands through mgu-uplink",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "remote-telemetry-bridge@0.2.6.tgz",
-        "size": 11010,
-        "sha256": "19d6df49f3aba6fa94d7792c92e8e31c621e6c99d41b3cb7b5e32ca885416880",
-        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.2.6.tgz"
+        "name": "remote-telemetry-bridge@0.2.16.tgz",
+        "size": 13932,
+        "sha256": "dfe14754ceb72e0a8987c60d9fbb187c3305639944ecceced821bdc47c31c551",
+        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.2.16.tgz"
       },
       "uninstallable": true,
       "requires": {
         "mgu-deploy": "0.7.11",
         "mgu-uplink": "0.7.3",
-        "vehicle_health": "0.1.6"
+        "vehicle_health": "0.1.9"
       }
     },
     {

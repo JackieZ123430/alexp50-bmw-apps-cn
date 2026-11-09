@@ -19,6 +19,25 @@
       },
       "instances": "1"
     },
+    "de.bmw.infotainment.climate.Climate": {
+      "attributes": {
+        "acFond": "w",
+        "acSpecialFunction": "w",
+        "operationStratificationSeatHeating": "w",
+        "seatHeatingLamination": "w",
+        "statusSeatClimateDR": "rs",
+        "statusSeatClimateDRR": "rs",
+        "statusSeatClimatePS": "rs",
+        "statusSeatClimatePSR": "rs",
+        "statusSeatHeatingDR": "rs",
+        "statusSeatHeatingDRR": "rs",
+        "statusSeatHeatingPS": "rs",
+        "statusSeatHeatingPSR": "rs",
+        "statusACFond2": "rs",
+        "statusACFront": "rs"
+      },
+      "instances": "1"
+    },
     "de.bmw.infrastructure.EnvironmentalInformation": {
       "attributes": {
         "ExteriorTemperature": "s",

@@ -2,7 +2,7 @@
   "id": "vehicle_health",
   "title": "Vehicle Health Center",
   "description": "Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults",
-  "version": "0.1.6",
+  "version": "0.1.9",
   "vendor": "alexp50",
   "loggingId": "OAAB",
   "iconGlyph": "health",
@@ -32,6 +32,22 @@
       "statusAirConditionParkFunctions": "rs",
       "statusPreconditioningParkAirConditioning": "rs",
       "statusTemperatureInside": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate": {
+      "acFond": "w",
+      "acSpecialFunction": "w",
+      "operationStratificationSeatHeating": "w",
+      "seatHeatingLamination": "w",
+      "statusSeatClimateDR": "rs",
+      "statusSeatClimateDRR": "rs",
+      "statusSeatClimatePS": "rs",
+      "statusSeatClimatePSR": "rs",
+      "statusSeatHeatingDR": "rs",
+      "statusSeatHeatingDRR": "rs",
+      "statusSeatHeatingPS": "rs",
+      "statusSeatHeatingPSR": "rs",
+      "statusACFond2": "rs",
+      "statusACFront": "rs"
     },
     "de.bmw.infotainment.vehicle.Vehicle2": {
       "statusOilDipstick2": "rs",

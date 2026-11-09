@@ -12,7 +12,7 @@
 * **Road Trip Computer** `1.0.0` — Full-screen trip history with fuel use, fuel price, cost, range, outside temperature and GPS elevation
 * **Start/Stop Insight** `0.1.3` — Current and last ten observed Start/Stop inhibition states plus live electrical consumers
 * **Telemetry Studio** `0.1.2` — Full-screen live powertrain, thermal, tyre and xDrive telemetry
-* **Vehicle Health Center** `0.1.6` — Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults
+* **Vehicle Health Center** `0.1.9` — Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults
 * **Vehicle Network** `0.1.3` — Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup
 * **Waze HUD** `0.3.0` — Full-screen control for projecting the CarPlay navigation map into the head-up display
 * **xDrive Studio** `0.1.5` — Read-only xDrive torque distribution, transfer-case torque, wheel slip and chassis dynamics
@@ -20,6 +20,6 @@
 ## Required tools
 * **Night Vision cluster helper** `0.2.1` — Mirrors BMW's protected Night Vision or parking-camera surface into the instrument cluster
 * **Hotspot Studio helper** `0.1.2` — Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway
-* **Remote telemetry bridge** `0.2.6` — Publishes parked-car telemetry and executes short-lived authenticated climate commands through mgu-uplink
+* **Remote telemetry bridge** `0.2.16` — Publishes parked-car telemetry and executes short-lived authenticated climate commands through mgu-uplink
 * **Vehicle network observer** `0.1.2` — Creates the passive network inventory consumed by the Vehicle Network app
 * **Waze HUD controller** `0.3.0` — Applies and persists the Waze HUD geometry selected in the Waze HUD app

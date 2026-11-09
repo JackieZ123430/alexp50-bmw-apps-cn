@@ -35,6 +35,7 @@ function validSnapshot(body) {
 }
 
 const seats = new Set(["driver", "frontPassenger", "rearLeft", "rearRight"]);
+const recirculationModes = new Set(["fresh", "auto", "recirculate"]);
 const simpleCommands = new Set([
   "climate_on", "climate_off", "defrost_on", "defrost_off",
   "rear_defrost_on", "rear_defrost_off"
@@ -50,6 +51,9 @@ function normalizeCommand(body) {
     return {type, celsius: Math.round(body.celsius * 2) / 2};
   }
   if (type === "set_fan" && Number.isInteger(body.level) && body.level >= 1 && body.level <= 9) return {type, level: body.level};
+  if (type === "set_auto" && seats.has(body.zone) && typeof body.enabled === "boolean") return {type, zone: body.zone, enabled: body.enabled};
+  if (type === "set_sync" && typeof body.enabled === "boolean") return {type, enabled: body.enabled};
+  if (type === "set_recirculation" && recirculationModes.has(body.mode)) return {type, mode: body.mode};
   return null;
 }
 
@@ -110,6 +114,9 @@ export default {
       const now = new Date();
       const entry = {...command, id: crypto.randomUUID(), status: "queued", createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + 120000).toISOString()};
       const commands = expireCommands(await commandList(env, carId));
+      if (commands.some((one) => one.status === "queued" || one.status === "delivered")) {
+        return json({error: "another command is still pending"}, 409);
+      }
       commands.push(entry);
       await saveCommands(env, carId, commands);
       return json(entry, 202);
