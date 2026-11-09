@@ -118,7 +118,7 @@
       "requires": {
         "idrive7-renderd": "2.1.7",
         "mgu-inputgate": "1.0.0",
-        "hotspot-studio-helper": "0.1.5"
+        "hotspot-studio-helper": "0.1.7"
       },
       "author": "alexp50",
       "icon": "hotspot_studio.png",
@@ -370,17 +370,17 @@
     {
       "id": "hotspot-studio-helper",
       "kind": "tool",
-      "version": "0.1.5",
+      "version": "0.1.7",
       "title": "Hotspot Studio helper",
       "description": "Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "hotspot-studio-helper@0.1.5.tgz",
-        "size": 8806,
-        "sha256": "bac0446d4dd191c4232d283f47d29ab3755c0cbf8772fa3c33764f0a0e4acb71",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot-studio-helper@0.1.5/hotspot-studio-helper@0.1.5.tgz"
+        "name": "hotspot-studio-helper@0.1.7.tgz",
+        "size": 9437,
+        "sha256": "a2350a9d330008649f3cbe948f48d018be3a97f5cf179a5ab0305b1198ab135a",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot-studio-helper@0.1.7/hotspot-studio-helper@0.1.7.tgz"
       },
       "uninstallable": true,
       "requires": {

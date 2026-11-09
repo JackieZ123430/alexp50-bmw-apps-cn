@@ -79,8 +79,61 @@ def relay(left, right):
                 return
 
 
+def _skip_dns_name(packet, offset):
+    while offset < len(packet):
+        length = packet[offset]
+        if length & 0xC0 == 0xC0:
+            return offset + 2
+        offset += 1
+        if length == 0:
+            return offset
+        offset += length
+    raise OSError("truncated DNS name")
+
+
+def resolve_ipv4(host, timeout=4):
+    """Resolve through mgu-uplink's DNS because the stock resolver cannot use it."""
+    try:
+        socket.inet_aton(host)
+        return host
+    except OSError:
+        pass
+    labels = host.rstrip(".").encode("idna").split(b".")
+    if not labels or any(not label or len(label) > 63 for label in labels):
+        raise socket.gaierror("invalid host")
+    txid = os.urandom(2)
+    question = b"".join(bytes((len(label),)) + label for label in labels) + b"\0\0\1\0\1"
+    request = txid + b"\1\0\0\1\0\0\0\0\0\0" + question
+    servers = (state().get("uplink") or {}).get("dns") or ["192.168.8.1"]
+    last_error = None
+    for server in servers:
+        dns = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            dns.settimeout(timeout)
+            dns.sendto(request, (str(server), 53))
+            packet, _ = dns.recvfrom(4096)
+            if len(packet) < 12 or packet[:2] != txid or packet[3] & 0x0F:
+                raise OSError("invalid DNS response")
+            qdcount, ancount = struct.unpack("!HH", packet[4:8])
+            offset = 12
+            for _ in range(qdcount):
+                offset = _skip_dns_name(packet, offset) + 4
+            for _ in range(ancount):
+                offset = _skip_dns_name(packet, offset)
+                rtype, rclass, _, rdlength = struct.unpack("!HHIH", packet[offset:offset + 10])
+                offset += 10
+                if rtype == 1 and rclass == 1 and rdlength == 4:
+                    return socket.inet_ntoa(packet[offset:offset + 4])
+                offset += rdlength
+        except (OSError, struct.error) as exc:
+            last_error = exc
+        finally:
+            dns.close()
+    raise socket.gaierror(str(last_error or "DNS lookup failed"))
+
+
 def connect(host, port, timeout=12):
-    return socket.create_connection((host, int(port)), timeout=timeout)
+    return socket.create_connection((resolve_ipv4(host), int(port)), timeout=timeout)
 
 
 class ReusableThreadingTCPServer(socketserver.ThreadingTCPServer):
