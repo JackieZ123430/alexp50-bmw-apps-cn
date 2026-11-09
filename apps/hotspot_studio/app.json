@@ -1,8 +1,8 @@
 {
   "id": "hotspot_studio",
   "title": "Hotspot Studio",
-  "description": "Shares the Huawei LTE uplink through BMW's hotspot and opens a timed single-client ENET gateway on request",
-  "version": "0.1.2",
+  "description": "Provides Huawei Internet proxies on BMW's hotspot and opens a timed single-client ENET relay on request",
+  "version": "0.1.5",
   "vendor": "alexp50",
   "loggingId": "OAB7",
   "iconGlyph": "NET",
@@ -23,10 +23,22 @@
       "kind": "canvas",
       "title": "Hotspot Studio",
       "buttons": [
-        ["BTN_PAGE", "Next page"],
-        ["BTN_ACTION", "Primary action"],
-        ["BTN_CLIENT", "Next client"],
-        ["BTN_REFRESH", "Refresh"]
+        [
+          "BTN_PAGE",
+          "Next page"
+        ],
+        [
+          "BTN_ACTION",
+          "Primary action"
+        ],
+        [
+          "BTN_CLIENT",
+          "Next client"
+        ],
+        [
+          "BTN_REFRESH",
+          "Refresh"
+        ]
       ]
     }
   ],
@@ -36,7 +48,24 @@
       "label": "Coding Gateway timeout",
       "type": "choice",
       "default": "20",
-      "options": [["10", "10 minutes"], ["20", "20 minutes"], ["30", "30 minutes"], ["60", "60 minutes"]]
+      "options": [
+        [
+          "10",
+          "10 minutes"
+        ],
+        [
+          "20",
+          "20 minutes"
+        ],
+        [
+          "30",
+          "30 minutes"
+        ],
+        [
+          "60",
+          "60 minutes"
+        ]
+      ]
     },
     {
       "key": "layout",
@@ -44,7 +73,12 @@
       "type": "choice",
       "default": "full",
       "reset": 2,
-      "options": [["full", "Full screen"]]
+      "options": [
+        [
+          "full",
+          "Full screen"
+        ]
+      ]
     },
     {
       "key": "renderer",
@@ -52,7 +86,12 @@
       "type": "choice",
       "default": "auto",
       "reset": 2,
-      "options": [["auto", "GPU 60 fps"]]
+      "options": [
+        [
+          "auto",
+          "GPU 60 fps"
+        ]
+      ]
     }
   ],
   "config": {

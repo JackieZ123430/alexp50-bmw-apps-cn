@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""BMW hotspot internet sharing and an intentionally narrow ENET gateway.
+"""BMW hotspot userspace Internet proxy and guarded ENET gateway.
 
-The normal mode forwards BMW hotspot clients only to mgu-uplink. Coding mode
-temporarily permits one selected hotspot client to reach one ZGW address. It
-never bridges interfaces and never changes ECU coding.
+The O18 kernel has no NAT support, so Internet is provided by explicit HTTP and
+SOCKS5 proxies running as an mgu-uplink-authorized uid. Coding mode temporarily
+permits one selected hotspot client to use the TCP/6801 and UDP/6811 ENET relay.
+It never bridges interfaces and never changes ECU coding.
 """
 from __future__ import annotations
 
@@ -31,6 +32,9 @@ NFT_COMMENT = "hotspot-studio"
 RULE_PREF = 11850
 CODING_RULE_PREF = 11849
 DEFAULT_ZGW = "192.168.68.113"
+HTTP_PROXY_PORT = 3128
+SOCKS_PROXY_PORT = 1088
+ENET_PROXY_PORT = 6801
 
 
 def command(args, stdin=None, timeout=4):
@@ -273,9 +277,11 @@ class Gateway:
         self.coding = None
         self.error = ""
         self.last_reconcile = 0
-        self.original_forward = self.read_forward()
         self.snapshot = {}
         cleanup_network()
+        # Older Hotspot Studio releases enabled kernel forwarding before their
+        # unsupported NAT rules failed.  The userspace gateway needs neither.
+        self.set_forward("0")
 
     @staticmethod
     def read_forward():
@@ -295,7 +301,7 @@ class Gateway:
 
     def save_settings(self):
         atomic_json(SETTINGS_FILE, {"internetEnabled": self.internet_enabled,
-                                    "zgwAddress": self.zgw}, 0o600)
+                                    "zgwAddress": self.zgw}, 0o644)
 
     def discover(self):
         lease = read_json(UPLINK_LEASE, {})
@@ -331,37 +337,17 @@ class Gateway:
                     "ip", "saddr", self.zgw, "ip", "daddr", client, "ct", "state", "established,related"])
 
     def apply(self, d):
+        cleanup_network()
+        self.set_forward("0")
         if not self.internet_enabled:
-            cleanup_network()
-            self.set_forward(self.original_forward)
             return
         if not d["uplink"] or not d["lease"].get("ip"):
             raise RuntimeError("mgu-uplink is not online")
         if not d["hotspot"]:
             raise RuntimeError("BMW hotspot interface not found; turn the built-in hotspot on")
-        client = self.coding["client"] if self.coding else None
-        self.set_forward("1")
-        network = d["hotspot"]["network"]
-        dns = next(iter(d["lease"].get("dns") or []), None)
-        # The MGU's older nft cannot reliably create, delete and then redefine
-        # the same table in one atomic batch. Remove the previous generation
-        # first, then load one self-contained replacement ruleset.
-        command(["nft", "delete", "table", "ip", NFT_TABLE])
-        code, out = command(["nft", "-f", "-"], own_ruleset(
-            d["hotspot"]["name"], d["uplink"], network, d["vehicle"], self.zgw, client, dns))
+        code, out = command(["systemctl", "is-active", "--quiet", "hotspot-studio-proxy.service"])
         if code != 0:
-            raise RuntimeError(out or "Could not install hotspot firewall")
-        delete_policy_rules()
-        if client:
-            code, out = command(["ip", "rule", "add", "pref", str(CODING_RULE_PREF),
-                                 "from", client, "to", self.zgw, "table", "main"])
-            if code != 0:
-                raise RuntimeError(out or "Could not add the vehicle policy route")
-        code, out = command(["ip", "rule", "add", "pref", str(RULE_PREF),
-                             "from", network, "table", "110"])
-        if code != 0:
-            raise RuntimeError(out or "Could not add the uplink policy route")
-        self.inject_accepts(d, client)
+            raise RuntimeError("Hotspot userspace proxy is not running" + ((": " + out) if out else ""))
 
     def reconcile(self):
         now = time.time()
@@ -390,6 +376,10 @@ class Gateway:
                         "network": hotspot.get("network", ""), "clients": d["clients"]},
             "vehicle": {"interface": d["vehicle"], "zgw": self.zgw,
                         "source": d["vehicleSource"], "reachable": bool(d["vehicle"])},
+            "proxy": {"address": hotspot.get("address", ""),
+                      "httpPort": HTTP_PROXY_PORT, "socksPort": SOCKS_PROXY_PORT,
+                      "enetPort": ENET_PROXY_PORT,
+                      "transport": "userspace"},
             "coding": self.coding,
             "rulesActive": bool(self.internet_enabled and not self.error),
         }
@@ -430,7 +420,7 @@ class Gateway:
     def close(self):
         cleanup_network()
         try:
-            self.set_forward(self.original_forward)
+            self.set_forward("0")
         except Exception:
             pass
 

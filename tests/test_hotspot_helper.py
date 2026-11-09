@@ -9,6 +9,10 @@ PATH = ROOT / "components" / "hotspot-studio-helper" / "files" / "hotspot_studio
 SPEC = importlib.util.spec_from_file_location("hotspot_helper", PATH)
 helper = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(helper)
+PROXY_PATH = ROOT / "components" / "hotspot-studio-helper" / "files" / "hotspot_studio_proxy.py"
+PROXY_SPEC = importlib.util.spec_from_file_location("hotspot_proxy", PROXY_PATH)
+proxy = importlib.util.module_from_spec(PROXY_SPEC)
+PROXY_SPEC.loader.exec_module(proxy)
 
 
 class HotspotHelperTests(unittest.TestCase):
@@ -44,13 +48,12 @@ class HotspotHelperTests(unittest.TestCase):
         self.assertNotIn("192.168.68.113 accept", rules)
         self.assertIn('oifname != "vethuplink" drop', rules)
 
-    def test_replaces_old_nft_table_before_loading_new_rules(self):
+    def test_userspace_gateway_cleans_old_rules_and_requires_proxy(self):
         gateway = helper.Gateway.__new__(helper.Gateway)
         gateway.internet_enabled = True
         gateway.coding = None
         gateway.zgw = "192.168.68.113"
         gateway.set_forward = lambda value: None
-        gateway.inject_accepts = lambda discovered, client: None
         discovered = {
             "uplink": "vethuplink",
             "lease": {"ip": "192.168.8.100", "dns": ["192.168.8.1"]},
@@ -66,10 +69,27 @@ class HotspotHelperTests(unittest.TestCase):
         with mock.patch.object(helper, "command", side_effect=record):
             gateway.apply(discovered)
 
-        self.assertEqual(calls[0][0], ["nft", "delete", "table", "ip", "hotspot_studio"])
-        self.assertEqual(calls[1][0], ["nft", "-f", "-"])
-        self.assertTrue(calls[1][1].startswith("add table ip hotspot_studio\ntable ip hotspot_studio {"))
-        self.assertNotIn("delete table", calls[1][1])
+        flattened = [call[0] for call in calls]
+        self.assertIn(["nft", "delete", "table", "ip", "hotspot_studio"], flattened)
+        self.assertIn(["systemctl", "is-active", "--quiet", "hotspot-studio-proxy.service"], flattened)
+        self.assertNotIn(["nft", "-f", "-"], flattened)
+
+    def test_proxy_host_parser(self):
+        self.assertEqual(proxy.split_host("example.com:8443", 80), ("example.com", 8443))
+        self.assertEqual(proxy.split_host("example.com", 80), ("example.com", 80))
+        self.assertEqual(proxy.split_host("[2001:db8::1]:443", 80), ("2001:db8::1", 443))
+
+    def test_proxy_allows_only_hotspot_and_selected_coding_client(self):
+        snapshot = {
+            "internetEnabled": True,
+            "hotspot": {"network": "172.16.222.96/27"},
+            "coding": {"client": "172.16.222.100", "expiresAt": 99999999999},
+        }
+        with mock.patch.object(proxy, "state", return_value=snapshot):
+            self.assertTrue(proxy.peer_allowed("172.16.222.100"))
+            self.assertFalse(proxy.peer_allowed("192.168.68.10"))
+            self.assertTrue(proxy.peer_allowed("172.16.222.100", coding=True))
+            self.assertFalse(proxy.peer_allowed("172.16.222.101", coding=True))
 
 
 if __name__ == "__main__":

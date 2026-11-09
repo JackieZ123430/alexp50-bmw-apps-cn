@@ -32,6 +32,29 @@ The release catalog includes the shared GPU renderer and controller gate. Waze H
 | Waze HUD | `waze_hud` | Controls CarPlay map placement and perspective in the HUD. |
 | xDrive Studio | `xdrive_studio` | Read-only xDrive torque distribution, wheel slip and chassis dynamics. |
 
+## BMW hotspot Internet and ENET
+
+Hotspot Studio uses explicit userspace services because the O18 MGU kernel has
+no NAT support. After enabling Internet sharing in the app, hotspot clients can
+use the HTTP proxy at `172.16.222.97:3128` or SOCKS5 at
+`172.16.222.97:1088`. This leaves the Huawei uplink isolated from vehicle
+networks.
+
+For ISTA or E-Sys, park the car, select the laptop in Hotspot Studio and start a
+timed **Coding Gateway** session. On the laptop run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\tools\Use-BMW-Hotspot-Gateway.ps1"
+```
+
+The script verifies all three endpoints, configures Windows Internet access,
+and points ISTA/EDIABAS at the guarded ENET relay. It saves the previous
+settings first. Restore them with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\tools\Use-BMW-Hotspot-Gateway.ps1" -Mode Restore
+```
+
 ## Parked BMW for Android
 
 `android/parked-bmw` is a separate Android dashboard for the `remote-telemetry-bridge` MGU tool. While the car is awake, it uploads timestamped cabin temperature, outside temperature, IBS-measured 12 V battery voltage, charge condition, speed, tyre pressures and authoritative IHKA climate state through the installed LTE uplink. Authenticated commands control normal or parked climate, temperature, blower, defrost and four-seat heating/ventilation, then wait for BMW state confirmation. When the car sleeps, the phone shows the retained final snapshot and its age instead of labelling stale data as live. Webasto continues independently after the MGU shuts down; controlling it during full sleep requires an always-powered external gateway or BMW's OEM backend.

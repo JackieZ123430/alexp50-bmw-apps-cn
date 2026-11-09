@@ -102,23 +102,23 @@
     {
       "id": "hotspot_studio",
       "kind": "app",
-      "version": "0.1.2",
+      "version": "0.1.5",
       "title": "Hotspot Studio",
-      "description": "Shares the Huawei LTE uplink through BMW's hotspot and opens a timed single-client ENET gateway on request",
+      "description": "Provides Huawei Internet proxies on BMW's hotspot and opens a timed single-client ENET relay on request",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "hotspot_studio@0.1.2.tgz",
-        "size": 1115814,
-        "sha256": "56619bc9a671148b16562b05b30e6d52643f017e0428db3feb2820a07f2938a1",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot_studio@0.1.2/hotspot_studio@0.1.2.tgz"
+        "name": "hotspot_studio@0.1.5.tgz",
+        "size": 1112801,
+        "sha256": "3dd1a3d5626ab16dc4b0f7e612bf0ed23bc2825afd1f7adbbc08ad805e51a668",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot_studio@0.1.5/hotspot_studio@0.1.5.tgz"
       },
       "uninstallable": true,
       "requires": {
         "idrive7-renderd": "2.1.7",
         "mgu-inputgate": "1.0.0",
-        "hotspot-studio-helper": "0.1.2"
+        "hotspot-studio-helper": "0.1.5"
       },
       "author": "alexp50",
       "icon": "hotspot_studio.png",
@@ -370,17 +370,17 @@
     {
       "id": "hotspot-studio-helper",
       "kind": "tool",
-      "version": "0.1.2",
+      "version": "0.1.5",
       "title": "Hotspot Studio helper",
       "description": "Shares the MGU LTE uplink with BMW's hotspot and provides a guarded single-client ENET gateway",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "hotspot-studio-helper@0.1.2.tgz",
-        "size": 6522,
-        "sha256": "7d1074768456181e9b2a5ed0dbc95c15610afc6d97e667d5fd42a5fc07f43989",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot-studio-helper@0.1.2/hotspot-studio-helper@0.1.2.tgz"
+        "name": "hotspot-studio-helper@0.1.5.tgz",
+        "size": 8806,
+        "sha256": "bac0446d4dd191c4232d283f47d29ab3755c0cbf8772fa3c33764f0a0e4acb71",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot-studio-helper@0.1.5/hotspot-studio-helper@0.1.5.tgz"
       },
       "uninstallable": true,
       "requires": {

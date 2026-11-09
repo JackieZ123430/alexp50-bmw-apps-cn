@@ -77,16 +77,19 @@ mgu.run({ async start(ctx) {
     }
     function internetPage(cv, t) {
         const up = state && state.uplink || {}, hot = state && state.hotspot || {};
-        cv.text('BMW hotspot internet sharing', 34, 87, 34, t.text, { font:'bold' });
-        cv.text('Huawei LTE stays isolated from vehicle networks in normal Internet mode.', 34, 119, 20, t.dim);
+        cv.text('BMW hotspot Internet and ENET gateway', 34, 87, 34, t.text, { font:'bold' });
+        cv.text('Huawei Internet uses explicit proxies; Coding Gateway relays one client to ENET.', 34, 119, 20, t.dim);
         field(cv, t, 32, 143, 500, 'LTE uplink', up.state === 'online' ? 'ONLINE' : String(up.state || 'OFFLINE').toUpperCase(),
             up.state === 'online' ? C.green : C.amber, (up.interface || 'no interface') + '  •  ' + (up.address || 'no lease'));
         field(cv, t, 550, 143, 500, 'BMW hotspot', hot.interface ? 'READY' : 'NOT FOUND', hot.interface ? C.cyan : C.amber,
             (hot.interface || 'turn hotspot on') + '  •  ' + (hot.network || 'waiting for network'));
         field(cv, t, 1068, 143, 500, 'Sharing mode', mode().toUpperCase(), modeColor(), clients().length + ' connected client' + (clients().length === 1 ? '' : 's'));
-        button(cv, 32, 326, 752, 75, 'Start Internet sharing', () => request({action:'internet',enabled:true}, 'Internet sharing enabled'), C.green, mode() !== 'off');
+        button(cv, 32, 326, 752, 75, 'Start Internet gateway', () => request({action:'internet',enabled:true}, 'Internet gateway enabled'), C.green, mode() !== 'off');
         button(cv, 816, 326, 752, 75, 'Stop all sharing', () => request({action:'off'}, 'All sharing stopped'), C.red, mode() === 'off');
-        cv.text(state && state.error ? short(clean(state.error), 116) : 'Sharing is restored automatically after reboot once enabled.', 34, 453, 22,
+        const proxy = state && state.proxy || {};
+        const ready = 'HTTP ' + (proxy.address || hot.address || '--') + ':' + (proxy.httpPort || 3128) +
+            '  •  SOCKS5 :' + (proxy.socksPort || 1088);
+        cv.text(state && state.error ? short(clean(state.error), 116) : ready, 34, 453, 22,
             state && state.error ? C.red : t.dim, { font:state && state.error ? 'bold' : undefined });
     }
     function clientsPage(cv, t) {
@@ -115,14 +118,15 @@ mgu.run({ async start(ctx) {
         const peer = selectedClient(), coding = state && state.coding;
         const remaining = coding ? Math.max(0, Math.ceil((coding.expiresAt - Date.now() / 1000) / 60)) : 0;
         cv.text('Guarded Coding Gateway', 34, 87, 34, t.text, { font:'bold' });
-        cv.text('One hotspot client can reach only the ZGW. The session closes automatically.', 34, 119, 20, t.dim);
+        cv.text('One hotspot client receives ENET discovery and TCP/6801 relay. The session closes automatically.', 34, 119, 20, t.dim);
         G.panel(cv, t, 32, 143, 745, 260, 'Authorized client');
         cv.text(peer ? peer.ip : 'No client selected', 60, 224, 42, peer ? C.cyan : C.amber, { font:'bold' });
         cv.text(peer ? peer.mac : 'Connect the laptop to BMW hotspot', 60, 266, 22, t.dim);
         cv.text(guard.status, 60, 335, 24, guard.parked ? C.green : C.amber, { font:'bold' });
         G.panel(cv, t, 793, 143, 775, 260, 'Vehicle gateway');
-        cv.text(state && state.vehicle && state.vehicle.zgw || '--', 821, 224, 42, C.blue, { font:'bold' });
-        cv.text('ZGW via ' + (state && state.vehicle && state.vehicle.interface || '--'), 821, 266, 22, t.dim);
+        const proxy = state && state.proxy || {}, hot = state && state.hotspot || {};
+        cv.text(proxy.address || hot.address || '--', 821, 224, 42, C.blue, { font:'bold' });
+        cv.text('ISTA/E-Sys target  •  vehicle ZGW ' + (state && state.vehicle && state.vehicle.zgw || '--'), 821, 266, 22, t.dim);
         cv.text(coding ? 'ACTIVE  •  ' + remaining + ' min remaining' : 'CLOSED', 821, 335, 27, coding ? C.amber : C.green, { font:'bold' });
         if (coding) button(cv, 32, 426, 1536, 72, 'Close Coding Gateway now', () => request({action:'coding-off'}, 'Coding Gateway closed'), C.red, true);
         else button(cv, 32, 426, 1536, 72, 'Open for ' + ctx.settings.display('codingMinutes'), () => {
@@ -138,13 +142,14 @@ mgu.run({ async start(ctx) {
             ['LTE uplink', up.interface || '--', up.address || '--', up.device || up.state || '--'],
             ['BMW hotspot', hot.interface || '--', hot.address || '--', hot.network || '--'],
             ['Vehicle ENET', veh.interface || '--', veh.source || '--', 'ZGW ' + (veh.zgw || '--')],
-            ['Firewall', state && state.rulesActive ? 'ACTIVE' : 'INACTIVE', mode().toUpperCase(), state && state.error || 'No reported error']
+            ['Internet proxy', (state && state.proxy && state.proxy.address || '--') + ':' + (state && state.proxy && state.proxy.httpPort || 3128),
+                'SOCKS5 :' + (state && state.proxy && state.proxy.socksPort || 1088), state && state.rulesActive ? 'ACTIVE' : 'INACTIVE']
         ];
         G.table(cv, t, 32, 130, 1536,
             [{label:'Path',w:280},{label:'Interface / state',w:350},{label:'Address',w:390},{label:'Detail',w:516}],
             rows, {rowH:66,size:22,empty:'Waiting for helper'});
-        cv.text('Coding clients should target the ZGW address directly; UDP broadcast discovery is not forwarded.', 34, 449, 21, C.amber, { font:'bold' });
-        cv.text('No ECU is recoded. Disabling the gateway removes only Hotspot Studio routes and firewall rules.', 34, 487, 20, t.dim);
+        cv.text('Coding target: ' + (state && state.proxy && state.proxy.address || '--') + '. Discovery and TCP/6801 are relayed only for the selected client.', 34, 449, 21, C.amber, { font:'bold' });
+        cv.text('No ECU is recoded. No kernel forwarding, bridge or NAT rule is used.', 34, 487, 20, t.dim);
     }
     async function render() {
         if (visible && Date.now() - lastPoll > 1000) poll();

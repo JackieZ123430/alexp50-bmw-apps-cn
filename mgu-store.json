@@ -37,7 +37,7 @@
     },
     "hotspot_studio": {
       "title": "Hotspot Studio",
-      "description": "Shares the Huawei LTE uplink through BMW's hotspot and opens a timed single-client ENET gateway on request",
+      "description": "Provides Huawei Internet proxies on BMW's hotspot and opens a timed single-client ENET relay on request",
       "author": "alexp50",
       "icon": "hotspot_studio.png",
       "iconSha256": "47ab652dd92b4ae2aea8d2501b38ebb148d5be9548a5b35635ebed3232e16365"
