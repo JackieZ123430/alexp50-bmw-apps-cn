@@ -42,6 +42,8 @@ All app dashboards request the full iDrive canvas and use the 60 fps GPU rendere
 
 The iDrive knob, press and directional push are shared by every app through the Controller gate from the Store's default `cauliflowermossgrape/idrive7-apps` source. After installing or updating that tool, restart the head unit once so `mgu-inputgate.so` loads with the HMI. If the touchscreen works but the controller does not, run `tools/Repair-MGU-Controller.ps1`; it checks the preload, boot guard and competing renderer without changing ECU coding.
 
+On some ID7 units the digital-video surface `0x198` remains marked visible even when it has no buffer. Older `mgu-render` builds then yield every custom-app layer to that empty surface, so unrelated apps all open blank. Run `tools/Repair-MGU-Rendering.ps1`; it excludes only that empty surface in the persistent local renderer configuration and restarts the renderer service without restarting the HMI or changing ECU coding.
+
 ## Build and validate
 
 ```powershell
