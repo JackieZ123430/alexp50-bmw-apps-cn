@@ -158,7 +158,9 @@ function setOutsideDegrees(degrees, source, preferred) {
 }
 
 function ensureSomeIp() {
-    const marker = path.join(SOMEIP_DIR, '.bridge-config-v10');
+    // v11 adds the CDS engine-state field. Component upgrades keep this
+    // generated directory, so the marker must change when the manifest does.
+    const marker = path.join(SOMEIP_DIR, '.bridge-config-v11');
     if (fs.existsSync(marker)) return;
     if (!fs.existsSync(SOMEIP_DIR)) fs.mkdirSync(SOMEIP_DIR);
     try {
@@ -647,10 +649,22 @@ async function executeCommand(command) {
         if (field === 'airConditionParkFunctions') {
             const on = command.type === 'climate_on';
             const wanted = on ? 'AUTO_MINUS_MODUS_EIN' : 'AUTO_MINUS_MODUS_AUS';
-            const confirmed = await waitClimate('statusAirConditionParkFunctions', (v) =>
-                v && v.statusParkFunctionAutoMode === wanted, 10000);
-            updateClimate({preconditioning:on, preconditioningMode:on ? 'auto' : 'off', operatingMode:on ? 'preconditioning' : 'parked', on});
-            return description + ' confirmed: ' + confirmed.statusParkFunctionAutoMode;
+            try {
+                const confirmed = await waitClimate('statusAirConditionParkFunctions', (v) =>
+                    v && v.statusParkFunctionAutoMode === wanted, 7000);
+                updateClimate({preconditioning:on, preconditioningMode:on ? 'auto' : 'off', operatingMode:on ? 'preconditioning' : 'parked', on});
+                return description + ' confirmed: ' + confirmed.statusParkFunctionAutoMode;
+            } catch (parkError) {
+                // O18 refuses parked-climate setters while the car is awake in
+                // accessory/diagnostic mode. Preserve the front-climate
+                // control that works in that state, and report which path BMW
+                // actually confirmed instead of claiming Webasto activation.
+                await nativeTick(() => climateProxy.setValue('operationAirConditioningFront', frontClimateValue(command), 6000));
+                const frontWanted = on ? 'KLIMAANLAGE_EIN' : 'KLIMAANLAGE_AUS';
+                const confirmed = await waitClimate('statusACFrontFunctions', (v) => v && v.statusAC === frontWanted, 8000);
+                updateClimate({preconditioning:false, preconditioningMode:'off', operatingMode:state.climate.engineRunning ? 'driving' : 'parked', on});
+                return 'front climate confirmed after parked climate was unavailable: ' + confirmed.statusAC;
+            }
         }
         const wanted = command.type === 'climate_on' ? 'KLIMAANLAGE_EIN' : 'KLIMAANLAGE_AUS';
         const confirmed = await waitClimate('statusACFrontFunctions', (v) => v && v.statusAC === wanted);

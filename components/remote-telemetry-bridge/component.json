@@ -1,7 +1,7 @@
 {
   "id": "remote-telemetry-bridge",
   "kind": "tool",
-  "version": "0.2.17",
+  "version": "0.2.20",
   "title": "Remote telemetry bridge",
   "description": "Publishes parked-car telemetry and executes short-lived authenticated climate commands through mgu-uplink",
   "mguHmi": ["ID7"],
