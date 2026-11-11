@@ -176,17 +176,17 @@
     {
       "id": "rear_comfort",
       "kind": "app",
-      "version": "0.1.3",
+      "version": "0.2.0",
       "title": "Rear Comfort",
       "description": "Full-screen driver control for rear climate, seats, massage, shades and entertainment displays",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "rear_comfort@0.1.3.tgz",
-        "size": 1085579,
-        "sha256": "5a009f40bbf427a432190630f219b2abd5d82576086d6d9ad112b16143ddabb2",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/rear_comfort@0.1.3/rear_comfort@0.1.3.tgz"
+        "name": "rear_comfort@0.2.0.tgz",
+        "size": 1086045,
+        "sha256": "d19eb45cc3d08eaae23b53ffd286546c82e84df908854e684bbcc8e51ee0244c",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/rear_comfort@0.2.0/rear_comfort@0.2.0.tgz"
       },
       "uninstallable": true,
       "requires": {

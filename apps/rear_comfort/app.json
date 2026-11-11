@@ -2,7 +2,7 @@
   "id": "rear_comfort",
   "title": "Rear Comfort",
   "description": "Full-screen driver control for rear climate, seats, massage, shades and entertainment displays",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "vendor": "alexp50",
   "loggingId": "OARC",
   "iconGlyph": "RC",
@@ -19,10 +19,11 @@
       "statusSeatClimateDRR": "rs",
       "statusSeatClimatePSR": "rs"
     },
-    "de.bmw.infotainment.climate.Climate2": {
+    "de.bmw.infotainment.misc.SeatFunction": {
       "_instances": "1",
-      "operationAirConditioningFront": "w",
-      "statusACFrontFunctions": "rs"
+      "controlSeatAdjustment": "w",
+      "controlSeatMemory": "w",
+      "statusRequestMMIDisplay": "rs"
     },
     "de.bmw.infotainment.misc.ComfortFunctionIuK": {
       "_instances": "1",

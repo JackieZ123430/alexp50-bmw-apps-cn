@@ -8,7 +8,8 @@ Controls:
 - rear-left and rear-right seat heating and ventilation
 - massage intensity and programme for both rear seats
 - seat position, headrest, cushion and footrest adjustment
+- three native BMW memory positions for each rear seat
 - left, right, rear and all-shade operation
 - both rear entertainment screens, display brightness and remote navigation
 
-The app uses BMW's own live services and reads the confirmed state back from the car. The app does not impose a vehicle-speed lock on seat movement; the car's own control units remain authoritative.
+The app uses BMW's own live services and reads the confirmed state back from the car. Rear climate commands address only the rear climate system; switching it off never switches off the front climate. The app does not impose a vehicle-speed lock on seat movement; the car's own control units remain authoritative.

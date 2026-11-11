@@ -6,7 +6,7 @@ const { withAlpha } = require('./kit/canvas');
 const { RearControl } = require('./control');
 
 const W = 1600, H = 520;
-const PAGES = ['Overview', 'Climate', 'Seats', 'Position', 'Shades', 'Screens'];
+const PAGES = ['Overview', 'Climate', 'Seats', 'Position', 'Memory', 'Shades', 'Screens'];
 const C = { cyan:'#32d6d0', blue:'#52a6ff', green:'#35da86', amber:'#ffb52e', red:'#ff4b55', violet:'#a783ff' };
 const finite = (n) => typeof n === 'number' && isFinite(n);
 const clean = (v) => String(v == null ? '' : v).replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
@@ -64,11 +64,12 @@ mgu.run({ async start(ctx) {
             ['Climate', s.climate.on ? 'ON' : 'OFF', temp(s.climate.left) + ' / ' + temp(s.climate.right), C.cyan, 1],
             ['Rear left seat', 'HEAT ' + s.left.heat + '  VENT ' + s.left.vent, 'Massage ' + s.left.massage, C.blue, 2],
             ['Rear right seat', 'HEAT ' + s.right.heat + '  VENT ' + s.right.vent, 'Massage ' + s.right.massage, C.blue, 2],
-            ['Shades', 'LEFT / REAR / RIGHT', 'Individual or all', C.violet, 4],
-            ['Rear screens', (isScreenOn(s.screens.left) ? 'ON' : 'OFF') + ' / ' + (isScreenOn(s.screens.right) ? 'ON' : 'OFF'), short(s.screens.focus, 22), C.green, 5]
+            ['Seat memories', 'M1  M2  M3', 'Stored by the car', C.amber, 4],
+            ['Shades', 'LEFT / REAR / RIGHT', 'Individual or all', C.violet, 5],
+            ['Rear screens', (isScreenOn(s.screens.left) ? 'ON' : 'OFF') + ' / ' + (isScreenOn(s.screens.right) ? 'ON' : 'OFF'), short(s.screens.focus, 22), C.green, 6]
         ];
         cards.forEach((c, i) => {
-            const x = 32 + (i < 3 ? i * 512 : (i - 3) * 768), y = i < 3 ? 140 : 318, w = i < 3 ? 492 : 748, h = 154;
+            const x = 32 + (i % 3) * 512, y = i < 3 ? 140 : 318, w = 492, h = 154;
             panel(cv, t, x, y, w, h, c[0], c[3]);
             cv.text(c[1], x + 22, y + 83, i < 3 ? 28 : 32, c[3], { font:'bold' });
             cv.text(c[2], x + 22, y + 125, 19, t.dim);
@@ -123,6 +124,19 @@ mgu.run({ async start(ctx) {
         moves.forEach((m,i)=>{const col=i%4,row=Math.floor(i/4);button(cv,t,58+col*378,164+row*70,348,54,m[0],
             ()=>run(m[0],()=>m[1]==='seat'?rear.moveSeat(side,m[2]):rear.lumbar(side,m[2])),C.amber,false);});
     }
+    function memory(cv,t,s) {
+        title(cv,t,'Rear seat memory','Three BMW memory positions stored in each rear-seat controller'); sideTabs(cv,t);
+        const status=clean(s.memory.status || 'KEINE_ANFORDERUNG');
+        [1,2,3].forEach((slot,i)=>{
+            const x=32+i*512;
+            panel(cv,t,x,140,492,238,'Memory '+slot,C.amber);
+            cv.text('M'+slot,x+246,232,66,C.amber,{align:'center',font:'bold'});
+            button(cv,t,x+28,282,205,62,'RECALL',()=>run('Recall M'+slot,()=>rear.recallSeatMemory(side,slot)),C.green,false);
+            button(cv,t,x+251,282,213,62,'STORE',()=>run('Store M'+slot,()=>rear.storeSeatMemory(side,slot)),C.amber,false);
+        });
+        panel(cv,t,32,398,1536,64,'BMW seat-memory feedback',C.blue);
+        cv.text(short(status,92),802,440,22,C.blue,{align:'center',font:'bold'});
+    }
     function shades(cv,t,s) {
         title(cv,t,'Rear sun protection','Move each blind individually or all blinds together');
         const data=[['LEFT DOOR','left',C.blue],['REAR WINDOW','rear',C.violet],['RIGHT DOOR','right',C.blue]];
@@ -152,7 +166,7 @@ mgu.run({ async start(ctx) {
     }
     async function render() {
         const t=ctx.theme(),cv=ctx.canvas(W,H).clear(t.bg),s=rear.state;hits=[];actions=[];
-        [overview,climate,seats,position,shades,screens][page](cv,t,s);
+        [overview,climate,seats,position,memory,shades,screens][page](cv,t,s);
         if(actions.length) selected=Math.max(0,Math.min(selected,actions.length-1)); else selected=0;
         G.frame(cv,t,PAGES,page,[{text:rear.busy?'WORKING':'READY',color:rear.busy?C.amber:C.green},{text:'60 FPS',color:C.cyan}]);
         if(notice)cv.text(short(notice,112),1562,505,17,noticeGood?C.green:C.amber,{align:'right',font:'bold'});

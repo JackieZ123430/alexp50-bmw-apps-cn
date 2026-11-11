@@ -11,11 +11,12 @@ const active = (value) => /EIN|AKTIV|ACTIVE|USER_ON|FULL_ON/.test(String(value |
 class RearControl {
     constructor(signals, log, changed) {
         this.signals = signals; this.log = log; this.changed = changed || (() => {});
-        this.p = {}; this.subs = []; this.busy = false; this.frontBeforeRearOn = null;
+        this.p = {}; this.subs = []; this.busy = false; this.seatAlive = 0;
         this.state = {
-            climate: { left: null, right: null, blower: null, auto: null, on: null, lock: null, frontOn: null },
+            climate: { left: null, right: null, blower: null, auto: null, on: null, lock: null },
             left: { heat: 0, vent: 0, massage: 0, program: 1 },
             right: { heat: 0, vent: 0, massage: 0, program: 1 },
+            memory: { side: null, status: 'Waiting for BMW seat memory', requestor: null },
             shades: { left: null, right: null, rear: null },
             screens: { left: null, right: null, focus: 'NO_RSE_SELECTION', display: null,
                 brightness: null, volume: null, ready: null, remote: null, apps: [] },
@@ -48,9 +49,12 @@ class RearControl {
             statusSeatClimateDRR: (v) => { this.state.left.vent = stage(v.statusSeatClimateDRR); this.touch(); },
             statusSeatClimatePSR: (v) => { this.state.right.vent = stage(v.statusSeatClimatePSR); this.touch(); }
         });
-        await this.watch('climateFront', 'de.bmw.infotainment.climate.Climate2', '1', {
-            statusACFrontFunctions: (v) => {
-                this.state.climate.frontOn = String(v && v.statusAC) === 'KLIMAANLAGE_EIN'; this.touch();
+        await this.watch('seatMemory', 'de.bmw.infotainment.misc.SeatFunction', '1', {
+            statusRequestMMIDisplay: (v) => {
+                this.state.memory.side = v && v.iDSenderInquiryMMIDisplay;
+                this.state.memory.status = v && v.statusSelectionPopUp || 'KEINE_ANFORDERUNG';
+                this.state.memory.requestor = v && v.statusDirectionOperationRequest;
+                this.touch();
             }
         });
         await this.watch('comfort', 'de.bmw.infotainment.misc.ComfortFunctionIuK', '1', {
@@ -148,7 +152,6 @@ class RearControl {
         return this.operation('Rear blower', () => this.signals.set(this.require('climate'), 'climateFond', x));
     }
     async climatePower(on) {
-        if (on) this.frontBeforeRearOn = this.state.climate.frontOn;
         const x = {
             operationAirconRearCompartment: on ? 'EINSCHALTEN__S__EIN' : 'AUSSCHALTEN__S_AUS',
             operationAirConditioningDefault2Tier: 'KEINE_AUSWAHL', operationAirConditioningDefault3Tier: 'KEINE_AUSWAHL',
@@ -160,25 +163,8 @@ class RearControl {
             operationAirDistributionProgramClimate3Seat: 'SIGNAL_UNBEFUELLT', operationAirDistributionProgramClimate2Seat: 'SIGNAL_UNBEFUELLT',
             operationManualBlowerLevelClimate3SeatRow: 'SIGNAL_UNBEFUELLT', operationManualBlowerLevelClimate2SeatRow: 'SIGNAL_UNBEFUELLT'
         };
-        return this.operation('Rear climate ' + (on ? 'on' : 'off'), async () => {
-            await this.signals.set(this.require('climate'), 'acFond', x);
-            if (!on && this.frontBeforeRearOn === false && this.state.climate.frontOn === true) {
-                await pause(350);
-                await this.signals.set(this.require('climateFront'), 'operationAirConditioningFront', this.frontClimateOffValue());
-            }
-            if (!on) this.frontBeforeRearOn = null;
-        });
-    }
-    frontClimateOffValue() {
-        return {
-            operationOnDR:'AUS', operationOnPS:'AUS', operationAircon:'KEINE_AUSWAHL',
-            operationModeAirConditioningDR:'KEINE_AUSWAHL', operationModeAirConditioningPS:'KEINE_AUSWAHL',
-            operationTemperatureTargetDR:255, operationTemperatureTargetPS:255,
-            operationIntensityDR:'KEINE_AUSWAHL', operationIntensityPS:'KEINE_AUSWAHL', requestAICPIA:'KEINE_ANFORDERUNG',
-            operationDefrost:'KEINE_AUSWAHL', operationMaximumAirCondition:'KEINE_AUSWAHL',
-            operationManualBlowerLevelDR:'KEINE_AUSWAHL', operationManualBlowerLevelPS:'KEINE_AUSWAHL',
-            operationAirdistributionProgramDR:'KEINE_AUSWAHL', operationAirdistributionProgramPS:'KEINE_AUSWAHL'
-        };
+        return this.operation('Rear climate ' + (on ? 'on' : 'off'),
+            () => this.signals.set(this.require('climate'), 'acFond', x));
     }
     seatClimateValue(side, kind, level) {
         const x = {
@@ -229,6 +215,42 @@ class RearControl {
             if (id === undefined || id === null) throw new Error('Seat controller did not grant movement');
             try { await pause(350); await this.signals.call(p, 'aliveSeatOperation', { requestorID: id }); }
             finally { await this.signals.call(p, 'stopSeatOperation', { requestorID: id }).catch(() => {}); }
+        });
+    }
+    seatTarget(side) { return side === 'left' ? 'FASH' : 'BFSH'; }
+    async storeSeatMemory(side, slot) {
+        const n = Math.max(1, Math.min(3, Math.round(slot)));
+        return this.operation('Rear ' + side + ' memory ' + n + ' stored', async () => {
+            const p = this.require('seatMemory'), target = this.seatTarget(side);
+            await this.signals.set(p, 'controlSeatMemory', {
+                storeEventSeatMemoryPos: 'M' + n + '_SPEICHERN',
+                requestorSeatPositionStoreCommand: 'HMI',
+                selectionTargetSeatPosition: target
+            });
+            await pause(220);
+            await this.signals.set(p, 'controlSeatMemory', {
+                storeEventSeatMemoryPos: 'KEINE_AKTION',
+                requestorSeatPositionStoreCommand: 'HMI',
+                selectionTargetSeatPosition: target
+            });
+        });
+    }
+    async recallSeatMemory(side, slot) {
+        const n = Math.max(1, Math.min(3, Math.round(slot)));
+        return this.operation('Rear ' + side + ' memory ' + n + ' requested', async () => {
+            const p = this.require('seatMemory'), target = this.seatTarget(side);
+            this.seatAlive = (this.seatAlive + 1) & 15;
+            const value = (command) => ({
+                seatControlCommand1: 'KEINE_AKTION', seatControlCommand2: 'KEINE_AKTION', seatControlCommand3: 'KEINE_AKTION',
+                aliveControlSeatAdjustment: this.seatAlive,
+                controlSeatAdjustment: command,
+                iDReceiverControlSeatAdjustment: target,
+                iDSenderControlSeatAdjustment: 'HMI'
+            });
+            await this.signals.set(p, 'controlSeatAdjustment', value('MEMORY_' + n));
+            await pause(300);
+            this.seatAlive = (this.seatAlive + 1) & 15;
+            await this.signals.set(p, 'controlSeatAdjustment', value('KEINE_AKTION'));
         });
     }
     async shade(which, direction) {
