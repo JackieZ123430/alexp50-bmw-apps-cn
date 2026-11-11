@@ -108,7 +108,7 @@ mgu.run({ async start(ctx) {
             ()=>run('Massage programme',()=>rear.setMassage(side,Math.max(1,st.massage||1),n)),C.violet,st.program===n));
     }
     function position(cv,t) {
-        title(cv,t,'Rear seat position','Short, guarded seat movements; the car must be stationary'); sideTabs(cv,t);
+        title(cv,t,'Rear seat position','Direct short movements from the front display'); sideTabs(cv,t);
         panel(cv,t,32,140,1536,322,(side==='left'?'Left':'Right') + ' rear seat adjustment',C.amber);
         const moves = [
             ['SLIDE FORWARD','seat','SEAT_ADJUSTMENT_HORIZONTAL_FRONT'],['SLIDE BACK','seat','SEAT_ADJUSTMENT_HORIZONTAL_BACK'],

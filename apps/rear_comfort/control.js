@@ -11,7 +11,7 @@ const active = (value) => /EIN|AKTIV|ACTIVE|USER_ON|FULL_ON/.test(String(value |
 class RearControl {
     constructor(signals, log, changed) {
         this.signals = signals; this.log = log; this.changed = changed || (() => {});
-        this.p = {}; this.subs = []; this.busy = false; this.speed = null; this.frontBeforeRearOn = null;
+        this.p = {}; this.subs = []; this.busy = false; this.frontBeforeRearOn = null;
         this.state = {
             climate: { left: null, right: null, blower: null, auto: null, on: null, lock: null, frontOn: null },
             left: { heat: 0, vent: 0, massage: 0, program: 1 },
@@ -32,12 +32,6 @@ class RearControl {
         return sub;
     }
     async init() {
-        await this.watch('vehicle', 'de.bmw.infotainment.vehicle.Vehicle2', '1', {
-            statusCarSpeed2: (v) => {
-                const n = v && v.speedVehicleCentreOfGravity;
-                this.speed = typeof n === 'number' ? n * 0.015625 : null; this.touch();
-            }
-        }, 1000);
         await this.watch('climate', 'de.bmw.infotainment.climate.Climate', '1', {
             statusClimateFond: (v) => {
                 this.state.climate.left = Number(v.statusDisplayTemperatureLeftHandAirConditioningRearCompartment);
@@ -111,9 +105,6 @@ class RearControl {
     require(name) {
         if (!this.p[name] || !this.state.available[name]) throw new Error(name + ' control is not available right now');
         return this.p[name];
-    }
-    stopped() {
-        if (this.speed !== null && this.speed > 0.5) throw new Error('Seat movement requires the stationary car');
     }
     async operation(label, fn) {
         if (this.busy) throw new Error('Another rear control is in progress');
@@ -221,7 +212,7 @@ class RearControl {
             () => this.signals.set(this.require('comfort'), field, this.massageValue(side, level, program)));
     }
     async lumbar(side, action) {
-        this.stopped(); const field = side === 'left' ? 'adjustmentLumbarRL' : 'adjustmentLumbarRR';
+        const field = side === 'left' ? 'adjustmentLumbarRL' : 'adjustmentLumbarRR';
         const member = side === 'left' ? 'operationAdjustmentLumbarRLH' : 'operationAdjustmentLumbarRRH';
         return this.operation('Rear ' + side + ' lumbar', async () => {
             const p = this.require('comfort'); await this.signals.set(p, field, { [member]: action });
@@ -229,7 +220,6 @@ class RearControl {
         });
     }
     async moveSeat(side, action) {
-        this.stopped();
         return this.operation('Rear ' + side + ' seat', async () => {
             const p = this.require('seat');
             const r = await this.signals.call(p, 'startSeatOperation', {
