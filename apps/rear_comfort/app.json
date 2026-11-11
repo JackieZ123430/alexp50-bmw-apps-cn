@@ -1,0 +1,125 @@
+{
+  "id": "rear_comfort",
+  "title": "Rear Comfort",
+  "description": "Full-screen driver control for rear climate, seats, massage, shades and entertainment displays",
+  "version": "0.1.2",
+  "vendor": "alexp50",
+  "loggingId": "OARC",
+  "iconGlyph": "RC",
+  "signals": {
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "_instances": "1",
+      "statusCarSpeed2": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate": {
+      "_instances": "1",
+      "climateFond": "w",
+      "acFond": "w",
+      "seatHeatingLamination": "w",
+      "statusClimateFond": "rs",
+      "statusACFond2": "rs",
+      "statusSeatHeatingDRR": "rs",
+      "statusSeatHeatingPSR": "rs",
+      "statusSeatClimateDRR": "rs",
+      "statusSeatClimatePSR": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate2": {
+      "_instances": "1",
+      "operationAirConditioningFront": "w",
+      "statusACFrontFunctions": "rs"
+    },
+    "de.bmw.infotainment.misc.ComfortFunctionIuK": {
+      "_instances": "1",
+      "seatMassageRL": "w",
+      "seatMassageRR": "w",
+      "adjustmentLumbarRL": "w",
+      "adjustmentLumbarRR": "w",
+      "statusSeatMassageRL": "rs",
+      "statusSeatMassageRR": "rs",
+      "statusAdjustmentLumbarRL": "rs",
+      "statusAdjustmentLumbarRR": "rs"
+    },
+    "de.bmw.infotainment.vehicle.A4A": {
+      "_instances": "1",
+      "sunblind": "w",
+      "statusSunblind": "rs"
+    },
+    "com.harman.infotainment.systeminfrastructure.seatcommandproxy.seatcommandproxy.SeatCommandProxyCtrl": {
+      "_instances": "Inst1",
+      "_methods": ["startSeatOperation", "aliveSeatOperation", "stopSeatOperation"],
+      "seatProxySeatOperationStatus": "rs"
+    },
+    "de.bmw.infotainment.lifecycle.lifecycle.Lifecycle": {
+      "_instances": "Front",
+      "_methods": ["requestRSE", "requestRSEEntertainmentMode"],
+      "rseHmiMenu": "rws",
+      "rseLock": "rws",
+      "rseLowPowerMode": "rws",
+      "theatreMode": "rws"
+    },
+    "de.bmw.infotainment.lifecycle.lifecyclerse.LifecycleRSE": {
+      "_instances": "Rear",
+      "_methods": ["requestEntertainmentModeLeft", "requestEntertainmentModeRight", "leaveEntertainmentModeLeft", "leaveEntertainmentModeRight"],
+      "focusIndicatorHMI": "rws",
+      "powerStateDetailedLeft": "rs",
+      "powerStateDetailedRight": "rs"
+    },
+    "de.bmw.infotainment.rseapplicationcontrol.RSEApplicationControl": {
+      "_instances": "3",
+      "_methods": ["launchApp"],
+      "launchableApps": "rs"
+    },
+    "de.bmw.infotainment.rsecommandcontrol.RSECommandControl": {
+      "_instances": "3",
+      "_methods": ["setVolumeStep"],
+      "currentVolume": "rs",
+      "rseMainSinkAudible": "rws"
+    },
+    "de.bmw.infotainment.rsedisplaycontrol.RSEDisplayControl": {
+      "_instances": "3",
+      "displayBrightness": "rws",
+      "displayState": "rws",
+      "normalModeReady": "rs"
+    },
+    "de.bmw.infotainment.rseremoteinput.RSERemoteInput": {
+      "_instances": "3",
+      "_methods": ["sendCommandKey", "sendDirectionKey"],
+      "remoteControlEnabled": "rs"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "Rear Comfort",
+      "buttons": [
+        ["BTN_PAGE", "Next page"],
+        ["BTN_LEFT", "Left action"],
+        ["BTN_RIGHT", "Right action"],
+        ["BTN_ACTION", "Primary action"]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "layout",
+      "label": "Screen layout",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [["full", "Full screen"]]
+    },
+    {
+      "key": "renderer",
+      "label": "Renderer",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [["auto", "GPU 60 fps"]]
+    }
+  ],
+  "config": {
+    "fullScreenRequired": true
+  }
+}
+
