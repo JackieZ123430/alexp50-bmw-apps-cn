@@ -1,8 +1,8 @@
 {
   "id": "rear_comfort",
   "title": "Rear Comfort",
-  "description": "Full-screen driver control for rear climate, seats, massage, shades and entertainment displays",
-  "version": "0.2.0",
+  "description": "G12 Executive Lounge control for rear climate, comfort seats, massage, shades and entertainment",
+  "version": "0.4.3",
   "vendor": "alexp50",
   "loggingId": "OARC",
   "iconGlyph": "RC",
@@ -91,9 +91,9 @@
       "title": "Rear Comfort",
       "buttons": [
         ["BTN_PAGE", "Next page"],
-        ["BTN_LEFT", "Left action"],
-        ["BTN_RIGHT", "Right action"],
-        ["BTN_ACTION", "Primary action"]
+        ["BTN_SELECT", "Next control"],
+        ["BTN_ACTION", "Activate"],
+        ["BTN_BACK", "Overview"]
       ]
     }
   ],
