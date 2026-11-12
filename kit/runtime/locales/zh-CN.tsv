@@ -860,7 +860,7 @@ Shift table	换挡表
 Upshifts	升挡
 Downshifts	降挡
 Skip downshifts	跳挡降挡
-GPU 60 fps	GPU 60 帧／秒
+GPU 60 fps	GPU 60 帧
 Boost target vs actual	目标与实际增压压力
 Air charge req. vs actual	请求与实际进气充量
 Power gauge up to	功率表量程上限
@@ -961,7 +961,7 @@ Not available for this tune	当前调校不支持
 Not available on this car	本车不支持
 Now on the DME:	DME 当前设置：
 OFF	关闭
-OPEN	已打开
+OPEN	打开
 Pick a map	选择发动机程序
 SIM	模拟
 Selected map — accepted by the DME	所选程序：DME 已接受
@@ -2041,3 +2041,40 @@ ACTIVE · INFERRED	再生中 · 推断
 now min	当前（分钟）
 New screen	新建页面
 Health	健康状态
+Blue	蓝色
+Red	红色
+Green	绿色
+Orange	橙色
+Sport	运动
+Eco Pro	节能
+Learn {colour}	学习{colour}
+OFF {off}   ON {on}	关闭信号：{off}    开启信号：{on}
+missing	未学习
+AMBIENT	氛围灯
+Learn the four physical colours; no automatic writes are enabled	请先学习四种原厂颜色，自动配色尚未启用。
+Drive-mode colours disabled; vehicle lighting is unchanged	驾驶模式配色已关闭，当前使用车辆自身灯光设置。
+Enabled; waiting for the current driving mode	自动配色已开启，正在等待当前驾驶模式。
+{colour} learned as factory slot {slot}	已将{colour}记录为原厂槽位 {slot}
+Hazards {state} signal learned	已学习双闪{state}信号
+{alert} alert active; {phase} phase	{alert}提醒已触发，当前为{phase}
+Door open with engine running	发动机运行且车门打开
+alert colour	提醒颜色
+normal colour	常规颜色
+{mode} follows {colour}	{mode}模式使用{colour}
+{mode} is intentionally left unchanged	{mode}模式沿用当前配色
+Saved settings could not be read:	无法读取已保存的设置：
+Unknown named colour	未知颜色
+No factory colour is currently reported	车辆尚未报告当前原厂颜色
+Learn Blue, Red, Green and Orange first	请先学习蓝色、红色、绿色和橙色
+Unknown hazard learning state	未知的双闪学习状态
+No LampExterior2 special-flashing value has been received	尚未收到 LampExterior2 的双闪信号
+Learn Orange first	请先学习橙色
+Learn hazards OFF and ON first	请先学习双闪关闭和开启信号
+Learn Red first	请先学习红色
+Door provider is not configured yet; run the connected-car signal profile step	尚未配置车门信号来源，请先在连接车辆后确认信号。
+restore colour after alert	提醒结束后恢复配色
+Hazards pulse	双闪提醒闪烁
+Hazards restore phase	双闪提醒恢复常规颜色
+Door open with engine running pulse	车门提醒闪烁
+Door open with engine running restore phase	车门提醒恢复常规颜色
+failed:	失败：
