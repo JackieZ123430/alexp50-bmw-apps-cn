@@ -26,7 +26,7 @@ const { Diag } = require('./kit/diag');
 const { DidReader } = require('./kit/dids');
 
 const W = 1600, H = 520;
-const PAGES = ['engine', 'thermal', 'fuel', 'chassis'];
+const PAGES = ['overview', 'engine', 'thermal', 'fuel', 'chassis', 'comfort'];
 const FUEL = ['iat', 'hpfp', 'lpfp', 'timing', 'boostCtl', 'load'];   // engine unit values read fast on the Fuel & ignition page
 /** Target-vs-actual pairs on the Fuel & ignition page: read together, [target, actual] keys of config.dme. */
 const PAIR = { boostCtl: ['boostTarget', 'boostActual'], load: ['loadTarget', 'loadActual'] };
@@ -251,6 +251,11 @@ mgu.run({
                     const oil = sc('engineTemp', v.temperatureEngineOilDrive);
                     if (oil !== null) { oilCarT = Date.now(); put('oil', oil); }
                 },
+                statusEngineStatus: (v) => { live.engineRunning = v && v.statusEngineRunDrive; lastCar = Date.now(); },
+                statusBattery2: (v) => {
+                    const n = v && v.conditionBatteryChargingCondition;
+                    if (G.isNum(n) && n >= 0 && n <= 150) { live.batterySoc = n; lastCar = Date.now(); }
+                },
             }],
             ['de.bmw.infotainment.vehicle.CDS2', {
                 statusLongitudinalAccelerationMassCenter: (v) => {
@@ -270,7 +275,12 @@ mgu.run({
                     log.info('car units: pressure ' + (press || '?') + ', temperature ' + (temp || '?'));
                 },
             }],
-            ['de.bmw.infotainment.vehicle.Vehicle2', { statusCarSpeed2: (v) => put('speed', sc('speed', v.speedVehicleCentreOfGravity)) }],
+            ['de.bmw.infotainment.vehicle.Vehicle2', {
+                statusCarSpeed2: (v) => put('speed', sc('speed', v.speedVehicleCentreOfGravity)),
+                statusOilDipstick2: (v) => {
+                    if (v && v.fluidLevelEngineOilRelative !== undefined) { live.oilLevel = v.fluidLevelEngineOilRelative; lastCar = Date.now(); }
+                },
+            }],
             ['de.bmw.infotainment.drivingexcitement.FES', {
                 statusSwitchDriveDynamicSport2: (v) => {
                     logRaw('FES boost', v.displayBoostPressure);
@@ -317,6 +327,36 @@ mgu.run({
                 },
             }],
             ['de.bmw.infrastructure.EnvironmentalInformation', { ExteriorTemperature: (v) => put('ambient', sc('ambient', v.temperatureExterior)) }],
+            ['de.bmw.infotainment.KombiIF', { statusRangeTankStatus: (v) => {
+                if (G.isNum(v && v.fluidLevelFuelTank) && v.fluidLevelFuelTank >= 0 && v.fluidLevelFuelTank < 255) live.fuelLitres = v.fluidLevelFuelTank;
+                if (G.isNum(v && v.range) && v.range >= 0 && v.range < 4095) live.rangeKm = v.range;
+                lastCar = Date.now();
+            } }],
+            ['de.bmw.infotainment.climate.Climate2', {
+                statusACFront: (v) => { live.frontClimate = v; lastCar = Date.now(); },
+                statusACFrontFunctions: (v) => { live.frontClimateFunctions = v; lastCar = Date.now(); },
+                statusTemperatureInside: (v) => { live.cabinRaw = v; lastCar = Date.now(); },
+            }],
+            ['de.bmw.infotainment.climate.Climate', {
+                statusClimateFond: (v) => {
+                    const l = Number(v && v.statusDisplayTemperatureLeftHandAirConditioningRearCompartment);
+                    const r = Number(v && v.statusDisplayTemperatureRightHandAirConditioningRearCompartment);
+                    if (isFinite(l) && l >= 10 && l <= 35) live.rearLeftTemp = l;
+                    if (isFinite(r) && r >= 10 && r <= 35) live.rearRightTemp = r;
+                    live.rearBlower = v && v.statusDisplayBlowerSettingAirConditioningRearCompartment;
+                    live.rearMode = v && v.statusDisplayModeAirConditioningRearCompartment;
+                    lastCar = Date.now();
+                },
+                statusACFond2: (v) => { live.rearClimate = v; lastCar = Date.now(); },
+                statusSeatHeatingDR: (v) => { live.heatFL = v && v.statusSeatHeaterDR; lastCar = Date.now(); },
+                statusSeatHeatingPS: (v) => { live.heatFR = v && v.statusSeatHeaterPS; lastCar = Date.now(); },
+                statusSeatHeatingDRR: (v) => { live.heatRL = v && v.statusSeatHeaterDRR; lastCar = Date.now(); },
+                statusSeatHeatingPSR: (v) => { live.heatRR = v && v.statusSeatHeaterPSR; lastCar = Date.now(); },
+                statusSeatClimateDR: (v) => { live.ventFL = v && v.statusSeatClimateDR; lastCar = Date.now(); },
+                statusSeatClimatePS: (v) => { live.ventFR = v && v.statusSeatClimatePS; lastCar = Date.now(); },
+                statusSeatClimateDRR: (v) => { live.ventRL = v && v.statusSeatClimateDRR; lastCar = Date.now(); },
+                statusSeatClimatePSR: (v) => { live.ventRR = v && v.statusSeatClimatePSR; lastCar = Date.now(); },
+            }],
             ['de.bmw.infotainment.vehicle.TPMS', {
                 statusTyreTemperature: (v) => {
                     logRaw('tyre temperature', [v.actualValueTemperatureTyreFLH, v.actualValueTemperatureTyreFRH, v.actualValueTemperatureTyreRLH, v.actualValueTemperatureTyreRRH]);
@@ -564,7 +604,53 @@ mgu.run({
 
         /** Full-width frame: tab bar with the page names along the top. */
         function header(cv, t) {
-            G.frame(cv, t, ['Engine', 'Thermals', 'Powertrain', 'Chassis'], page, [usingDemo() && { text: 'DEMO' }]);
+            G.frame(cv, t, ['Overview', 'Engine', 'Thermals', 'Powertrain', 'Chassis', 'Comfort'], page, [usingDemo() && { text: 'DEMO' }]);
+        }
+
+        const enumText = (v) => {
+            if (v === null || v === undefined || v === '') return '--';
+            if (typeof v === 'boolean') return v ? 'ON' : 'OFF';
+            if (typeof v === 'number') return String(v);
+            if (typeof v === 'object') {
+                const vals = Object.keys(v).filter((k) => !/qualifier/i.test(k)).map((k) => v[k]).filter((x) => x !== null && x !== undefined);
+                return vals.length ? enumText(vals[0]) : '--';
+            }
+            return String(v).replace(/^STATUS_|^STATE_|^STUFE_/i, '').replace(/_/g, ' ');
+        };
+        function infoCard(cv, t, x, y, w, h, label, value, sub, color) {
+            const p = G.panel(cv, t, x, y, w, h, label);
+            const txt = value === null || value === undefined || value === '' ? '--' : String(value);
+            cv.text(txt, x + 22, y + 132, txt.length > 22 ? 34 : txt.length > 12 ? 46 : 68, color || (txt === '--' ? t.dim : t.text), { font: 'bold' });
+            if (sub) cv.text(sub, x + 22, p.y + p.h - G.MARGIN, 20, t.dim);
+        }
+        function drawOverview(cv, t, d) {
+            const boxes = grid(8);
+            const items = [
+                ['Vehicle speed', G.fmt(V(d.speed), 0), settings.get('speedUnit') === 'mph' ? 'mph' : 'km/h', t.accent],
+                ['Engine speed', G.fmt(d.rpm, 0), 'rpm', t.text],
+                ['Coolant', G.fmt(T(d.coolant), 0), tU(), t.text],
+                ['Engine oil', G.fmt(T(d.oil), 0), tU(), t.text],
+                ['Outside', G.fmt(T(d.ambient), 0), tU(), t.accent],
+                ['12 V state of charge', G.fmt(d.batterySoc, 0), '%', GO],
+                ['Fuel / range', G.isNum(d.fuelLitres) ? G.fmt(d.fuelLitres, 0) + ' L' : '--', G.isNum(d.rangeKm) ? G.fmt(d.rangeKm, 0) + ' km range' : 'range unavailable', t.text],
+                ['Drive state', gearText(d) ? gearText(d).letter + gearText(d).num : '--', enumText(d.engineRunning), t.text],
+            ];
+            boxes.forEach((b, i) => infoCard(cv, t, b.x, b.y, b.w, b.h, items[i][0], items[i][1], items[i][2], items[i][3]));
+        }
+        function drawComfort(cv, t, d) {
+            const boxes = grid(8);
+            const seats = (h, v) => 'heat ' + enumText(h) + '  /  vent ' + enumText(v);
+            const items = [
+                ['Front climate', enumText(d.frontClimate), 'BMW climate provider', t.accent],
+                ['Rear climate', enumText(d.rearClimate), 'mode ' + enumText(d.rearMode), t.accent],
+                ['Rear left', G.isNum(d.rearLeftTemp) ? G.fmt(T(d.rearLeftTemp), 1) : '--', tU(), t.text],
+                ['Rear right', G.isNum(d.rearRightTemp) ? G.fmt(T(d.rearRightTemp), 1) : '--', tU(), t.text],
+                ['Front left seat', seats(d.heatFL, d.ventFL), 'live state', t.text],
+                ['Front right seat', seats(d.heatFR, d.ventFR), 'live state', t.text],
+                ['Rear left seat', seats(d.heatRL, d.ventRL), 'live state', t.text],
+                ['Rear right seat', seats(d.heatRR, d.ventRR), 'live state', t.text],
+            ];
+            boxes.forEach((b, i) => infoCard(cv, t, b.x, b.y, b.w, b.h, items[i][0], items[i][1], items[i][2], items[i][3]));
         }
 
         /** Power in kW: { kw, calc } (calc = estimated from torque x rpm, no sport-display data). */
@@ -880,7 +966,7 @@ mgu.run({
         async function render() {
             const t = ctx.theme(), d = data();
             const cv = ctx.canvas(W, H).clear(t.bg);
-            [drawEngine, drawThermal, drawFuel, drawChassis][page](cv, t, d);
+            [drawOverview, drawEngine, drawThermal, drawFuel, drawChassis, drawComfort][page](cv, t, d);
             header(cv, t);
             if (!render.n) { render.n = 1; log.info('first frame drawn'); }
             await ui.image('MAIN_GFX', cv);

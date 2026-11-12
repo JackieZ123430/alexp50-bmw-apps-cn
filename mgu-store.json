@@ -79,7 +79,7 @@
     },
     "telemetry_studio": {
       "title": "Telemetry Studio",
-      "description": "Full-screen live powertrain, thermal, tyre and xDrive telemetry",
+      "description": "Full-screen categorized live data from powertrain, thermal, chassis, tyre, climate and electrical sensors",
       "author": "alexp50",
       "icon": "telemetry_studio.png",
       "iconSha256": "3f7d9d0cd043acac1abc69ea1b8c3a58c967d81b93515578ba1d9474704c089b"

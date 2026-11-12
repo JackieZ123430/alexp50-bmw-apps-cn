@@ -85,9 +85,16 @@ mgu.run({ async start(ctx) {
     function hotspot(cv, x, y, key, fn) {
         const i=action(key,fn,x-15,y-15,30,30), focus=i===selected;
         cv.fillRect(x-7,y-7,14,14,focus?'#ffffff':C.orange);
-        cv.strokeRect(x-10,y-10,20,20,2,focus?C.orange:C.orange2);
+        // The canvas exposes rounded outlines; strokeRect is unsupported and
+        // used to abort rendering as soon as the Seats page was opened.
+        cv.strokeRoundRect(x-10,y-10,20,20,2,2,focus?C.orange:C.orange2);
     }
-    function setPage(i){page=Math.max(0,Math.min(PAGES.length-1,i));selected=0;notice='';}
+    function setPage(i){
+        if (typeof i === 'string') i = PAGES.indexOf(i.toUpperCase());
+        i = Number(i);
+        if (!Number.isFinite(i) || i < 0) return;
+        page=Math.max(0,Math.min(PAGES.length-1,i));selected=0;notice='';
+    }
 
     function overview(cv,t,s) {
         sectionTitle(cv,t,'CAR','BMW Touch Command rear-compartment functions');
@@ -113,11 +120,12 @@ mgu.run({ async start(ctx) {
         picture(cv,'climateLeft',85,175,250,245); picture(cv,'climateRight',470,175,250,245);
         cv.text(temp(s.climate.left),210,235,46,C.cyan,{align:'center',font:'bold'});
         cv.text(temp(s.climate.right),595,235,46,C.cyan,{align:'center',font:'bold'});
-        [['left',75],['right',460]].forEach(([which,x])=>{
+        // Compact symmetric groups keep the right '+' inside this panel.
+        [['left',68],['right',438]].forEach(([which,x])=>{
             const v=s.climate[which];
-            button(cv,t,x,405,110,46,'-',()=>run('Temperature',()=>rear.setClimateTemperature(which,(finite(v)?v:22)-1)),C.cyan,false);
-            button(cv,t,x+122,405,125,46,'22°C',()=>run('Temperature',()=>rear.setClimateTemperature(which,22)),C.cyan,v===22);
-            button(cv,t,x+259,405,110,46,'+',()=>run('Temperature',()=>rear.setClimateTemperature(which,(finite(v)?v:22)+1)),C.cyan,false);
+            button(cv,t,x,405,100,46,'-',()=>run('Temperature',()=>rear.setClimateTemperature(which,(finite(v)?v:22)-1)),C.cyan,false);
+            button(cv,t,x+108,405,100,46,finite(v)?temp(v):'22°C',()=>run('Temperature',()=>rear.setClimateTemperature(which,22)),C.cyan,v===22);
+            button(cv,t,x+216,405,100,46,'+',()=>run('Temperature',()=>rear.setClimateTemperature(which,(finite(v)?v:22)+1)),C.cyan,false);
         });
         panel(cv,t,812,132,758,348,'Rear climate control');
         button(cv,t,838,184,222,55,'CLIMATE ON',()=>run('Rear climate on',()=>rear.climatePower(true)),C.green,!!s.climate.on);
@@ -186,10 +194,12 @@ mgu.run({ async start(ctx) {
     function shades(cv,t,s) {
         sectionTitle(cv,t,'Sun protection','Touch Command blind controls');
         donorBackdrop(cv,t,22,132,920,348); picture(cv,'shades',45,150,870,310);
-        const items=[['LEFT DOOR','left',962,160],['REAR BLIND','rear',1230,160],['RIGHT DOOR','right',962,245]];
-        items.forEach(v=>button(cv,t,v[2],v[3],244,66,v[0],()=>run(v[0],()=>rear.shade(v[1],'toggle')),C.orange,false));
-        button(cv,t,1230,245,244,66,'OPEN ALL',()=>run('Open all blinds',()=>rear.shade('all','open')),C.green,false);
-        button(cv,t,962,330,244,66,'CLOSE ALL',()=>run('Close all blinds',()=>rear.shade('all','close')),C.orange,false);
+        cv.text('INDIVIDUAL BLINDS',962,158,15,t.dim,{font:'bold'});
+        const items=[['LEFT DOOR','left',962,174],['REAR BLIND','rear',1132,174],['RIGHT DOOR','right',1302,174]];
+        items.forEach(v=>button(cv,t,v[2],v[3],160,62,v[0],()=>run(v[0],()=>rear.shade(v[1],'toggle')),C.orange,false));
+        cv.text('ALL BLINDS',962,252,15,t.dim,{font:'bold'});
+        button(cv,t,962,265,244,66,'OPEN ALL',()=>run('Open all blinds',()=>rear.shade('all','open')),C.green,false);
+        button(cv,t,1230,265,244,66,'CLOSE ALL',()=>run('Close all blinds',()=>rear.shade('all','close')),C.orange,false);
         cv.text('Individual controls remain available while driving.',962,450,16,t.dim);
     }
     function screens(cv,t,s) {
@@ -198,14 +208,24 @@ mgu.run({ async start(ctx) {
         donorBackdrop(cv,t,22,132,500,348); picture(cv,'rse',118,150,310,280);
         cv.text(on?'DISPLAY ON':'DISPLAY OFF',270,442,21,on?C.green:C.orange,{align:'center',font:'bold'});
         panel(cv,t,548,132,1022,348,'Remote control');
-        button(cv,t,578,178,210,52,'POWER ON',()=>run('RSE power',()=>rear.screenPower(side,true)),C.green,on);
-        button(cv,t,804,178,210,52,'POWER OFF',()=>run('RSE power',()=>rear.screenPower(side,false)),C.red,!on);
-        button(cv,t,1030,178,210,52,'SELECT DISPLAY',()=>run('RSE focus',()=>rear.screenFocus(side)),C.blue,false);
-        const keys=[['UP','direction','UP'],['LEFT','direction','LEFT'],['OK','direction','CENTER'],['RIGHT','direction','RIGHT'],['DOWN','direction','DOWN'],['HOME','command','HOME'],['BACK','command','BACK'],['PLAY','command','PLAY']];
-        keys.forEach((k,i)=>{const col=i%4,row=Math.floor(i/4);button(cv,t,578+col*224,254+row*68,206,50,k[0],()=>run('Remote '+k[0],()=>rear.remote(k[1],k[2])),C.blue,false);});
+        cv.text('DISPLAY',578,170,15,t.dim,{font:'bold'});
+        button(cv,t,578,184,196,48,'POWER ON',()=>run('RSE power',()=>rear.screenPower(side,true)),C.green,on);
+        button(cv,t,786,184,196,48,'POWER OFF',()=>run('RSE power',()=>rear.screenPower(side,false)),C.red,!on);
+        button(cv,t,578,246,404,48,'SELECT '+(side==='left'?'LEFT':'RIGHT')+' DISPLAY',()=>run('RSE focus',()=>rear.screenFocus(side)),C.blue,false);
         const b=finite(s.screens.brightness)?s.screens.brightness:50;
-        button(cv,t,1262,178,132,52,'DIM',()=>run('Brightness',()=>rear.screenBrightness(b-10)),C.orange,false);
-        button(cv,t,1410,178,132,52,'BRIGHT',()=>run('Brightness',()=>rear.screenBrightness(b+10)),C.orange,false);
+        button(cv,t,578,308,196,48,'DIM',()=>run('Brightness',()=>rear.screenBrightness(b-10)),C.orange,false);
+        button(cv,t,786,308,196,48,'BRIGHT',()=>run('Brightness',()=>rear.screenBrightness(b+10)),C.orange,false);
+
+        cv.text('NAVIGATION',1040,170,15,t.dim,{font:'bold'});
+        const remoteButton=(x,y,label,kind,key)=>button(cv,t,x,y,146,46,label,()=>run('Remote '+label,()=>rear.remote(kind,key)),C.blue,false);
+        remoteButton(1200,184,'UP','direction','UP');
+        remoteButton(1040,240,'LEFT','direction','LEFT');
+        remoteButton(1200,240,'OK','direction','CENTER');
+        remoteButton(1360,240,'RIGHT','direction','RIGHT');
+        remoteButton(1200,296,'DOWN','direction','DOWN');
+        remoteButton(1040,362,'HOME','command','HOME');
+        remoteButton(1200,362,'BACK','command','BACK');
+        remoteButton(1360,362,'PLAY','command','PLAY');
     }
     async function render(){
         const t=ctx.theme(),cv=ctx.canvas(W,H).clear('#0d1015'),s=rear.state;hits=[];actions=[];

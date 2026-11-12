@@ -1,15 +1,17 @@
 {
   "id": "telemetry_studio",
   "title": "Telemetry Studio",
-  "description": "Full-screen live powertrain, thermal, tyre and xDrive telemetry",
-  "version": "0.1.2",
+  "description": "Full-screen categorized live data from powertrain, thermal, chassis, tyre, climate and electrical sensors",
+  "version": "0.2.0",
   "vendor": "alexp50",
   "loggingId": "OAA9",
   "iconGlyph": "gauge",
   "signals": {
     "de.bmw.infotainment.vehicle.CDS": {
       "statusEngineSpeed2": "rs",
-      "statusEngineTemperature": "rs"
+      "statusEngineTemperature": "rs",
+      "statusEngineStatus": "rs",
+      "statusBattery2": "rs"
     },
     "de.bmw.infotainment.vehicle.CDS2": {
       "statusLongitudinalAccelerationMassCenter": "rs",
@@ -20,7 +22,8 @@
       "statusNewCurrentUnitsStatusExt": "rs"
     },
     "de.bmw.infotainment.vehicle.Vehicle2": {
-      "statusCarSpeed2": "rs"
+      "statusCarSpeed2": "rs",
+      "statusOilDipstick2": "rs"
     },
     "de.bmw.infotainment.drivingexcitement.FES": {
       "statusSwitchDriveDynamicSport2": "rs",
@@ -56,6 +59,26 @@
       "_broadcasts": [
         "sendTasuResponse"
       ]
+    },
+    "de.bmw.infotainment.KombiIF": {
+      "statusRangeTankStatus": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate2": {
+      "statusACFront": "rs",
+      "statusACFrontFunctions": "rs",
+      "statusTemperatureInside": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate": {
+      "statusClimateFond": "rs",
+      "statusACFond2": "rs",
+      "statusSeatHeatingDR": "rs",
+      "statusSeatHeatingPS": "rs",
+      "statusSeatHeatingDRR": "rs",
+      "statusSeatHeatingPSR": "rs",
+      "statusSeatClimateDR": "rs",
+      "statusSeatClimatePS": "rs",
+      "statusSeatClimateDRR": "rs",
+      "statusSeatClimatePSR": "rs"
     }
   },
   "screens": [
@@ -84,8 +107,12 @@
       "key": "page",
       "label": "Start page",
       "type": "choice",
-      "default": "engine",
+      "default": "overview",
       "options": [
+        [
+          "overview",
+          "Overview"
+        ],
         [
           "engine",
           "Engine"
@@ -101,6 +128,10 @@
         [
           "chassis",
           "Chassis"
+        ],
+        [
+          "comfort",
+          "Comfort / electrical"
         ]
       ]
     },

@@ -8,11 +8,11 @@
 * **Green Light Alert** `0.2.5` — Monitors the raw KAFAS traffic-light camera feed, with BMW's validated display signal as a fallback
 * **Hotspot Studio** `0.1.5` — Provides Huawei Internet proxies on BMW's hotspot and opens a timed single-client ENET relay on request
 * **Parking & Clearance** `0.1.8` — Read-only PDC distances, steering path and suspension stance for close parking
-* **Rear Comfort** `0.4.3` — G12 Executive Lounge control for rear climate, comfort seats, massage, shades and entertainment
+* **Rear Comfort** `0.4.4` — G12 Executive Lounge control for rear climate, comfort seats, massage, shades and entertainment
 * **Ride Height Studio** `0.6.0` — Full-screen VDP presets plus direct front/rear air-spring fill and vent control
 * **Road Trip Computer** `1.0.0` — Full-screen trip history with fuel use, fuel price, cost, range, outside temperature and GPS elevation
 * **Start/Stop Insight** `0.1.3` — Current and last ten observed Start/Stop inhibition states plus live electrical consumers
-* **Telemetry Studio** `0.1.2` — Full-screen live powertrain, thermal, tyre and xDrive telemetry
+* **Telemetry Studio** `0.2.0` — Full-screen categorized live data from powertrain, thermal, chassis, tyre, climate and electrical sensors
 * **Vehicle Health Center** `0.1.9` — Read-only overview of tyres, fluids, temperatures, service requirements, Check Control, DPF and current faults
 * **Vehicle Network** `0.1.3` — Live map of MGU interfaces, observed vehicle network devices and laptop IPv4 setup
 * **Waze HUD** `0.3.0` — Full-screen control for projecting the CarPlay navigation map into the head-up display

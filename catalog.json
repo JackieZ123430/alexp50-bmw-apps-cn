@@ -176,17 +176,17 @@
     {
       "id": "rear_comfort",
       "kind": "app",
-      "version": "0.4.3",
+      "version": "0.4.4",
       "title": "Rear Comfort",
       "description": "G12 Executive Lounge control for rear climate, comfort seats, massage, shades and entertainment",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "rear_comfort@0.4.3.tgz",
-        "size": 5613109,
-        "sha256": "74e777cf70150311c90c0e95d8e973266809f380aa28a59fa32bd1a8d16cb32b",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/rear_comfort@0.4.3/rear_comfort@0.4.3.tgz"
+        "name": "rear_comfort@0.4.4.tgz",
+        "size": 5616390,
+        "sha256": "23418a61a2c5eacb8cd4d8dc114cd875b6b27a29c730a32817f18ca702025acf",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/rear_comfort@0.4.4/rear_comfort@0.4.4.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -272,17 +272,17 @@
     {
       "id": "telemetry_studio",
       "kind": "app",
-      "version": "0.1.2",
+      "version": "0.2.0",
       "title": "Telemetry Studio",
-      "description": "Full-screen live powertrain, thermal, tyre and xDrive telemetry",
+      "description": "Full-screen categorized live data from powertrain, thermal, chassis, tyre, climate and electrical sensors",
       "mguHmi": [
         "ID7"
       ],
       "artifact": {
-        "name": "telemetry_studio@0.1.2.tgz",
-        "size": 1126101,
-        "sha256": "fd665a94dd4871fa179114c5e956bdd701490c1fdb724a0f20f6135fe92efec0",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/telemetry_studio@0.1.2/telemetry_studio@0.1.2.tgz"
+        "name": "telemetry_studio@0.2.0.tgz",
+        "size": 1113998,
+        "sha256": "7c6eaacdd2dbbb62a911dd4142ce1b9d46e7b80924669da32161c8600282cc7e",
+        "url": "https://github.com/alexp50/bmw-apps/releases/download/telemetry_studio@0.2.0/telemetry_studio@0.2.0.tgz"
       },
       "uninstallable": true,
       "requires": {
