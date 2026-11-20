@@ -225,12 +225,12 @@
       "kind": "app",
       "title": "行程电脑",
       "description": "全屏显示行程历史、油耗、油价、费用、续航、车外温度和 GPS 海拔",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "artifact": {
-        "name": "road_trip_computer@1.0.1.tgz",
-        "size": 1032526,
-        "sha256": "0a8a1de65d62befdca95dfa659845170078fe53c6a3d87719490827f9eb5f459",
-        "url": "https://github.com/JackieZ123430/MGU-CN-XIAOBAI/releases/download/source-refresh-2026-11-20/road_trip_computer%401.0.1.tgz"
+        "name": "road_trip_computer@1.0.2.tgz",
+        "size": 1059386,
+        "sha256": "02e59eca464f92106e0c7d1788d57f0776ff16aacc4fda15dc790c11fa86ccaa",
+        "url": "https://github.com/JackieZ123430/MGU-CN-XIAOBAI/releases/download/widget-chinese-r2-2026-11-20/road_trip_computer%401.0.2.tgz"
       },
       "requires": {
         "idrive7-renderd": "2.1.7",
