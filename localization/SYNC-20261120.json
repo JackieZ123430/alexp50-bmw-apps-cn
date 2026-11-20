@@ -1,0 +1,10 @@
+{
+  "previousOwnerHead": "c76a6b7528bd619b36f6fc4cc82439e4092dde7d",
+  "currentLocalizedUpstream": "4a337a5056da3a4a43beb314eb5e741b7681c2ca",
+  "conflictPolicy": "Current upstream behavior and refreshed localization retained for conflicts; clean owner changes preserved.",
+  "resolvedToCurrentSource": [
+    "kit/runtime/locales/zh-CN.json",
+    "kit/runtime/locales/zh-CN.tsv",
+    "kit/tools/localize.py"
+  ]
+}

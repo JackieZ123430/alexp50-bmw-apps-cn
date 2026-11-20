@@ -19,7 +19,8 @@ The release catalog includes the shared GPU renderer and controller gate. Waze H
 | App | Package | Purpose |
 | --- | --- | --- |
 | Ambient Studio | `ambient_studio_full` | Drive-mode ambient colours and rate-limited lighting alerts. Writes only the selected ambient-light colour. |
-| DPF Monitor | `dpf_monitor` | Read-only soot, regeneration estimate, temperatures, pressure and regeneration history. |
+| ADAS Feature Probe | `adas_feature_probe` | Reads BMW's live availability and ECU state for acoustic collision warning, driveaway prevention and Close Passing Assistant. Activation is offered only when BMW reports the selected function as operable. |
+| DPF Monitor | `dpf_monitor` | Read-only soot, current regeneration progress, next-regeneration time/distance estimate, temperatures, pressure and history. |
 | Drive HUD | `drive_hud_full` | HUD turn arrows, Sport gear/RPM/shift lights and engine warm-up information. |
 | Green Light Alert | `green_light_alert` | Watches the KAFAS traffic-light camera provider and BMW's validated display signal for red-to-green transitions. Experimental on region-restricted cars. |
 | Hotspot Studio | `hotspot_studio` | Shares the Huawei LTE uplink through BMW's hotspot. A parked-only Coding Gateway temporarily grants one selected client access to the ZGW. |
@@ -84,7 +85,7 @@ The Chinese atlas uses Noto Sans SC under the
 [SIL Open Font License](kit/runtime/fonts/OFL-NotoSansSC.txt).
 
 ```powershell
-python kit/tools/build.py ambient_studio_full dpf_monitor drive_hud_full front_camera_cluster green_light_alert hotspot_studio parking_clearance ride_height road_trip_computer start_stop_insight telemetry_studio vehicle_health vehicle_network waze_hud xdrive_studio
+python kit/tools/build.py adas_feature_probe ambient_studio_full dpf_monitor drive_hud_full front_camera_cluster green_light_alert hotspot_studio parking_clearance ride_height road_trip_computer start_stop_insight telemetry_studio vehicle_health vehicle_network waze_hud xdrive_studio
 node kit/tools/test_controller.js
 python tools/build_components.py
 python tools/prepare_release.py

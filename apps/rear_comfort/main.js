@@ -38,7 +38,7 @@ try {
 
 mgu.run({ async start(ctx) {
     let page = 0, selected = 0, side = 'right', notice = '', noticeGood = false;
-    let hits = [], actions = [], positionPart = 'seat';
+    let hits = [], actions = [], holdHits = [], activeHold = null, positionPart = 'seat';
     const rear = new RearControl(ctx.signals, ctx.log, () => {});
 
     function run(label, fn) {
@@ -59,6 +59,34 @@ mgu.run({ async start(ctx) {
         cv.roundRect(x, y, w, h, 7, on ? color : withAlpha(color, focus ? 0.25 : 0.09));
         cv.strokeRoundRect(x + 1, y + 1, w - 2, h - 2, 7, focus ? 3 : 1, focus ? '#ffffff' : withAlpha(color, 0.58));
         cv.text(label, x + w / 2, y + h / 2 + 7, 18, on ? '#11151a' : color, { align:'center', font:'bold' });
+        return i;
+    }
+    function heldSeatButton(cv,t,x,y,w,h,label,seatSide,seatAction,position,color) {
+        const tap = () => run(label, () => rear.moveSeat(seatSide, seatAction, 900, position));
+        const i = button(cv,t,x,y,w,h,label,tap,color,false);
+        const hit = { x,y,w,h };
+        hit.down = () => {
+            selected = i;
+            activeHold = hit;
+            notice = label + ' - hold to move'; noticeGood = false;
+            Promise.resolve().then(() => rear.moveSeat(seatSide, seatAction, 30000, position)).then((message) => {
+                if (activeHold === hit) {
+                    notice = message || label + ' complete'; noticeGood = true;
+                }
+            }).catch((e) => {
+                if (e && e.message === 'Seat movement stopped') return;
+                notice = short(e && e.message || e, 105); noticeGood = false; ctx.log.warn(notice);
+            });
+        };
+        hit.up = () => {
+            activeHold = null;
+            Promise.resolve(rear.stopSeatMovement()).then(() => {
+                notice = label + ' stopped'; noticeGood = true;
+            }).catch((e) => {
+                notice = short(e && e.message || e, 105); noticeGood = false; ctx.log.warn(notice);
+            });
+        };
+        holdHits.push(hit);
     }
     function panel(cv, t, x, y, w, h, label) {
         cv.roundRect(x, y, w, h, 5, withAlpha(t.text, 0.035));
@@ -115,7 +143,7 @@ mgu.run({ async start(ctx) {
         });
     }
     function climate(cv,t,s) {
-        sectionTitle(cv,t,'Climate comfort','Rear climate stays independent from the front climate system');
+        sectionTitle(cv,t,'Climate comfort','Rear controls stay independent; Sync applies the front settings to the rear');
         donorBackdrop(cv,t,22,132,760,348); picture(cv,'climate',38,145,728,324,'cover');
         picture(cv,'climateLeft',85,175,250,245); picture(cv,'climateRight',470,175,250,245);
         cv.text(temp(s.climate.left),210,235,46,C.cyan,{align:'center',font:'bold'});
@@ -128,46 +156,73 @@ mgu.run({ async start(ctx) {
             button(cv,t,x+216,405,100,46,'+',()=>run('Temperature',()=>rear.setClimateTemperature(which,(finite(v)?v:22)+1)),C.cyan,false);
         });
         panel(cv,t,812,132,758,348,'Rear climate control');
-        button(cv,t,838,184,222,55,'CLIMATE ON',()=>run('Rear climate on',()=>rear.climatePower(true)),C.green,!!s.climate.on);
-        button(cv,t,1076,184,222,55,'OFF',()=>run('Rear climate off',()=>rear.climatePower(false)),C.red,s.climate.on===false);
-        button(cv,t,1314,184,222,55,'AUTO',()=>run('Rear automatic',()=>rear.setClimateMode(true)),C.orange,!!s.climate.auto);
-        cv.text('Rear blower',840,285,19,t.dim,{font:'bold'}); cv.text(finite(s.climate.blower)?String(s.climate.blower):'--',1035,295,40,C.cyan,{align:'center',font:'bold'});
-        button(cv,t,838,320,190,52,'LOWER',()=>run('Rear blower',()=>rear.setBlower(Math.max(1,(s.climate.blower||2)-1))),C.cyan,false);
-        button(cv,t,1044,320,190,52,'RAISE',()=>run('Rear blower',()=>rear.setBlower(Math.min(9,(s.climate.blower||2)+1))),C.cyan,false);
-        cv.text('Front climate is never switched off by this page.',838,423,17,t.dim);
+        button(cv,t,838,184,160,55,'CLIMATE ON',()=>run('Rear climate on',()=>rear.climatePower(true)),C.green,!!s.climate.on);
+        button(cv,t,1012,184,160,55,'OFF',()=>run('Rear climate off',()=>rear.climatePower(false)),C.red,s.climate.on===false);
+        button(cv,t,1186,184,160,55,'AUTO',()=>run('Rear automatic',()=>rear.setClimateMode(true)),C.orange,!!s.climate.auto);
+        button(cv,t,1360,184,160,55,'SYNC',()=>run('Climate sync',()=>rear.setClimateSync(!s.climate.sync)),C.blue,!!s.climate.sync);
+        const blowerBase = finite(s.climate.blower) && !s.climate.auto ? s.climate.blower : 5;
+        cv.text('Rear blower',840,285,19,t.dim,{font:'bold'}); cv.text(s.climate.auto?'AUTO':(finite(s.climate.blower)?String(s.climate.blower):'--'),1035,295,40,C.cyan,{align:'center',font:'bold'});
+        button(cv,t,838,320,190,52,'LOWER',()=>run('Rear blower',()=>rear.setBlower(Math.max(1,blowerBase-1))),C.cyan,false);
+        button(cv,t,1044,320,190,52,'RAISE',()=>run('Rear blower',()=>rear.setBlower(Math.min(9,blowerBase+1))),C.cyan,false);
+        cv.text('Sync is front to rear. Rear controls never command the front zones.',838,423,17,t.dim);
     }
     function seatSetting(cv,t,s) {
-        sectionTitle(cv,t,'Seat setting','Touch Command layout - choose a rear seat and a function'); seatSelector(cv,t);
-        panel(cv,t,22,132,426,348,'Adopt seat position');
-        [1,2,3].forEach((slot,i)=>button(cv,t,48+i*110,178,94,54,String(slot),()=>run('Recall memory '+slot,()=>rear.recallSeatMemory(side,slot)),C.orange,false));
-        button(cv,t,48,246,142,52,'COMFORT',()=>run('Comfort position',()=>rear.recallSeatMemory(side,1)),C.orange,false);
-        button(cv,t,204,246,142,52,'RELAX',()=>run('Relax position',()=>rear.recallSeatMemory(side,2)),C.orange,false);
-        cv.text('Save seat position',46,336,21,t.text,{font:'bold'});
-        [1,2,3].forEach((slot,i)=>button(cv,t,48+i*110,360,94,54,String(slot),()=>run('Store memory '+slot,()=>rear.storeSeatMemory(side,slot)),C.orange2,false));
-        donorBackdrop(cv,t,470,132,1100,348);
-        picture(cv,'seatLeft',490,145,450,325); picture(cv,side==='right'?'seatRight':'seatPassenger',1040,140,490,334); picture(cv,'rse',902,218,205,196);
-        hotspot(cv,1268,192,'Head restraint',()=>{positionPart='head';setPage(2);});
-        hotspot(cv,1262,274,'Backrest',()=>{positionPart='back';setPage(2);});
-        hotspot(cv,1325,360,'Seat',()=>{positionPart='seat';setPage(2);});
-        hotspot(cv,1188,335,'Lumbar',()=>{positionPart='lumbar';setPage(2);});
-        hotspot(cv,985,335,'RSE',()=>setPage(6));
-        cv.text('Select an orange control point, then use MOVE.',770,458,17,t.dim);
-        const movement={seat:'motionSeat',back:'motionBack',head:'motionHead',lumbar:'motionLumbar',foot:'motionFoot'}[positionPart];
-        if(movement) picture(cv,movement,1040,140,490,334);
-        const moveMap={
-            seat:['SEAT_ADJUSTMENT_HORIZONTAL_FRONT','SEAT_ADJUSTMENT_HORIZONTAL_BACK'],
-            back:['SEAT_ADJUSTMENT_BACKREST_ANGLE_FRONT','SEAT_ADJUSTMENT_BACKREST_ANGLE_BACK'],
-            head:['SEAT_ADJUSTMENT_HEADREST_UP','SEAT_ADJUSTMENT_HEADREST_DOWN'],
-            foot:['SEAT_ADJUSTMENT_FOOTREST_SWING_OUT','SEAT_ADJUSTMENT_FOOTREST_RETRACT']
-        };
+        const commonParts=[
+            ['seat','FORE / AFT','FORWARD','BACKWARD','SEAT_ADJUSTMENT_HORIZONTAL_FRONT','SEAT_ADJUSTMENT_HORIZONTAL_BACK'],
+            ['height','HEIGHT','RAISE','LOWER','SEAT_ADJUSTMENT_VERTICAL_UP','SEAT_ADJUSTMENT_VERTICAL_DOWN'],
+            ['tilt','CUSHION TILT','TILT UP','TILT DOWN','SEAT_ADJUSTMENT_TILT_UP','SEAT_ADJUSTMENT_TILT_DOWN'],
+            ['back','BACKREST','UPRIGHT','RECLINE','SEAT_ADJUSTMENT_BACKREST_ANGLE_FRONT','SEAT_ADJUSTMENT_BACKREST_ANGLE_BACK'],
+            ['shoulder','UPPER BACKREST','FORWARD','BACKWARD','SEAT_ADJUSTMENT_BACKREST_HEAD_TO_FRONT','SEAT_ADJUSTMENT_BACKREST_HEAD_TO_BACK'],
+            ['depth','THIGH SUPPORT','EXTEND','RETRACT','SEAT_ADJUSTMENT_DEPTH_ENLARGE','SEAT_ADJUSTMENT_DEPTH_REDUCE'],
+            ['head','HEAD RESTRAINT','RAISE','LOWER','SEAT_ADJUSTMENT_HEADREST_UP','SEAT_ADJUSTMENT_HEADREST_DOWN'],
+            ['lumbar','LUMBAR','UP / DOWN','FIRM / SOFT',null,null]
+        ];
+        const rightParts=commonParts.concat([
+            ['foot','FOOTREST','EXTEND','RETRACT','SEAT_ADJUSTMENT_FOOTREST_SWING_OUT','SEAT_ADJUSTMENT_FOOTREST_RETRACT'],
+            ['front','FRONT PASSENGER','FORWARD','BACKWARD','SEAT_ADJUSTMENT_HORIZONTAL_FRONT','SEAT_ADJUSTMENT_HORIZONTAL_BACK']
+        ]);
+        const parts=side==='right'?rightParts:commonParts;
+        if(!parts.some((p)=>p[0]===positionPart)) positionPart='seat';
+        const selectedPart=parts.find((p)=>p[0]===positionPart)||parts[0];
+        const setSide=(next)=>()=>{side=next;positionPart='seat';selected=0;notice='';};
+
+        panel(cv,t,22,132,390,348,'Choose rear seat');
+        button(cv,t,42,176,168,50,'LEFT REAR',setSide('left'),C.orange,side==='left');
+        button(cv,t,222,176,168,50,'RIGHT REAR',setSide('right'),C.orange,side==='right');
+        cv.text('ONE-TOUCH POSITIONS',42,244,15,t.dim,{font:'bold'});
+        button(cv,t,42,255,168,43,'VISIBILITY',()=>run('Visibility position',()=>rear.visibilityMode()),C.orange2,!!s.seatModes.visibility);
+        button(cv,t,222,255,168,43,'RESET BOTH',()=>run('Reset rear seats',()=>rear.resetRearSeats()),C.orange,false);
+        button(cv,t,42,306,168,43,'LOUNGE ON',()=>run('Lounge on',()=>rear.loungeMode(true)),C.orange,!!s.seatModes.lounge);
+        button(cv,t,222,306,168,43,'LOUNGE OFF',()=>run('Lounge off',()=>rear.loungeMode(false)),C.orange2,s.seatModes.lounge===false);
+        button(cv,t,42,357,348,38,'STOP ALL MOVEMENT',()=>run('Stop seats',()=>rear.stopSeatMovement()),C.red,!!s.seatMotion.active);
+        cv.text('RECALL MEMORY',42,414,14,t.dim,{font:'bold'});
+        [1,2,3].forEach((slot,i)=>button(cv,t,42+i*76,425,68,38,String(slot),()=>run('Recall memory '+slot,()=>rear.recallSeatMemory(side,slot)),C.orange,false));
+        cv.text('SAVE',278,414,14,t.dim,{font:'bold'});
+        [1,2,3].forEach((slot,i)=>button(cv,t,278+i*37,425,32,38,String(slot),()=>run('Store memory '+slot,()=>rear.storeSeatMemory(side,slot)),C.orange2,false));
+
+        donorBackdrop(cv,t,430,132,550,348);
+        // The movement artwork is a complete scene. Layering it over the selected
+        // seat creates a double image, so render one side-specific scene only.
+        picture(cv,side==='left'?'seatLeft':'seatRight',455,143,500,300);
+        cv.roundRect(448,421,514,43,4,withAlpha('#000000',0.68));
+        cv.text((side==='left'?'LEFT REAR  |  ':'RIGHT REAR  |  ')+selectedPart[1],705,448,19,C.orange,{align:'center',font:'bold'});
+        if(s.seatMotion.active) cv.text(short(s.seatMotion.step||s.seatMotion.label,58),705,474,14,C.green,{align:'center'});
+
+        panel(cv,t,998,132,572,348,'Complete seat adjustment');
+        parts.forEach((p,i)=>{
+            const col=i%2,row=Math.floor(i/2);
+            button(cv,t,1016+col*272,174+row*47,258,40,p[1],()=>{positionPart=p[0];selected=0;},C.orange,positionPart===p[0]);
+        });
         if(positionPart==='lumbar'){
-            button(cv,t,485,410,140,46,'UP',()=>run('Lumbar up',()=>rear.lumbar(side,'LORDOSENTASTER_OBEN')),C.orange,false);
-            button(cv,t,635,410,140,46,'DOWN',()=>run('Lumbar down',()=>rear.lumbar(side,'LORDOSENTASTER_UNTEN')),C.orange,false);
-            button(cv,t,785,410,140,46,'FIRMER',()=>run('Lumbar firmer',()=>rear.lumbar(side,'LORDOSENTASTER_VOR')),C.orange,false);
-            button(cv,t,935,410,140,46,'SOFTER',()=>run('Lumbar softer',()=>rear.lumbar(side,'LORDOSENTASTER_ZURUECK')),C.orange,false);
-        } else if(moveMap[positionPart]) {
-            button(cv,t,485,410,190,46,'MOVE +',()=>run('Seat movement',()=>rear.moveSeat(side,moveMap[positionPart][0])),C.orange,false);
-            button(cv,t,688,410,190,46,'MOVE -',()=>run('Seat movement',()=>rear.moveSeat(side,moveMap[positionPart][1])),C.orange,false);
+            const y=414;
+            heldSeatButton(cv,t,1016,y,126,48,'UP',side,'LUMBAR_UP',undefined,C.orange);
+            heldSeatButton(cv,t,1150,y,126,48,'DOWN',side,'LUMBAR_DOWN',undefined,C.orange);
+            heldSeatButton(cv,t,1288,y,126,48,'FIRMER',side,'LUMBAR_INFLATE',undefined,C.orange);
+            heldSeatButton(cv,t,1422,y,126,48,'SOFTER',side,'LUMBAR_DEFLATE',undefined,C.orange);
+        } else {
+            const position=positionPart==='front'?'FRONT_RIGHT':undefined;
+            heldSeatButton(cv,t,1016,414,258,48,selectedPart[2],side,selectedPart[4],position,C.orange);
+            heldSeatButton(cv,t,1288,414,260,48,selectedPart[3],side,selectedPart[5],position,C.orange);
         }
     }
     function massage(cv,t,s) {
@@ -228,7 +283,7 @@ mgu.run({ async start(ctx) {
         remoteButton(1360,362,'PLAY','command','PLAY');
     }
     async function render(){
-        const t=ctx.theme(),cv=ctx.canvas(W,H).clear('#0d1015'),s=rear.state;hits=[];actions=[];
+        const t=ctx.theme(),cv=ctx.canvas(W,H).clear('#0d1015'),s=rear.state;hits=[];actions=[];holdHits=[];
         [overview,climate,seatSetting,massage,seatClimate,shades,screens][page](cv,t,s);
         selected=actions.length?Math.max(0,Math.min(selected,actions.length-1)):0;
         G.frame(cv,t,PAGES,page,[{text:'TOUCH COMMAND',color:C.orange},{text:rear.busy?'WORKING':'LIVE',color:rear.busy?C.orange2:C.green},{text:'60 FPS',color:C.cyan}]);
@@ -241,6 +296,19 @@ mgu.run({ async start(ctx) {
     ctx.ui.onClick('BTN_ACTION',()=>{if(actions[selected])actions[selected].fn();});
     ctx.ui.onClick('BTN_BACK',()=>setPage(0));
     ctx.onTab((i)=>setPage(i));
+    ctx.onTouch((phase,x,y)=>{
+        if(phase===1){
+            const h=holdHits.find(v=>x>=v.x&&x<v.x+v.w&&y>=v.y&&y<v.y+v.h);
+            if(!h) return false;
+            activeHold=h; h.down(); return true;
+        }
+        if(!activeHold) return false;
+        if(phase===3){
+            const h=activeHold;
+            h.up();
+        }
+        return true;
+    });
     ctx.onTap((x,y)=>{const h=hits.find(v=>x>=v.x&&x<v.x+v.w&&y>=v.y&&y<v.y+v.h);if(h)h.fn();});
     ctx.loop('MAIN',60,render); await rear.init();
 } });

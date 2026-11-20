@@ -33,17 +33,13 @@ def package_version(version, language):
     return version if language == 'en' else version + '-' + language.lower().replace('-', '.') + '.' + str(revisions.get(language, 1))
 
 
-def localize_spec(spec, language, *, keep_version=False):
+def localize_spec(spec, language):
     words = load_locale(language)
     s = copy.deepcopy(spec)
-    if not keep_version:
-        s['version'] = package_version(s['version'], language)
+    s['version'] = package_version(s['version'], language)
     s['title'] = text(s['title'], words)
-    if language != 'en':
-        if 'description' in s:
-            s['description'] = text(s['description'], words)
-        if 'name' in s.get('startWidget', {}):
-            s['startWidget']['name'] = text(s['startWidget']['name'], words)
+    if isinstance(s.get('startWidget'), dict) and 'name' in s['startWidget']:
+        s['startWidget']['name'] = text(s['startWidget']['name'], words)
     for screen in s.get('screens', []):
         if 'title' in screen:
             screen['title'] = text(screen['title'], words)
