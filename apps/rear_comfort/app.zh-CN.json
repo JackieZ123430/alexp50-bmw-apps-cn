@@ -1,0 +1,166 @@
+{
+  "id": "rear_comfort",
+  "title": "后排舒适控制",
+  "description": "G12 行政座舱后排空调、舒适座椅、按摩、遮阳帘及娱乐控制",
+  "version": "0.5.601",
+  "vendor": "alexp50",
+  "loggingId": "OARC",
+  "iconGlyph": "RC",
+  "signals": {
+    "de.bmw.infotainment.climate.Climate": {
+      "_instances": "1",
+      "climateFond": "w",
+      "acFond": "w",
+      "acSpecialFunction": "w",
+      "seatHeatingLamination": "w",
+      "statusClimateFond": "rs",
+      "statusACFond2": "rs",
+      "statusACFront": "rs",
+      "statusSeatHeatingDRR": "rs",
+      "statusSeatHeatingPSR": "rs",
+      "statusSeatClimateDRR": "rs",
+      "statusSeatClimatePSR": "rs"
+    },
+    "de.bmw.infotainment.misc.SeatFunction": {
+      "_instances": "1",
+      "controlSeatAdjustment": "w",
+      "controlSeatMemory": "w",
+      "statusRequestMMIDisplay": "rs"
+    },
+    "de.bmw.infotainment.misc.ComfortFunctionIuK": {
+      "_instances": "1",
+      "seatAdjustmentDRR": "w",
+      "seatAdjustmentPSR": "w",
+      "seatMassageRL": "w",
+      "seatMassageRR": "w",
+      "adjustmentLumbarRL": "w",
+      "adjustmentLumbarRR": "w",
+      "statusSeatMassageRL": "rs",
+      "statusSeatMassageRR": "rs",
+      "statusAdjustmentLumbarRL": "rs",
+      "statusAdjustmentLumbarRR": "rs"
+    },
+    "de.bmw.infotainment.vehicle.A4A": {
+      "_instances": "1",
+      "sunblind": "w",
+      "statusSunblind": "rs"
+    },
+    "com.harman.infotainment.systeminfrastructure.seatcommandproxy.seatcommandproxy.SeatCommandProxyCtrl": {
+      "_instances": "Inst1",
+      "_methods": [
+        "startSeatOperation",
+        "aliveSeatOperation",
+        "stopSeatOperation"
+      ],
+      "seatProxySeatOperationStatus": "rs"
+    },
+    "de.bmw.infotainment.lifecycle.lifecycle.Lifecycle": {
+      "_instances": "Front",
+      "_methods": [
+        "requestRSE",
+        "requestRSEEntertainmentMode"
+      ],
+      "rseHmiMenu": "rws",
+      "rseLock": "rws",
+      "rseLowPowerMode": "rws",
+      "theatreMode": "rws"
+    },
+    "de.bmw.infotainment.lifecycle.lifecyclerse.LifecycleRSE": {
+      "_instances": "Rear",
+      "_methods": [
+        "requestEntertainmentModeLeft",
+        "requestEntertainmentModeRight",
+        "leaveEntertainmentModeLeft",
+        "leaveEntertainmentModeRight"
+      ],
+      "focusIndicatorHMI": "rws",
+      "powerStateDetailedLeft": "rs",
+      "powerStateDetailedRight": "rs"
+    },
+    "de.bmw.infotainment.rseapplicationcontrol.RSEApplicationControl": {
+      "_instances": "3",
+      "_methods": [
+        "launchApp"
+      ],
+      "launchableApps": "rs"
+    },
+    "de.bmw.infotainment.rsecommandcontrol.RSECommandControl": {
+      "_instances": "3",
+      "_methods": [
+        "setVolumeStep"
+      ],
+      "currentVolume": "rs",
+      "rseMainSinkAudible": "rws"
+    },
+    "de.bmw.infotainment.rsedisplaycontrol.RSEDisplayControl": {
+      "_instances": "3",
+      "displayBrightness": "rws",
+      "displayState": "rws",
+      "normalModeReady": "rs"
+    },
+    "de.bmw.infotainment.rseremoteinput.RSERemoteInput": {
+      "_instances": "3",
+      "_methods": [
+        "sendCommandKey",
+        "sendDirectionKey"
+      ],
+      "remoteControlEnabled": "rs"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "后排舒适控制",
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "下一页"
+        ],
+        [
+          "BTN_SELECT",
+          "下一个控制项"
+        ],
+        [
+          "BTN_ACTION",
+          "启用"
+        ],
+        [
+          "BTN_BACK",
+          "概览"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "layout",
+      "label": "屏幕布局",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "全屏"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "渲染器",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 帧／秒"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "fullScreenRequired": true
+  }
+}

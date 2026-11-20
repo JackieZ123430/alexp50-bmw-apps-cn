@@ -1,0 +1,79 @@
+{
+  "id": "vehicle_network",
+  "title": "车辆网络",
+  "description": "显示 MGU 网络接口、观测到的车辆网络设备和电脑 IPv4 设置",
+  "version": "0.1.301",
+  "vendor": "alexp50",
+  "loggingId": "OAB6",
+  "iconGlyph": "IP",
+  "signals": {},
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "车辆网络",
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "下一个分区"
+        ],
+        [
+          "BTN_MORE",
+          "更多行"
+        ],
+        [
+          "BTN_REFRESH",
+          "立即刷新"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "demo",
+      "label": "演示数据",
+      "type": "choice",
+      "default": "off",
+      "options": [
+        [
+          "off",
+          "从不"
+        ],
+        [
+          "on",
+          "始终"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "屏幕布局",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "全屏"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "渲染器",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 帧／秒"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "stateFile": "/var/opt/vehicle-network-observer/state.json",
+    "fullScreenRequired": true
+  }
+}

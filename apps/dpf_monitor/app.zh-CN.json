@@ -1,0 +1,183 @@
+{
+  "id": "dpf_monitor",
+  "title": "颗粒捕集器监控",
+  "description": "只读监测柴油颗粒捕集器积碳、再生进度、温度、压差及历史记录",
+  "version": "0.4.1",
+  "vendor": "alexp50",
+  "loggingId": "OAA3",
+  "iconGlyph": "DPF",
+  "signals": {
+    "com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu": {
+      "_instances": "SystemFunctionsInternalTasuInst1",
+      "_methods": [
+        "sendTasuRequest"
+      ],
+      "_broadcasts": [
+        "sendTasuResponse"
+      ]
+    },
+    "de.bmw.infotainment.vehicle.CDS": {
+      "statusEngineTemperature": "rs"
+    },
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "statusCarSpeed2": "rs"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "颗粒捕集器监控",
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "下一页"
+        ],
+        [
+          "BTN_ACTION",
+          "刷新"
+        ],
+        [
+          "BTN_SETTINGS",
+          "设置"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "variantPolicy",
+      "label": "DDE 版本",
+      "type": "choice",
+      "default": "verified",
+      "options": [
+        [
+          "verified",
+          "仅限已验证的 D70／D75／D83"
+        ],
+        [
+          "compatible",
+          "尝试兼容 DDE（尚未验证）"
+        ]
+      ]
+    },
+    {
+      "key": "liveInterval",
+      "label": "实时刷新间隔",
+      "type": "number",
+      "unit": "s",
+      "default": 2,
+      "steps": [
+        1,
+        2,
+        3,
+        5,
+        10
+      ]
+    },
+    {
+      "key": "regenTarget",
+      "label": "预计再生结束碳烟量",
+      "type": "number",
+      "unit": "g",
+      "default": 6,
+      "markDefault": true,
+      "steps": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        10
+      ]
+    },
+    {
+      "key": "tempUnit",
+      "label": "温度",
+      "type": "choice",
+      "default": "C",
+      "options": [
+        [
+          "C",
+          "摄氏度"
+        ],
+        [
+          "F",
+          "华氏度"
+        ]
+      ]
+    },
+    {
+      "key": "theme",
+      "label": "配色主题",
+      "type": "choice",
+      "default": "m_tricolour",
+      "options": [
+        [
+          "m_tricolour",
+          "M 三色"
+        ],
+        [
+          "ice",
+          "冰晶白"
+        ],
+        [
+          "amber",
+          "夜间琥珀"
+        ],
+        [
+          "m_red",
+          "M 红色"
+        ]
+      ]
+    },
+    {
+      "key": "demo",
+      "label": "演示数据",
+      "type": "choice",
+      "default": "off",
+      "reset": 1,
+      "options": [
+        [
+          "off",
+          "从不"
+        ],
+        [
+          "on",
+          "始终"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "屏幕布局",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "全屏"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "渲染器",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 帧／秒"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "ddeAddress": 18,
+    "readOnly": true,
+    "fullScreenRequired": true
+  }
+}

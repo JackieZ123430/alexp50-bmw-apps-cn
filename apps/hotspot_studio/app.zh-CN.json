@@ -1,0 +1,101 @@
+{
+  "id": "hotspot_studio",
+  "title": "热点工作室",
+  "description": "通过宝马热点提供华为网络代理，并按需开启单客户端限时 ENET 转发",
+  "version": "0.1.501",
+  "vendor": "alexp50",
+  "loggingId": "OAB7",
+  "iconGlyph": "NET",
+  "signals": {
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "_instances": "1",
+      "statusCarSpeed2": "rs"
+    },
+    "de.bmw.infrastructure.VehicleInformation": {
+      "_instances": "1",
+      "statusGearboxDrive": "s",
+      "DataPowerTrain2": "s"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "热点工作室",
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "下一页"
+        ],
+        [
+          "BTN_ACTION",
+          "主要操作"
+        ],
+        [
+          "BTN_CLIENT",
+          "下一个客户端"
+        ],
+        [
+          "BTN_REFRESH",
+          "刷新"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "codingMinutes",
+      "label": "编码网关超时",
+      "type": "choice",
+      "default": "20",
+      "options": [
+        [
+          "10",
+          "10 分钟"
+        ],
+        [
+          "20",
+          "20 分钟"
+        ],
+        [
+          "30",
+          "30 分钟"
+        ],
+        [
+          "60",
+          "60 分钟"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "屏幕布局",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "全屏"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "渲染器",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 帧／秒"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "fullScreenRequired": true,
+    "socket": "/run/hotspot-studio/control.sock"
+  }
+}

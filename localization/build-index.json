@@ -1,0 +1,95 @@
+{
+  "source": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn",
+  "apps": {
+    "ambient_studio_full": {
+      "path": "apps/ambient_studio_full",
+      "kitRoot": ".",
+      "version": "0.1.501",
+      "upstreamVersion": "0.1.5"
+    },
+    "dpf_monitor": {
+      "path": "apps/dpf_monitor",
+      "kitRoot": ".",
+      "version": "0.4.1",
+      "upstreamVersion": "0.4.0"
+    },
+    "drive_hud_full": {
+      "path": "apps/drive_hud_full",
+      "kitRoot": ".",
+      "version": "0.1.601",
+      "upstreamVersion": "0.1.6"
+    },
+    "front_camera_cluster": {
+      "path": "apps/front_camera_cluster",
+      "kitRoot": ".",
+      "version": "0.2.101",
+      "upstreamVersion": "0.2.1"
+    },
+    "green_light_alert": {
+      "path": "apps/green_light_alert",
+      "kitRoot": ".",
+      "version": "0.2.501",
+      "upstreamVersion": "0.2.5"
+    },
+    "hotspot_studio": {
+      "path": "apps/hotspot_studio",
+      "kitRoot": ".",
+      "version": "0.1.501",
+      "upstreamVersion": "0.1.5"
+    },
+    "parking_clearance": {
+      "path": "apps/parking_clearance",
+      "kitRoot": ".",
+      "version": "0.1.801",
+      "upstreamVersion": "0.1.8"
+    },
+    "rear_comfort": {
+      "path": "apps/rear_comfort",
+      "kitRoot": ".",
+      "version": "0.5.601",
+      "upstreamVersion": "0.5.6"
+    },
+    "ride_height": {
+      "path": "apps/ride_height",
+      "kitRoot": ".",
+      "version": "0.6.1",
+      "upstreamVersion": "0.6.0"
+    },
+    "road_trip_computer": {
+      "path": "apps/road_trip_computer",
+      "kitRoot": ".",
+      "version": "1.0.1",
+      "upstreamVersion": "1.0.0"
+    },
+    "start_stop_insight": {
+      "path": "apps/start_stop_insight",
+      "kitRoot": ".",
+      "version": "0.1.301",
+      "upstreamVersion": "0.1.3"
+    },
+    "telemetry_studio": {
+      "path": "apps/telemetry_studio",
+      "kitRoot": ".",
+      "version": "0.2.1",
+      "upstreamVersion": "0.2.0"
+    },
+    "vehicle_health": {
+      "path": "apps/vehicle_health",
+      "kitRoot": ".",
+      "version": "0.1.901",
+      "upstreamVersion": "0.1.9"
+    },
+    "vehicle_network": {
+      "path": "apps/vehicle_network",
+      "kitRoot": ".",
+      "version": "0.1.301",
+      "upstreamVersion": "0.1.3"
+    },
+    "xdrive_studio": {
+      "path": "apps/xdrive_studio",
+      "kitRoot": ".",
+      "version": "0.1.501",
+      "upstreamVersion": "0.1.5"
+    }
+  }
+}

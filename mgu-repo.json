@@ -1,23 +1,466 @@
 {
   "schema": 1,
-  "apps": {
-    "path": "apps/*",
-    "manifest": "app.json",
-    "icon": "icon.png",
-    "mguHmi": ["ID7"],
-    "requires": {"idrive7-renderd": "2.1.7", "mgu-inputgate": "1.0.0"},
-    "build": {
-      "python": "kit/tools/build.py",
-      "args": ["{id}"],
-      "sdk": "oap-sdk",
-      "output": "dist/{id}@{version}.tgz"
+  "components": [
+    {
+      "id": "ambient_studio_full",
+      "kind": "app",
+      "path": "apps/ambient_studio_full",
+      "manifest": "app.zh-CN.json",
+      "title": "氛围灯工作室",
+      "description": "全屏设置驾驶模式配色和氛围灯提醒",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "dpf_monitor",
+      "kind": "app",
+      "path": "apps/dpf_monitor",
+      "manifest": "app.zh-CN.json",
+      "title": "颗粒捕集器监控",
+      "description": "只读监测柴油颗粒捕集器积碳、再生进度、温度、压差及历史记录",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "drive_hud_full",
+      "kind": "app",
+      "path": "apps/drive_hud_full",
+      "manifest": "app.zh-CN.json",
+      "title": "行车 HUD",
+      "description": "全屏设置 HUD 转向箭头、运动挡位和转速、换挡提示及发动机暖机信息",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "cluster-render": "0.3.10"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "front_camera_cluster",
+      "kind": "app",
+      "path": "apps/front_camera_cluster",
+      "manifest": "app.zh-CN.json",
+      "title": "仪表夜视",
+      "description": "全屏控制宝马夜视和泊车摄像头在仪表中的显示",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "front-camera-cluster-helper": "0.2.1"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "green_light_alert",
+      "kind": "app",
+      "path": "apps/green_light_alert",
+      "manifest": "app.zh-CN.json",
+      "title": "绿灯提醒",
+      "description": "监测 KAFAS 原始红绿灯信号，并以宝马已验证的显示信号作为后备",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "hotspot_studio",
+      "kind": "app",
+      "path": "apps/hotspot_studio",
+      "manifest": "app.zh-CN.json",
+      "title": "热点工作室",
+      "description": "通过宝马热点提供华为网络代理，并按需开启单客户端限时 ENET 转发",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "hotspot-studio-helper": "0.1.7"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "parking_clearance",
+      "kind": "app",
+      "path": "apps/parking_clearance",
+      "manifest": "app.zh-CN.json",
+      "title": "泊车与间距",
+      "description": "只读显示 PDC 距离、转向轨迹和悬架姿态",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "rear_comfort",
+      "kind": "app",
+      "path": "apps/rear_comfort",
+      "manifest": "app.zh-CN.json",
+      "title": "后排舒适控制",
+      "description": "G12 行政座舱后排空调、舒适座椅、按摩、遮阳帘及娱乐控制",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "ride_height",
+      "kind": "app",
+      "path": "apps/ride_height",
+      "manifest": "app.zh-CN.json",
+      "title": "车身高度工作室",
+      "description": "全屏设置 VDP 预设及前后空气弹簧充放气",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "road_trip_computer",
+      "kind": "app",
+      "path": "apps/road_trip_computer",
+      "manifest": "app.zh-CN.json",
+      "title": "旅程电脑",
+      "description": "全屏显示行程历史、油耗、油价、费用、续航、车外温度和 GPS 海拔",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "start_stop_insight",
+      "kind": "app",
+      "path": "apps/start_stop_insight",
+      "manifest": "app.zh-CN.json",
+      "title": "启停分析",
+      "description": "显示当前及最近十条自动启停抑制状态，以及实时用电负载",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "telemetry_studio",
+      "kind": "app",
+      "path": "apps/telemetry_studio",
+      "manifest": "app.zh-CN.json",
+      "title": "遥测工作室",
+      "description": "分类全屏显示动力、热管理、底盘、轮胎、空调和电气实时数据",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "vehicle_health",
+      "kind": "app",
+      "path": "apps/vehicle_health",
+      "manifest": "app.zh-CN.json",
+      "title": "车辆健康中心",
+      "description": "只读查看轮胎、油液、温度、保养需求、检查控制、DPF 和当前故障",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "vehicle_network",
+      "kind": "app",
+      "path": "apps/vehicle_network",
+      "manifest": "app.zh-CN.json",
+      "title": "车辆网络",
+      "description": "显示 MGU 网络接口、观测到的车辆网络设备和电脑 IPv4 设置",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0",
+        "vehicle-network-observer": "0.1.2"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
+    },
+    {
+      "id": "xdrive_studio",
+      "kind": "app",
+      "path": "apps/xdrive_studio",
+      "manifest": "app.zh-CN.json",
+      "title": "xDrive 工作室",
+      "description": "只读查看 xDrive 扭矩分配、分动箱扭矩、车轮滑差和底盘动态",
+      "mguHmi": [
+        "ID7"
+      ],
+      "requires": {
+        "idrive7-renderd": "2.1.7",
+        "mgu-inputgate": "1.0.0"
+      },
+      "icon": "icon.png",
+      "build": {
+        "python": "localization/build_zh_cn.py",
+        "args": [
+          "{id}"
+        ],
+        "sdk": "oap-sdk",
+        "output": "dist/{id}@{version}.tgz",
+        "shared": [
+          "kit",
+          "apps",
+          "localization"
+        ]
+      }
     }
-  },
+  ],
   "tools": [
-    {"id": "front-camera-cluster-helper", "path": "components/front-camera-cluster"},
-    {"id": "hotspot-studio-helper", "path": "components/hotspot-studio-helper"},
-    {"id": "vehicle-network-observer", "path": "components/vehicle-network-observer"},
-    {"id": "waze-hud-control", "path": "components/waze-hud-control"},
-    {"id": "remote-telemetry-bridge", "path": "components/remote-telemetry-bridge"}
+    {
+      "id": "front-camera-cluster-helper",
+      "path": "components/front-camera-cluster"
+    },
+    {
+      "id": "hotspot-studio-helper",
+      "path": "components/hotspot-studio-helper"
+    },
+    {
+      "id": "vehicle-network-observer",
+      "path": "components/vehicle-network-observer"
+    },
+    {
+      "id": "waze-hud-control",
+      "path": "components/waze-hud-control"
+    },
+    {
+      "id": "remote-telemetry-bridge",
+      "path": "components/remote-telemetry-bridge"
+    }
   ]
 }

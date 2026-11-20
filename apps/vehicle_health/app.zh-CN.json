@@ -1,0 +1,167 @@
+{
+  "id": "vehicle_health",
+  "title": "车辆健康中心",
+  "description": "只读查看轮胎、油液、温度、保养需求、检查控制、DPF 和当前故障",
+  "version": "0.1.901",
+  "vendor": "alexp50",
+  "loggingId": "OAAB",
+  "iconGlyph": "health",
+  "signals": {
+    "com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu": {
+      "_instances": "SystemFunctionsInternalTasuInst1",
+      "_methods": [
+        "sendTasuRequest"
+      ],
+      "_broadcasts": [
+        "sendTasuResponse"
+      ]
+    },
+    "de.bmw.infotainment.vehicle.CDS": {
+      "statusEngineTemperature": "rs",
+      "statusEngineStatus": "rs",
+      "statusBattery2": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate2": {
+      "airConditionParkFunctions": "w",
+      "operationAirConditioningFront": "w",
+      "operationStratificationSeatHeating": "w",
+      "statusACFront": "rs",
+      "statusACFrontFunctions": "rs",
+      "statusAirConditionDRStatus": "rs",
+      "statusAirConditionPSStatus": "rs",
+      "statusAirConditionParkFunctions": "rs",
+      "statusPreconditioningParkAirConditioning": "rs",
+      "statusTemperatureInside": "rs"
+    },
+    "de.bmw.infotainment.climate.Climate": {
+      "acFond": "w",
+      "acSpecialFunction": "w",
+      "operationStratificationSeatHeating": "w",
+      "seatHeatingLamination": "w",
+      "statusSeatClimateDR": "rs",
+      "statusSeatClimateDRR": "rs",
+      "statusSeatClimatePS": "rs",
+      "statusSeatClimatePSR": "rs",
+      "statusSeatHeatingDR": "rs",
+      "statusSeatHeatingDRR": "rs",
+      "statusSeatHeatingPS": "rs",
+      "statusSeatHeatingPSR": "rs",
+      "statusACFond2": "rs",
+      "statusACFront": "rs"
+    },
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "statusOilDipstick2": "rs",
+      "statusCarSpeed2": "rs"
+    },
+    "de.bmw.infotainment.vehicle.TPMS": {
+      "statusTyrePressure": "rs",
+      "statusTyreTemperature": "rs",
+      "statusTargetTyrePressure": "rs"
+    },
+    "de.bmw.infotainment.KombiIF": {
+      "statusRangeTankStatus": "rs"
+    },
+    "de.bmw.infotainment.KombiInterface_2": {
+      "cbsDataServiceList": "rs",
+      "cbsDataSBA": "rs"
+    },
+    "de.bmw.infotainment.checkcontrol.CheckControlMaster": {
+      "basicList": "rs"
+    },
+    "de.bmw.infrastructure.EnvironmentalInformation": {
+      "ExteriorTemperature": "s"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "车辆健康中心",
+      "settingsTab": false,
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "下一页"
+        ],
+        [
+          "BTN_SCAN",
+          "扫描当前故障"
+        ],
+        [
+          "BTN_SETTINGS",
+          "设置"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "autoScan",
+      "label": "打开时扫描当前故障",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "tempUnit",
+      "label": "温度",
+      "type": "choice",
+      "default": "C",
+      "options": [
+        [
+          "C",
+          "摄氏度"
+        ],
+        [
+          "F",
+          "华氏度"
+        ]
+      ]
+    },
+    {
+      "key": "demo",
+      "label": "演示数据",
+      "type": "choice",
+      "default": "off",
+      "options": [
+        [
+          "off",
+          "从不"
+        ],
+        [
+          "on",
+          "始终"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "屏幕布局",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "全屏"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "渲染器",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 帧／秒"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "ddeAddress": 18,
+    "fullScreenRequired": true
+  }
+}

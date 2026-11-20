@@ -1,0 +1,99 @@
+{
+  "id": "start_stop_insight",
+  "title": "启停分析",
+  "description": "显示当前及最近十条自动启停抑制状态，以及实时用电负载",
+  "version": "0.1.301",
+  "vendor": "alexp50",
+  "loggingId": "OAB3",
+  "iconGlyph": "A↻",
+  "signals": {
+    "com.harman.infotainment.systemfunctions.tasu.tasu.InternalTasu": {
+      "_instances": "SystemFunctionsInternalTasuInst1",
+      "_methods": [
+        "sendTasuRequest"
+      ],
+      "_broadcasts": [
+        "sendTasuResponse"
+      ]
+    },
+    "de.bmw.infotainment.vehicle.CDS": {
+      "statusEngineTemperature": "rs",
+      "statusEngineStatus": "rs"
+    },
+    "de.bmw.infotainment.vehicle.Vehicle2": {
+      "statusCarSpeed2": "rs"
+    }
+  },
+  "screens": [
+    {
+      "name": "MAIN",
+      "kind": "canvas",
+      "title": "启停分析",
+      "settingsTab": false,
+      "buttons": [
+        [
+          "BTN_PAGE",
+          "下一页"
+        ],
+        [
+          "BTN_ACTION",
+          "刷新"
+        ],
+        [
+          "BTN_SETTINGS",
+          "设置"
+        ]
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key": "demo",
+      "label": "演示数据",
+      "type": "choice",
+      "default": "off",
+      "reset": 1,
+      "options": [
+        [
+          "off",
+          "从不"
+        ],
+        [
+          "on",
+          "始终"
+        ]
+      ]
+    },
+    {
+      "key": "layout",
+      "label": "屏幕布局",
+      "type": "choice",
+      "default": "full",
+      "reset": 2,
+      "options": [
+        [
+          "full",
+          "全屏"
+        ]
+      ]
+    },
+    {
+      "key": "renderer",
+      "label": "渲染器",
+      "type": "choice",
+      "default": "auto",
+      "reset": 2,
+      "options": [
+        [
+          "auto",
+          "GPU 60 帧／秒"
+        ]
+      ]
+    }
+  ],
+  "config": {
+    "ddeAddress": 18,
+    "readOnly": true,
+    "fullScreenRequired": true
+  }
+}
