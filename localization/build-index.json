@@ -58,7 +58,7 @@
     "road_trip_computer": {
       "path": "apps/road_trip_computer",
       "kitRoot": ".",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "upstreamVersion": "1.0.0"
     },
     "start_stop_insight": {

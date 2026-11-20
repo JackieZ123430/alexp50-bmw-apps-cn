@@ -2,7 +2,7 @@
   "id": "road_trip_computer",
   "title": "旅程电脑",
   "description": "全屏显示行程历史、油耗、油价、费用、续航、车外温度和 GPS 海拔",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "vendor": "alexp50",
   "loggingId": "OAB5",
   "iconGlyph": "gauge",
