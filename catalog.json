@@ -15,7 +15,7 @@
         "name": "adas_feature_probe@0.1.0.tgz",
         "size": 1096164,
         "sha256": "92ab55cf93999e990a4ab716657360f82de8bbac486d5de21d2d08a668bcda7e",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/adas_feature_probe@0.1.0/adas_feature_probe@0.1.0.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/adas_feature_probe@0.1.0/adas_feature_probe@0.1.0.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -39,7 +39,7 @@
         "name": "ambient_studio_full@0.1.5.tgz",
         "size": 1102577,
         "sha256": "0c533d017fcae20d76572e1d609705c3e9de5c84f9114816ef55760c9bd55979",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/ambient_studio_full@0.1.5/ambient_studio_full@0.1.5.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/ambient_studio_full@0.1.5/ambient_studio_full@0.1.5.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -63,7 +63,7 @@
         "name": "dpf_monitor@0.4.0.tgz",
         "size": 1088657,
         "sha256": "2072daeb48c9119d306601af12acb0ddd2876a051fb7f0436cdc0796ea434ea6",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/dpf_monitor@0.4.0/dpf_monitor@0.4.0.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/dpf_monitor@0.4.0/dpf_monitor@0.4.0.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -87,7 +87,7 @@
         "name": "drive_hud_full@0.1.6.tgz",
         "size": 1098138,
         "sha256": "d3c57b8d7f1de244e6dfd048a610175c2657e04d3164f27929b2ca6c9aa061ea",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/drive_hud_full@0.1.6/drive_hud_full@0.1.6.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/drive_hud_full@0.1.6/drive_hud_full@0.1.6.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -112,7 +112,7 @@
         "name": "green_light_alert@0.2.5.tgz",
         "size": 1100698,
         "sha256": "2d7ccae833ef0bfa6e6e04009d0532308f0686d948c18327eafdbe84cc7a3735",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/green_light_alert@0.2.5/green_light_alert@0.2.5.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/green_light_alert@0.2.5/green_light_alert@0.2.5.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -136,7 +136,7 @@
         "name": "hotspot_studio@0.1.5.tgz",
         "size": 1112801,
         "sha256": "3dd1a3d5626ab16dc4b0f7e612bf0ed23bc2825afd1f7adbbc08ad805e51a668",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot_studio@0.1.5/hotspot_studio@0.1.5.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/hotspot_studio@0.1.5/hotspot_studio@0.1.5.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -161,7 +161,7 @@
         "name": "front_camera_cluster@0.2.1.tgz",
         "size": 1094471,
         "sha256": "110dadc9901303c4f4a7285c4bf9e8c5ad16606b1deb04fd9ba40bea68cced20",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/front_camera_cluster@0.2.1/front_camera_cluster@0.2.1.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/front_camera_cluster@0.2.1/front_camera_cluster@0.2.1.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -186,7 +186,7 @@
         "name": "parking_clearance@0.1.8.tgz",
         "size": 1324313,
         "sha256": "58a135ec1941265184c3661a573a80f0886e9e6dc900eddce6831c4bbbfa8165",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/parking_clearance@0.1.8/parking_clearance@0.1.8.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/parking_clearance@0.1.8/parking_clearance@0.1.8.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -210,7 +210,7 @@
         "name": "rear_comfort@0.5.6.tgz",
         "size": 5364694,
         "sha256": "bf0b26e94063d453076638507089990021094c87211aec195c78904792f1254d",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/rear_comfort@0.5.6/rear_comfort@0.5.6.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/rear_comfort@0.5.6/rear_comfort@0.5.6.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -234,7 +234,7 @@
         "name": "ride_height@0.6.0.tgz",
         "size": 1095108,
         "sha256": "5b73f3279e1f8a9f191bf24e8546ff44c12002a8904d0ce5fa3e74b8b71bb383",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/ride_height@0.6.0/ride_height@0.6.0.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/ride_height@0.6.0/ride_height@0.6.0.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -258,7 +258,7 @@
         "name": "road_trip_computer@1.0.0.tgz",
         "size": 1175267,
         "sha256": "98175136b308be8d83748e3ece7c9a56d0cb19a2570da92729d3c51803f13dbf",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/road_trip_computer@1.0.0/road_trip_computer@1.0.0.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/road_trip_computer@1.0.0/road_trip_computer@1.0.0.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -282,7 +282,7 @@
         "name": "start_stop_insight@0.1.3.tgz",
         "size": 1098120,
         "sha256": "bf50e361b375dfc0707c92908c56dfc1d691c2ff5a9fa2c6981df7f77b896e38",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/start_stop_insight@0.1.3/start_stop_insight@0.1.3.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/start_stop_insight@0.1.3/start_stop_insight@0.1.3.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -306,7 +306,7 @@
         "name": "telemetry_studio@0.2.0.tgz",
         "size": 1113998,
         "sha256": "7c6eaacdd2dbbb62a911dd4142ce1b9d46e7b80924669da32161c8600282cc7e",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/telemetry_studio@0.2.0/telemetry_studio@0.2.0.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/telemetry_studio@0.2.0/telemetry_studio@0.2.0.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -330,7 +330,7 @@
         "name": "vehicle_health@0.1.9.tgz",
         "size": 1096954,
         "sha256": "fb74d69a2dd90c7b99b7e9ec1b799ac9a47ae5142d7fc2d28fae05b7cccdf9a4",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_health@0.1.9/vehicle_health@0.1.9.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/vehicle_health@0.1.9/vehicle_health@0.1.9.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -354,7 +354,7 @@
         "name": "vehicle_network@0.1.3.tgz",
         "size": 1099746,
         "sha256": "0cf5231634f621be41aae7d7466efd91baccc112723eec0637b57d1a790fc29a",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle_network@0.1.3/vehicle_network@0.1.3.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/vehicle_network@0.1.3/vehicle_network@0.1.3.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -379,7 +379,7 @@
         "name": "waze_hud@0.3.0.tgz",
         "size": 1095845,
         "sha256": "ecdd40e269b9eeb418381a91e9aa4bbfab020754bc1faec54af6bbc861441ab8",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/waze_hud@0.3.0/waze_hud@0.3.0.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/waze_hud@0.3.0/waze_hud@0.3.0.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -404,7 +404,7 @@
         "name": "xdrive_studio@0.1.5.tgz",
         "size": 1229885,
         "sha256": "8edd739daba2ffc0476ca2b7c4517b7c0d6fe4dbcd35773dae6e888ed0e11143",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/xdrive_studio@0.1.5/xdrive_studio@0.1.5.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/xdrive_studio@0.1.5/xdrive_studio@0.1.5.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -428,7 +428,7 @@
         "name": "hotspot-studio-helper@0.1.7.tgz",
         "size": 9437,
         "sha256": "a2350a9d330008649f3cbe948f48d018be3a97f5cf179a5ab0305b1198ab135a",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/hotspot-studio-helper@0.1.7/hotspot-studio-helper@0.1.7.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/hotspot-studio-helper@0.1.7/hotspot-studio-helper@0.1.7.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -450,7 +450,7 @@
         "name": "front-camera-cluster-helper@0.2.1.tgz",
         "size": 4006,
         "sha256": "394076ef83aa204b6902ee20afe9a839f19f67296a6c8b530885df6ae1e07dd4",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/front-camera-cluster-helper@0.2.1/front-camera-cluster-helper@0.2.1.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/front-camera-cluster-helper@0.2.1/front-camera-cluster-helper@0.2.1.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -471,7 +471,7 @@
         "name": "remote-telemetry-bridge@0.3.0.tgz",
         "size": 17661,
         "sha256": "390701235ad4094d792da2dd92f7dd82f403471292d5a78c2f64ef4a5525f1d7",
-        "url": "https://raw.githubusercontent.com/alexp50/bmw-apps/main/packages/remote-telemetry-bridge@0.3.0.tgz"
+        "url": "https://raw.githubusercontent.com/JackieZ123430/alexp50-bmw-apps-cn/main/packages/remote-telemetry-bridge@0.3.0.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -493,7 +493,7 @@
         "name": "vehicle-network-observer@0.1.2.tgz",
         "size": 5887,
         "sha256": "216a50ffbe3e5b64524b7a2bb89a752a0f30aea197493455028236f9e690a715",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/vehicle-network-observer@0.1.2/vehicle-network-observer@0.1.2.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/vehicle-network-observer@0.1.2/vehicle-network-observer@0.1.2.tgz"
       },
       "uninstallable": true,
       "requires": {
@@ -514,7 +514,7 @@
         "name": "waze-hud-control@0.3.0.tgz",
         "size": 3201,
         "sha256": "26f324ccfa58f42a17b78c11321bd9413c5fb83c71f5d46dff44195fbc764f57",
-        "url": "https://github.com/alexp50/bmw-apps/releases/download/waze-hud-control@0.3.0/waze-hud-control@0.3.0.tgz"
+        "url": "https://github.com/JackieZ123430/alexp50-bmw-apps-cn/releases/download/waze-hud-control@0.3.0/waze-hud-control@0.3.0.tgz"
       },
       "uninstallable": true,
       "requires": {
